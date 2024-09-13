@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using WalliCardsNet.API.Data.Models;
 
 namespace WalliCardsNet.API.Data
 {
@@ -12,8 +13,10 @@ namespace WalliCardsNet.API.Data
         }
 
         // DB sets
-
-
+        public DbSet<Business> Businesses { get; set; }
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<CardTemplate> CardTemplates { get; set; }
+        public DbSet<Device> Devices { get; set; }
 
         // DB context configuration
 
