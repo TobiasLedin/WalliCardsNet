@@ -1,4 +1,9 @@
 
+using DotNetEnv;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using WalliCardsNet.API.Data;
+
 namespace WalliCardsNet.API
 {
     public class Program
@@ -7,14 +12,49 @@ namespace WalliCardsNet.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
             builder.Services.AddEndpointsApiExplorer();
+
+            // Swagger
             builder.Services.AddSwaggerGen();
 
+            // Load environment variables from .env file
+            Env.Load();
+
+            // DB connection string retrieval from environment variables
+            var connectionString = Environment.GetEnvironmentVariable("CONNECTION-STRING");
+
+            // EntityFramework service registration
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(connectionString));
+
+            // Identity service registration
+            builder.Services.AddIdentityCore<IdentityUser>(options =>
+                options.SignIn.RequireConfirmedAccount = true) // Confirmed account requirement setting
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            // Identity settings
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                // Password settings
+                options.Password.RequiredLength = 8;
+
+                // Lockout settings
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+
+                // User settings
+                options.User.RequireUniqueEmail = true;
+            });
+
+            //builder.Services.AddAuthentication(options =>
+            //{
+            //    options.DefaultAuthenticateScheme = JwtBearer
+            //});
+
             var app = builder.Build();
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
