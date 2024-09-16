@@ -7,27 +7,27 @@ namespace WalliCardsNet.API.Data.Repositories
     {
         public Task AddAsync(Business business)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Business/AddAsync method not yet implemented");
         }
 
-        public List<Business> GetAllAsync()
+        public Task<List<Business>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Business/GetAllAsync method not yet implemented");
         }
 
-        public Business GetByIdAsync(int id)
+        public Task<Business> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Business/GetByIdAsync method not yet implemented");
         }
 
         public Task RemoveAsync(int id)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Business/RemoveAsync method not yet implemented");
         }
 
         public Task UpdateAsync(Business business)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Business/UpdateAsync method not yet implemented");
         }
     }
 }
