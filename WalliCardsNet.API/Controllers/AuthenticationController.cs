@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using WalliCardsNet.API.Models;
+using WalliCardsNet.API.Data.Models;
 using WalliCardsNet.ClassLibrary;
 
 namespace WalliCardsNet.API.Controllers

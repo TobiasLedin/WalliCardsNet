@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using WalliCardsNet.API.Data;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Repositories;
-using WalliCardsNet.API.Models;
+using WalliCardsNet.API.Data.Models;
 
 namespace WalliCardsNet.API
 {
