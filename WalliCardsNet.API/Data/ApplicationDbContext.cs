@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using WalliCardsNet.API.Data.Models;
 using WalliCardsNet.API.Models;
 
 

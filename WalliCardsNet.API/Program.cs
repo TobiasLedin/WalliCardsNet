@@ -3,6 +3,8 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WalliCardsNet.API.Data;
+using WalliCardsNet.API.Data.Interfaces;
+using WalliCardsNet.API.Data.Repositories;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API
@@ -31,6 +33,11 @@ namespace WalliCardsNet.API
             // Service registration
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
+
+            builder.Services.AddTransient<IBusiness, BusinessRepository>();
+            builder.Services.AddTransient<ICardTemplate, CardTemplateRepository>();
+            builder.Services.AddTransient<ICustomer, CustomerRepository>();
+            builder.Services.AddTransient<IDevice, DeviceRepository>();
 
             // Identity
             // Service registration and setup
