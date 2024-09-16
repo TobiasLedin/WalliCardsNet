@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalliCardsNet.API", "WalliCardsNet.API\WalliCardsNet.API.csproj", "{E5A62AFA-B3E5-472A-8312-EC4500DE7501}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalliCardsNet.Client", "WalliCardsNet.Client\WalliCardsNet.Client.csproj", "{BDF1D3B9-D0F9-4001-9FBA-E8D9CA60ED16}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E6767B7F-4C3C-4A51-B436-AA785F8BF2F0} = {E6767B7F-4C3C-4A51-B436-AA785F8BF2F0}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalliCardsNet.ClassLibrary", "WalliCardsNet.ClassLibrary\WalliCardsNet.ClassLibrary.csproj", "{E6767B7F-4C3C-4A51-B436-AA785F8BF2F0}"
 EndProject

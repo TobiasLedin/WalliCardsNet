@@ -3,6 +3,7 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WalliCardsNet.API.Data;
+using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API
 {
@@ -19,22 +20,26 @@ namespace WalliCardsNet.API
             // Swagger
             builder.Services.AddSwaggerGen();
 
+            // DotNetEnv
             // Load environment variables from .env file
             Env.Load();
 
             // DB connection string retrieval from environment variables
             var connectionString = Environment.GetEnvironmentVariable("CONNECTION-STRING");
 
-            // EntityFramework service registration
+            // EntityFramework
+            // Service registration
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            // Identity service registration
-            builder.Services.AddIdentityCore<IdentityUser>(options =>
+            // Identity
+            // Service registration and setup
+            builder.Services.AddIdentityCore<ApplicationUser>(options =>
                 options.SignIn.RequireConfirmedAccount = true) // Confirmed account requirement setting
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            // Identity settings
+            // Identity
+            // Settings
             builder.Services.Configure<IdentityOptions>(options =>
             {
                 // Password settings
