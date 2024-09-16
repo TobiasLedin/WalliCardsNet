@@ -6,6 +6,8 @@ using WalliCardsNet.API.Data;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Repositories;
 using WalliCardsNet.API.Data.Models;
+using Microsoft.AspNetCore.Authentication;
+using WalliCardsNet.API.Services;
 
 namespace WalliCardsNet.API
 {
@@ -39,11 +41,19 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<ICustomer, CustomerRepository>();
             builder.Services.AddTransient<IDevice, DeviceRepository>();
 
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
             // Identity
             // Service registration and setup
             builder.Services.AddIdentityCore<ApplicationUser>(options =>
-                options.SignIn.RequireConfirmedAccount = true) // Confirmed account requirement setting
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            {
+                options.SignIn.RequireConfirmedAccount = true;
+                options.User.RequireUniqueEmail = true;
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
+
+            })
+            .AddRoles<IdentityRole<int>>()
+            .AddEntityFrameworkStores<ApplicationDbContext>();
 
             // Identity
             // Settings
@@ -77,10 +87,13 @@ namespace WalliCardsNet.API
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
             app.MapControllers();
+
+
 
             app.Run();
         }

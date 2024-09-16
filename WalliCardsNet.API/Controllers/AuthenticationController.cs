@@ -1,31 +1,54 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using WalliCardsNet.API.Data.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary;
 
 namespace WalliCardsNet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<ApplicationUser> _roleManager;
 
-        public AuthenticationController(
-            UserManager<ApplicationUser> userManager,
-            RoleManager<ApplicationUser> roleManager)
+        private readonly IAuthService _authService;
+
+        public AuthenticationController(IAuthService authService)
         {
-            
+            _authService = authService;
         }
+
 
         [HttpPost]
         [Route("login")]
-        public async Task<IActionResult> Login([FromBody]LoginDTO login)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Login(LoginDTO login)
         {
-            
-            return Ok();
+            var result = await _authService.Login(login.Email, login.Password);
+
+            if (result.LoginSuccess)
+            {
+                return Ok(result);
+            }
+
+            return Unauthorized();
+        }
+
+
+        // Register TEST -  !!!
+
+        [HttpPost]
+        [Route("register")]
+        public async Task<IActionResult> Register(string name, string email, string password)
+        {
+            var result = await _authService.Register(name, email, password);
+
+            if (result.RegisterSuccess)
+            {
+                return Created();
+            }
+
+            return BadRequest(result.Details);
+
         }
 
     }
