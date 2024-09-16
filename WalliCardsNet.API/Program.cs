@@ -3,7 +3,7 @@ using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WalliCardsNet.API.Data;
-using WalliCardsNet.API.Models;
+using WalliCardsNet.API.Data.Models;
 
 namespace WalliCardsNet.API
 {
