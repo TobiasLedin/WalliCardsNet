@@ -35,6 +35,19 @@ namespace WalliCardsNet.API.Data
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<IdentityRole<int>>().HasData(
+                new IdentityRole<int>
+                {
+                    Id = 1,
+                    Name = Constants.Roles.Administrator,
+                    NormalizedName = Constants.Roles.Administrator.ToUpper()
+                },
+                new IdentityRole<int>
+                {
+                    Id = 2,
+                    Name = Constants.Roles.User,
+                    NormalizedName = Constants.Roles.User.ToUpper()
+                });
         }
     }
 }
