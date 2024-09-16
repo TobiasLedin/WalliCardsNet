@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using WalliCardsNet.API.Models;
 
+
 namespace WalliCardsNet.API.Data
 {
     // EF setup to use int Id's for ApplicationUser and IdentityRole
@@ -16,8 +17,10 @@ namespace WalliCardsNet.API.Data
         }
 
         // DB sets
-
-
+        public DbSet<Business> Businesses { get; set; }
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<CardTemplate> CardTemplates { get; set; }
+        public DbSet<Device> Devices { get; set; }
 
         // DB context configuration
 
