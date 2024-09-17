@@ -95,8 +95,19 @@ namespace WalliCardsNet.API
             builder.Services.AddScoped<IAuthService, AuthService>();
 
 
-            var app = builder.Build();
+            //CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("https://localhost:7102")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+            });
 
+            var app = builder.Build();
+            app.UseCors();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
