@@ -8,6 +8,10 @@ using WalliCardsNet.API.Data.Repositories;
 using WalliCardsNet.API.Data.Models;
 using Microsoft.AspNetCore.Authentication;
 using WalliCardsNet.API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace WalliCardsNet.API
 {
@@ -41,19 +45,18 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<ICustomer, CustomerRepository>();
             builder.Services.AddTransient<IDevice, DeviceRepository>();
 
-            builder.Services.AddScoped<IAuthService, AuthService>();
-
             // Identity
             // Service registration and setup
             builder.Services.AddIdentityCore<ApplicationUser>(options =>
             {
-                options.SignIn.RequireConfirmedAccount = true;
+                options.SignIn.RequireConfirmedAccount = false;
                 options.User.RequireUniqueEmail = true;
                 options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
 
             })
             .AddRoles<IdentityRole<int>>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
             // Identity
             // Settings
@@ -70,10 +73,27 @@ namespace WalliCardsNet.API
                 options.User.RequireUniqueEmail = true;
             });
 
-            //builder.Services.AddAuthentication(options =>
-            //{
-            //    options.DefaultAuthenticateScheme = JwtBearer
-            //});
+            builder.Services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(x =>
+            {
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")!)),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = Environment.GetEnvironmentVariable("JWT-VALID-AUDIENCE"),   // Needs configuring!
+                    ValidIssuer = Environment.GetEnvironmentVariable("JWT-VALID-ISSUER")        // Needs configuring!
+                };
+            });
+
+            builder.Services.AddAuthorization();
+
+            // Custom Authentication service
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
 
             var app = builder.Build();
 
@@ -90,9 +110,7 @@ namespace WalliCardsNet.API
             app.UseAuthentication();
             app.UseAuthorization();
 
-
             app.MapControllers();
-
 
 
             app.Run();
