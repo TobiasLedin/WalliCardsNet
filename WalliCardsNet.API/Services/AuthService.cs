@@ -1,4 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using WalliCardsNet.API.Data.Models;
 
 namespace WalliCardsNet.API.Services
@@ -45,11 +49,12 @@ namespace WalliCardsNet.API.Services
                             await _userManager.AddPasswordAsync(user, password);
                             await _userManager.SetEmailAsync(user, email);
                             await _userManager.AddToRoleAsync(user, Constants.Roles.User);
+                            await _userManager.SetLockoutEnabledAsync(user, false);
 
                             return new RegisterResult { RegisterSuccess = true, Email = user.Email };
                         }
 
-                        return new RegisterResult { RegisterSuccess = false, Details = createUserResult.Errors.ToString() };
+                        return new RegisterResult { RegisterSuccess = false, Details = createUserResult.Errors.ToString() }; //TODO: Fix error messages
 
                     }
                     catch (Exception ex)
@@ -77,16 +82,56 @@ namespace WalliCardsNet.API.Services
 
             if (user != null)
             {
+                var lockoutActive = await _userManager.IsLockedOutAsync(user);
+
+                if (lockoutActive)
+                {
+                    var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+
+                    if (lockoutEnd.HasValue)
+                    {
+                        //var lockoutEndLocalTime = lockoutEnd.Value.UtcDateTime.ToLocalTime();
+
+                        return new LoginResult { LoginSuccess = false, Details = $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}" };
+                    }
+
+                    return new LoginResult { LoginSuccess = false, Details = "Maximum allowed login attempts exceeded. Lockout enabled." };
+                }
+
                 var passwordIsValid = await _userManager.CheckPasswordAsync(user, password);
 
                 if (passwordIsValid)
                 {
-                    return new LoginResult { LoginSuccess = true };
+                    return new LoginResult { LoginSuccess = true, Token = await GenerateToken(user) };
                 }
+
+                await _userManager.AccessFailedAsync(user);
             }
 
-            return new LoginResult { LoginSuccess = false };
+            return new LoginResult { LoginSuccess = false, Details = "Email and/or Password incorrect!" };
         }
+
+        #region Tokens
+        private async Task<string> GenerateToken(ApplicationUser user)
+        {
+            var privateKey = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")!);
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var credentials = new SigningCredentials(new SymmetricSecurityKey(privateKey), SecurityAlgorithms.HmacSha256);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                SigningCredentials = credentials,
+                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(Environment.GetEnvironmentVariable("JWT-EXPIRE-TIME"))),
+                Subject = await GenerateClaims(user)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
+        }
+        #endregion
 
         #region Validators
 
@@ -123,9 +168,30 @@ namespace WalliCardsNet.API.Services
         }
 
         #endregion
-        #region Support classes
 
-        // Support classes
+        #region Support methods and classes
+
+        // ClaimsIdentity generator
+        private async Task<ClaimsIdentity> GenerateClaims(ApplicationUser user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+                new Claim("security_stamp", user.SecurityStamp!),
+            };
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            return new ClaimsIdentity(claims);
+        }
+
         public class RegisterResult
         {
             public bool RegisterSuccess { get; set; }
@@ -136,6 +202,10 @@ namespace WalliCardsNet.API.Services
         public class LoginResult
         {
             public bool LoginSuccess { get; set; }
+
+            public string? Token { get; set; }
+
+            public string? Details { get; set; }
         }
 
         #endregion
