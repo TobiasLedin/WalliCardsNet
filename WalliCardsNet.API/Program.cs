@@ -75,8 +75,19 @@ namespace WalliCardsNet.API
             //    options.DefaultAuthenticateScheme = JwtBearer
             //});
 
-            var app = builder.Build();
+            //CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("https://localhost:7102")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+            });
 
+            var app = builder.Build();
+            app.UseCors();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

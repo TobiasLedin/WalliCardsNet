@@ -1,0 +1,63 @@
+﻿@page "/api-test"
+@inject HttpClient Http
+@using WalliCardsNet.ClassLibrary
+
+<div>
+    <button @onclick='() => SetDataType("Business")'>Businesses</button>
+    <button disabled>Customers</button>
+    <button disabled>Devices</button>
+    <button disabled>CardTemplates</button>
+</div>
+
+<div>
+    <button @onclick='() => SetApiEndpoint("GetAll")'>Get All</button>
+    <button @onclick='() => SetApiEndpoint("GetById")'>Get by ID</button>
+    <button @onclick='() => SetApiEndpoint("Add")'>Add</button>
+</div>
+
+@if (GetComponentType() is Type componentType)
+{
+    <DynamicComponent Type="componentType"></DynamicComponent>
+}
+
+@code {
+
+    private Dictionary<(string dataType, string apiEndpoint), Type> componentMapping;
+
+    protected override async Task OnInitializedAsync()
+    {
+        componentMapping = new Dictionary<(string, string), Type>
+        {
+            { ("Business", "GetById"), typeof(WalliCardsNet.Client.Components.API.BusinessGetById) },
+            { ("Business", "GetAll"), typeof(WalliCardsNet.Client.Components.API.BusinessGetAll) },
+            {("Business", "Add"), typeof(WalliCardsNet.Client.Components.API.BusinessAdd)},
+        };
+    }
+
+    public string CurrentDataType { get; set; } = "Business";
+    public string CurrentApiEndpoint { get; set; } = "GetAll";
+
+
+    public async Task SetDataType(string dataType)
+    {
+        Console.WriteLine($"DataType set to {dataType}");
+        CurrentDataType = dataType;
+        CurrentApiEndpoint = "";
+    }
+
+    public async Task SetApiEndpoint(string apiEndpoint)
+    {
+        Console.WriteLine($"ApiEndpoint set to {apiEndpoint}");
+        CurrentApiEndpoint = apiEndpoint;
+    }
+
+    public Type GetComponentType()
+    {
+        if (componentMapping.TryGetValue((CurrentDataType, CurrentApiEndpoint), out var componentType))
+        {
+            return componentType;
+        }
+        return null;
+        
+    }
+}

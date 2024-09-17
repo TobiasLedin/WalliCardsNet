@@ -1,0 +1,61 @@
+﻿@inject HttpClient Http
+@using WalliCardsNet.ClassLibrary
+
+<h3>Get by ID</h3>
+<InputNumber @bind-Value="BusinessId"></InputNumber>
+@if (BusinessId > 0)
+{
+    <button @onclick="Search">Search</button>
+}
+else
+{
+    <button @onclick="Search" disabled>Search</button>
+}
+
+
+@if (Business != null)
+{
+    <p>Name: @Business.Name</p>
+}
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p>@ErrorMessage</p>
+}
+@if (Fetching == true){
+    <p>Fetching data ...</p>
+}
+
+@code {
+    public BusinessDTO Business { get; set; }
+    public int BusinessId { get; set; }
+    public string ErrorMessage { get; set; } = "";
+    public bool Fetching { get; set; } = false;
+
+    public async Task Search()
+    {
+        Business = null;
+        ErrorMessage = "";
+        Fetching = true;
+        try
+        {
+            var response = await Http.GetAsync($"api/Business/{BusinessId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await Http.GetFromJsonAsync<BusinessDTO>($"api/Business/{BusinessId}");
+                if (result != null)
+                {
+                    Business = result;
+                }
+            }
+            else
+            {
+                ErrorMessage = $"Error fetching data: {response.StatusCode}";
+            }
+        }
+        finally
+        {
+            Fetching = false;
+            StateHasChanged();
+        }
+    }
+}

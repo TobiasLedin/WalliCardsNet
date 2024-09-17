@@ -1,0 +1,32 @@
+﻿table {
+    width: 100%;
+    border-collapse: collapse; /* Ensures borders are merged into a single border */
+    margin: 1rem 0; /* Adds margin above and below the table */
+}
+
+thead {
+    background-color: #f4f4f4; /* Light background for header */
+}
+
+th, td {
+    padding: 0.8rem; /* Adds space around the content in cells */
+    text-align: left; /* Aligns text to the left */
+    border: 1px solid #ddd; /* Adds a light border around cells */
+}
+
+/* Header styles */
+th {
+    background-color: #333; /* Dark background for headers */
+    color: #fff; /* White text color for headers */
+    font-weight: bold; /* Makes header text bold */
+}
+
+/* Zebra striping for rows */
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9; /* Light grey background for even rows */
+}
+
+/* Hover effect for rows */
+tbody tr:hover {
+    background-color: #f1f1f1; /* Slightly darker grey background on hover */
+}

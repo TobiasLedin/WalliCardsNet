@@ -1,33 +1,58 @@
-﻿using WalliCardsNet.API.Data.Interfaces;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
+using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
     public class BusinessRepository : IBusiness
     {
-        public Task AddAsync(Business business)
+        private readonly ApplicationDbContext _applicationDbContext;
+
+        public BusinessRepository(ApplicationDbContext applicationDbContext)
         {
-            throw new NotImplementedException("Business/AddAsync method not yet implemented");
+            _applicationDbContext = applicationDbContext;
+        }
+        public async Task AddAsync(Business business)
+        {
+            if (business != null)
+            {
+                await _applicationDbContext.AddAsync(business);
+            }
+            await _applicationDbContext.SaveChangesAsync();
         }
 
-        public Task<List<Business>> GetAllAsync()
+        public async Task<List<Business>> GetAllAsync()
         {
-            throw new NotImplementedException("Business/GetAllAsync method not yet implemented");
+            var result = await _applicationDbContext.Businesses.ToListAsync();
+            if (result != null)
+            {
+                return result;
+            }
+            return null;
         }
 
-        public Task<Business> GetByIdAsync(int id)
+        public async Task<Business> GetByIdAsync(int id)
         {
-            throw new NotImplementedException("Business/GetByIdAsync method not yet implemented");
+            var result = await _applicationDbContext.Businesses.FirstOrDefaultAsync(x => x.Id == id);
+            if (result != null)
+            {
+                return result;
+            }
+                return null;
         }
 
-        public Task RemoveAsync(int id)
+        public async Task RemoveAsync(int id)
         {
-            throw new NotImplementedException("Business/RemoveAsync method not yet implemented");
+            var business = await GetByIdAsync(id);
+            _applicationDbContext.Businesses.Remove(business);
+            await _applicationDbContext.SaveChangesAsync();
         }
 
-        public Task UpdateAsync(Business business)
+        public async Task UpdateAsync(Business business)
         {
-            throw new NotImplementedException("Business/UpdateAsync method not yet implemented");
+            _applicationDbContext.Businesses.Update(business);
+            await _applicationDbContext.SaveChangesAsync();
         }
     }
 }

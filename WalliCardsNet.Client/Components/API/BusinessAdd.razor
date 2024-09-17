@@ -1,0 +1,55 @@
+﻿@using WalliCardsNet.ClassLibrary
+@inject HttpClient Http
+
+<h3>Add business</h3>
+
+<EditForm Model="Business">
+    <div>
+        <label>Name</label>
+        <InputText @bind-Value="Business.Name"></InputText>
+    </div>
+    <button type="submit" @onclick="Submit">Add</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <p>@SuccessMessage</p>
+}
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p>@ErrorMessage</p>
+}
+
+@code {
+    public BusinessDTO Business { get; set; } = new BusinessDTO();
+    public string SuccessMessage { get; set; } = "";
+    public string ErrorMessage { get; set; } = "";
+    public bool Adding { get; set; } = false;
+
+    public async Task Submit()
+    {
+        SuccessMessage = "";
+        ErrorMessage = "";
+        Adding = true;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync<BusinessDTO>("/api/Business", Business);
+            if (response.IsSuccessStatusCode)
+            {
+                SuccessMessage = $"Successfully added {Business.Name}";
+                Business = new BusinessDTO();
+            }
+            else
+            {
+                ErrorMessage = $"Error creating {Business.Name}: {response.StatusCode}";
+            }
+        }
+        finally
+        {
+            Adding = false;
+            StateHasChanged();
+        }
+
+    }
+}
