@@ -21,16 +21,17 @@ namespace WalliCardsNet.API.Controllers
         [Route("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login(LoginDTO login)
+        public async Task<IActionResult> Login(LoginRequestDTO login)
         {
             var result = await _authService.Login(login.Email, login.Password);
 
             if (result.LoginSuccess)
             {
-                return Ok(result);
+                return Ok(new LoginResultDTO(true, result.Token));
             }
 
-            return Unauthorized();
+
+            return Unauthorized(result.Details);
         }
 
 
