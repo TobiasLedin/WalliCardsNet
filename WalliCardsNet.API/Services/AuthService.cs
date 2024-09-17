@@ -46,9 +46,9 @@ namespace WalliCardsNet.API.Services
 
                         if (createUserResult.Succeeded)
                         {
-                            await _userManager.AddPasswordAsync(user, password);
+                            //await _userManager.AddPasswordAsync(user, password);      // Set password in separate endpoint
                             await _userManager.SetEmailAsync(user, email);
-                            await _userManager.AddToRoleAsync(user, Constants.Roles.User);
+                            await _userManager.AddToRoleAsync(user, Constants.Roles.Manager);
                             await _userManager.SetLockoutEnabledAsync(user, false);
 
                             return new RegisterResult { RegisterSuccess = true, Email = user.Email };
@@ -61,15 +61,6 @@ namespace WalliCardsNet.API.Services
                     {
 
                     }
-
-                }
-                else
-                {
-                    //foreach (var error in userNameValidation.Errors)
-                    //{
-                    //    results.Add(error)
-                    //}
-
                 }
             }
 
@@ -87,15 +78,8 @@ namespace WalliCardsNet.API.Services
                 if (lockoutActive)
                 {
                     var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
-
-                    if (lockoutEnd.HasValue)
-                    {
-                        //var lockoutEndLocalTime = lockoutEnd.Value.UtcDateTime.ToLocalTime();
-
-                        return new LoginResult { LoginSuccess = false, Details = $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}" };
-                    }
-
-                    return new LoginResult { LoginSuccess = false, Details = "Maximum allowed login attempts exceeded. Lockout enabled." };
+                    
+                    return new LoginResult { LoginSuccess = false, Details = $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}" };
                 }
 
                 var passwordIsValid = await _userManager.CheckPasswordAsync(user, password);
