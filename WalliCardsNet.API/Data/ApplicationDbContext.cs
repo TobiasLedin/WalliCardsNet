@@ -8,7 +8,7 @@ namespace WalliCardsNet.API.Data
 {
     // EF setup to use int Id's for ApplicationUser and IdentityRole
 
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -35,18 +35,24 @@ namespace WalliCardsNet.API.Data
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<IdentityRole<int>>().HasData(
-                new IdentityRole<int>
+            builder.Entity<IdentityRole>().HasData(
+                new IdentityRole
                 {
-                    Id = 1,
+                    Id = "3626b5c9-6d31-4664-85cf-505b25561781",
                     Name = Constants.Roles.Administrator,
                     NormalizedName = Constants.Roles.Administrator.ToUpper()
                 },
-                new IdentityRole<int>
+                new IdentityRole
                 {
-                    Id = 2,
-                    Name = Constants.Roles.User,
-                    NormalizedName = Constants.Roles.User.ToUpper()
+                    Id = "28dbb454-33e3-445c-b68a-c8e327175158",
+                    Name = Constants.Roles.Manager,
+                    NormalizedName = Constants.Roles.Manager.ToUpper()
+                },
+                new IdentityRole
+                {
+                    Id = "dd207899-ce7e-4217-ab90-2ffffcfe84ef",
+                    Name = Constants.Roles.Employee,
+                    NormalizedName = Constants.Roles.Employee.ToUpper()
                 });
         }
     }
