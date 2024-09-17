@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Models;
+using WalliCardsNet.ClassLibrary;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -20,7 +21,17 @@ namespace WalliCardsNet.API.Controllers
             var result = await _businessRepo.GetAllAsync();
             if (result != null && result.Any())
             {
-                return Ok(result);
+                List<BusinessDTO> businesses = new List<BusinessDTO>();
+                foreach (var business in result)
+                {
+                    var dto = new BusinessDTO
+                    {
+                        Id = business.Id,
+                        Name = business.Name
+                    };
+                    businesses.Add(dto);
+                }
+                return Ok(businesses);
             }
             else
             {
@@ -34,7 +45,12 @@ namespace WalliCardsNet.API.Controllers
             var result = await _businessRepo.GetByIdAsync(id);
             if (result != null)
             {
-                return Ok(result);
+                BusinessDTO dto = new BusinessDTO 
+                {
+                    Id = result.Id,
+                    Name = result.Name
+                };
+                return Ok(dto);
             }
             else
             {
@@ -44,17 +60,24 @@ namespace WalliCardsNet.API.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAsync(Business business)
+        public async Task<IActionResult> AddAsync(BusinessDTO registerBusinessDTO)
         {
-            if (!ModelState.IsValid)
+            if (registerBusinessDTO == null)
             {
-                return BadRequest(ModelState);
+                return BadRequest();
             }
+
+            Business business = new Business
+            {
+                Name = registerBusinessDTO.Name,
+                PspId = Guid.NewGuid().ToString(),
+                CustomerDetailsJson = new List<string> { "Customer 1 detail", "Customer 2 detail", "Customer 3 detail" },
+            };
 
             try
             {
                 await _businessRepo.AddAsync(business);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = business.Id }, business);
+                return Created($"api/Business/{business.Id}", business);
             }
             catch (Exception ex)
             {
@@ -63,13 +86,14 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAsync(Business business)
+        public async Task<IActionResult> UpdateAsync(BusinessDTO businessDTO)
         {
-            if (!ModelState.IsValid)
+            if (businessDTO == null)
             {
-                return BadRequest(ModelState);
+                return BadRequest();
             }
-
+            var business = await _businessRepo.GetByIdAsync(businessDTO.Id);
+            business.Name = businessDTO.Name;
             try
             {
                 await _businessRepo.UpdateAsync(business);
