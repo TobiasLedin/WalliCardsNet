@@ -40,7 +40,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(int id)
+        public async Task<IActionResult> GetByIdAsync(string id)
         {
             var result = await _businessRepo.GetByIdAsync(id);
             if (result != null)
@@ -106,7 +106,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveAsync(int id)
+        public async Task<IActionResult> RemoveAsync(string id)
         {
             try
             {

@@ -2,7 +2,7 @@
 {
     public class Device
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public Customer Customer { get; set; }
         public DeviceType Type { get; set; }
     }
