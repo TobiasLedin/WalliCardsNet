@@ -41,7 +41,7 @@
     public List<BusinessDTO> Businesses { get; set; }
     public string ErrorMessage { get; set; } = "";
     public bool Fetching { get; set; } = false;
-    public int? EditBusinessId { get; set; } = null;
+    public string? EditBusinessId { get; set; } = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,7 +75,7 @@
         }
     }
 
-    public void EditBusiness(int businessId)
+    public void EditBusiness(string businessId)
     {
         EditBusinessId = businessId;
     }
@@ -99,7 +99,7 @@
         }
     }
 
-    public async Task DeleteBusinessAsync(int id)
+    public async Task DeleteBusinessAsync(string id)
     {
         var response = await Http.DeleteAsync($"api/Business/{id}");
         if (response.IsSuccessStatusCode)

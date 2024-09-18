@@ -2,7 +2,7 @@
 {
     public class CardTemplate
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public Business Business { get; set; }
         public string DesignJson { get; set; } = "";
     }
