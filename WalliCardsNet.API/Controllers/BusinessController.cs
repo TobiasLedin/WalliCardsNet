@@ -16,7 +16,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
             var result = await _businessRepo.GetAllAsync();
             if (result != null && result.Any())
@@ -40,7 +40,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(string id)
+        public async Task<IActionResult> GetById(string id)
         {
             var result = await _businessRepo.GetByIdAsync(id);
             if (result != null)
@@ -60,7 +60,7 @@ namespace WalliCardsNet.API.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAsync(BusinessDTO registerBusinessDTO)
+        public async Task<IActionResult> Add(BusinessDTO registerBusinessDTO)
         {
             if (registerBusinessDTO == null)
             {
@@ -87,7 +87,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAsync(BusinessDTO businessDTO)
+        public async Task<IActionResult> Update(BusinessDTO businessDTO)
         {
             if (businessDTO == null)
             {
@@ -107,7 +107,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveAsync(string id)
+        public async Task<IActionResult> Remove(string id)
         {
             try
             {
