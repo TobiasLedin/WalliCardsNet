@@ -34,6 +34,7 @@
 
         try
         {
+            Business.Id = "";
             var response = await Http.PostAsJsonAsync<BusinessDTO>("/api/Business", Business);
             if (response.IsSuccessStatusCode)
             {
