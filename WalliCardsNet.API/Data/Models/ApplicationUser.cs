@@ -8,5 +8,7 @@ namespace WalliCardsNet.API.Data.Models
     public class ApplicationUser : IdentityUser
     {
 
+        public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
+
     }
 }
