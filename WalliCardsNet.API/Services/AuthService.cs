@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -67,7 +68,7 @@ namespace WalliCardsNet.API.Services
             return new RegisterResult { RegisterSuccess = false, Details = "Email/Password not provided" };
         }
 
-        public async Task<LoginResult> Login(string email, string password)
+        public async Task<LoginResult> LoginAsync(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
@@ -86,7 +87,7 @@ namespace WalliCardsNet.API.Services
 
                 if (passwordIsValid)
                 {
-                    return new LoginResult { LoginSuccess = true, Token = await GenerateToken(user) };
+                    return new LoginResult { LoginSuccess = true, Token = await GenerateTokenAsync(user) };
                 }
 
                 await _userManager.AccessFailedAsync(user);
@@ -96,7 +97,7 @@ namespace WalliCardsNet.API.Services
         }
 
         #region Tokens
-        private async Task<string> GenerateToken(ApplicationUser user)
+        private async Task<string> GenerateTokenAsync(ApplicationUser user)
         {
             var privateKey = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")!);
 
@@ -108,7 +109,7 @@ namespace WalliCardsNet.API.Services
             {
                 SigningCredentials = credentials,
                 Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(Environment.GetEnvironmentVariable("JWT-EXPIRE-TIME"))),
-                Subject = await GenerateClaims(user)
+                Subject = await GenerateClaimsAsync(user)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -156,7 +157,7 @@ namespace WalliCardsNet.API.Services
         #region Support methods and classes
 
         // ClaimsIdentity generator
-        private async Task<ClaimsIdentity> GenerateClaims(ApplicationUser user)
+        private async Task<ClaimsIdentity> GenerateClaimsAsync(ApplicationUser user)
         {
             var claims = new List<Claim>
             {
