@@ -23,7 +23,7 @@ namespace WalliCardsNet.API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Login(LoginRequestDTO login)
         {
-            var result = await _authService.Login(login.Email, login.Password);
+            var result = await _authService.LoginAsync(login.Email, login.Password);
 
             if (result.LoginSuccess)
             {
@@ -38,10 +38,10 @@ namespace WalliCardsNet.API.Controllers
         // Register TEST -  !!!
 
         [HttpPost]
-        [Route("register")]
-        public async Task<IActionResult> Register(string name, string email, string password)
+        [Route("register-employee")]
+        public async Task<IActionResult> RegisterEmployee(string name, string email, string password)
         {
-            var result = await _authService.Register(name, email, password);
+            var result = await _authService.RegisterEmployeeAsync(name, email, password);
 
             if (result.RegisterSuccess)
             {
