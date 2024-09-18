@@ -12,7 +12,7 @@ namespace WalliCardsNet.API.Data.Models
         public List<Customer>? Customers { get; set; }
         public List<string>? CustomerDetailsJson { get; set; }
 
-        //public ApplicationUser ApplicationUser {get; set;}
+        public List<ApplicationUser> ApplicationUsers { get; set; } = [];
     }
 
     public class CustomerDetails 
