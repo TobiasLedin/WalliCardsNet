@@ -44,6 +44,7 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<ICardTemplate, CardTemplateRepository>();
             builder.Services.AddTransient<ICustomer, CustomerRepository>();
             builder.Services.AddTransient<IDevice, DeviceRepository>();
+            builder.Services.AddTransient<IMailService, MailService>();
 
             // Identity
             // Service registration and setup
