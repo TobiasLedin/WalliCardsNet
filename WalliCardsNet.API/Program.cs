@@ -40,11 +40,18 @@ namespace WalliCardsNet.API
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
+            // Repositories
             builder.Services.AddTransient<IBusiness, BusinessRepository>();
             builder.Services.AddTransient<ICardTemplate, CardTemplateRepository>();
             builder.Services.AddTransient<ICustomer, CustomerRepository>();
             builder.Services.AddTransient<IDevice, DeviceRepository>();
+            builder.Services.AddTransient<IFormData, FormDataRepository>();
+
+            // Mail service
             builder.Services.AddTransient<IMailService, MailService>();
+
+            // FormData service
+            builder.Services.AddTransient<FormDataService>();
 
             // Identity
             // Service registration and setup
@@ -93,7 +100,7 @@ namespace WalliCardsNet.API
             builder.Services.AddAuthorization();
 
             // Custom Authentication service
-            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IAuthService, APIAuthService>();
 
 
             //CORS
