@@ -5,14 +5,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using WalliCardsNet.API.Data.Models;
+using WalliCardsNet.ClassLibrary;
 
 namespace WalliCardsNet.API.Services
 {
-    public class AuthService : IAuthService
+    public class APIAuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AuthService(UserManager<ApplicationUser> userManager)
+        public APIAuthService(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
@@ -22,7 +23,7 @@ namespace WalliCardsNet.API.Services
         /// </summary>
         /// <param name="email"></param>
         /// <param name="password"></param>
-        public async Task<RegisterResult> Register(string userName, string email, string password)
+        public async Task<RegisterResultDTO> RegisterEmployeeAsync(string userName, string email, string password)
         {
             if (email != null || password != null)
             {
@@ -50,12 +51,13 @@ namespace WalliCardsNet.API.Services
                             //await _userManager.AddPasswordAsync(user, password);      // Set password in separate endpoint
                             await _userManager.SetEmailAsync(user, email);
                             await _userManager.AddToRoleAsync(user, Constants.Roles.Manager);
-                            await _userManager.SetLockoutEnabledAsync(user, false);
+                            await _userManager.SetLockoutEnabledAsync(user, false);  // Remove ?
 
-                            return new RegisterResult { RegisterSuccess = true, Email = user.Email };
+                            return new RegisterResultDTO(true, null);
                         }
 
-                        return new RegisterResult { RegisterSuccess = false, Details = createUserResult.Errors.ToString() }; //TODO: Fix error messages
+                        return new RegisterResultDTO(false, null);
+                        /*return new RegisterResult { RegisterSuccess = false, Details = createUserResult.Errors.ToString() };*/ //TODO: Fix error messages
 
                     }
                     catch (Exception ex)
@@ -65,10 +67,16 @@ namespace WalliCardsNet.API.Services
                 }
             }
 
-            return new RegisterResult { RegisterSuccess = false, Details = "Email/Password not provided" };
+            return new RegisterResultDTO(false, "Email/Password not provided");
         }
 
-        public async Task<LoginResult> LoginAsync(string email, string password)
+        /// <summary>
+        /// Client login method
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="password"></param>
+        /// <returns>LoginResultDTO containing access token, if login is successful.</returns>
+        public async Task<LoginResultDTO> LoginAsync(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
@@ -80,20 +88,22 @@ namespace WalliCardsNet.API.Services
                 {
                     var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
                     
-                    return new LoginResult { LoginSuccess = false, Details = $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}" };
+                    return new LoginResultDTO(false, null, $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}");
                 }
 
                 var passwordIsValid = await _userManager.CheckPasswordAsync(user, password);
 
                 if (passwordIsValid)
                 {
-                    return new LoginResult { LoginSuccess = true, Token = await GenerateTokenAsync(user) };
+                    var token = await GenerateTokenAsync(user);
+
+                    return new LoginResultDTO(true, token, null);
                 }
 
                 await _userManager.AccessFailedAsync(user);
             }
 
-            return new LoginResult { LoginSuccess = false, Details = "Email and/or Password incorrect!" };
+            return new LoginResultDTO(false, null, "Email/Password incorrect");
         }
 
         #region Tokens

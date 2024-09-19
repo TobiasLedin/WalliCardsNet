@@ -25,32 +25,31 @@ namespace WalliCardsNet.API.Controllers
         {
             var result = await _authService.LoginAsync(login.Email, login.Password);
 
-            if (result.LoginSuccess)
+            if (result.Success)
             {
-                return Ok(new LoginResultDTO(true, result.Token));
+                return Ok(result);
             }
-
 
             return Unauthorized(result.Details);
         }
+         
 
+        //[HttpPost]
+        //[Route("register-employee")]
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //public async Task<IActionResult> RegisterEmployee(RegisterRequestDTO register)
+        //{
+        //    var result = await _authService.RegisterEmployeeAsync(register.UserName, register.Email, register.);
 
-        // Register TEST -  !!!
+        //    if (result.Success)
+        //    {
+        //        return Created();
+        //    }
 
-        [HttpPost]
-        [Route("register-employee")]
-        public async Task<IActionResult> RegisterEmployee(string name, string email, string password)
-        {
-            var result = await _authService.RegisterEmployeeAsync(name, email, password);
+        //    return BadRequest(result.Details);
 
-            if (result.RegisterSuccess)
-            {
-                return Created();
-            }
-
-            return BadRequest(result.Details);
-
-        }
+        //}
 
     }
 }
