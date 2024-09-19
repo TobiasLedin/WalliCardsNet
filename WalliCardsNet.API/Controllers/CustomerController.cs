@@ -44,17 +44,13 @@ namespace WalliCardsNet.API.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAsync(Customer customer)
+        public async Task<IActionResult> AddAsync()
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
+                Customer customer = new Customer();
                 await _customerRepo.AddAsync(customer);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = customer.Id }, customer);
+                return Created($"api/Customer/{customer.Id}", customer);
             }
             catch (Exception ex)
             {

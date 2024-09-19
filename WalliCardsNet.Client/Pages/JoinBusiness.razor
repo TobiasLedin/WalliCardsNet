@@ -1,0 +1,23 @@
+﻿@using WalliCardsNet.ClassLibrary
+@inject HttpClient Http
+
+<h3>JoinBusiness</h3>
+@if (Business != null)
+{
+    <p>@Business.Name</p>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+    public BusinessDTO Business {get; set;} 
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Http.GetAsync($"/api/Business/{Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await Http.GetFromJsonAsync<BusinessDTO>($"api/Business/{Id}");
+        }
+    }
+}

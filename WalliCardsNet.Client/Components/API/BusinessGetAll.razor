@@ -41,7 +41,7 @@
     public List<BusinessDTO> Businesses { get; set; }
     public string ErrorMessage { get; set; } = "";
     public bool Fetching { get; set; } = false;
-    public string? EditBusinessId { get; set; } = null;
+    public Guid EditBusinessId { get; set; } = Guid.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,14 +75,14 @@
         }
     }
 
-    public void EditBusiness(string businessId)
+    public void EditBusiness(Guid businessId)
     {
         EditBusinessId = businessId;
     }
 
     public void CancelEdit()
     {
-        EditBusinessId = null;
+        EditBusinessId = Guid.Empty;
     }
 
     public async Task SaveChangesAsync(BusinessDTO business)
@@ -90,7 +90,7 @@
         var response = await Http.PutAsJsonAsync($"api/Business/", business);
         if (response.IsSuccessStatusCode)
         {
-            EditBusinessId = null;
+            EditBusinessId = Guid.Empty;
             StateHasChanged();
         }
         else
@@ -99,12 +99,12 @@
         }
     }
 
-    public async Task DeleteBusinessAsync(string id)
+    public async Task DeleteBusinessAsync(Guid id)
     {
         var response = await Http.DeleteAsync($"api/Business/{id}");
         if (response.IsSuccessStatusCode)
         {
-            EditBusinessId = null;
+            EditBusinessId = Guid.Empty;
             await FetchBusinesses();
             StateHasChanged();
         }
