@@ -20,6 +20,7 @@ namespace WalliCardsNet.API.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<CardTemplate> CardTemplates { get; set; }
         public DbSet<Device> Devices { get; set; }
+        public DbSet<FormData> FormData { get; set; }
 
         // DB context configuration
 
