@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace WalliCardsNet.ClassLibrary
 {
-    public record LoginResultDTO(bool Success, string? Token, string? Details);
+    public record RegisterRequestDTO(string FormDataId, string UserName, string Password);
     
 }
