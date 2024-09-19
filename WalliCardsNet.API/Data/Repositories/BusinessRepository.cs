@@ -17,7 +17,7 @@ namespace WalliCardsNet.API.Data.Repositories
         {
             if (business != null)
             {
-                await _applicationDbContext.AddAsync(business);
+                await _applicationDbContext.Businesses.AddAsync(business);
             }
             await _applicationDbContext.SaveChangesAsync();
         }
@@ -32,7 +32,7 @@ namespace WalliCardsNet.API.Data.Repositories
             return null;
         }
 
-        public async Task<Business> GetByIdAsync(string id)
+        public async Task<Business> GetByIdAsync(Guid id)
         {
             var result = await _applicationDbContext.Businesses.FirstOrDefaultAsync(x => x.Id == id);
             if (result != null)
@@ -42,7 +42,7 @@ namespace WalliCardsNet.API.Data.Repositories
                 return null;
         }
 
-        public async Task RemoveAsync(string id)
+        public async Task RemoveAsync(Guid id)
         {
             var business = await GetByIdAsync(id);
             _applicationDbContext.Businesses.Remove(business);

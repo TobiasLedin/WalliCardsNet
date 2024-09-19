@@ -2,7 +2,7 @@
 {
     public class Customer
     {
-        public string Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public List<Business>? Businesses { get; set; }
         public List<Device>? Devices { get; set; }
     }

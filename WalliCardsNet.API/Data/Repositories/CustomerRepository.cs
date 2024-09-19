@@ -5,9 +5,22 @@ namespace WalliCardsNet.API.Data.Repositories
 {
     public class CustomerRepository : ICustomer
     {
-        public Task AddAsync(Customer customer)
+        private readonly ApplicationDbContext _applicationDbContext;
+
+        public CustomerRepository(ApplicationDbContext applicationDbContext)
         {
-            throw new NotImplementedException("Customer/AddAsync method not yet implemented");
+            _applicationDbContext = applicationDbContext;
+        }
+
+        public async Task AddAsync(Customer customer)
+        {
+            if (customer != null)
+            {
+                customer.Businesses = null;
+                customer.Devices = null;
+                await _applicationDbContext.Customers.AddAsync(customer);
+            }
+            await _applicationDbContext.SaveChangesAsync();
         }
 
         public Task<List<Customer>> GetAllAsync()

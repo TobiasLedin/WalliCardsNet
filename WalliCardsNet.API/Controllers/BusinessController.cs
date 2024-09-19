@@ -40,7 +40,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(string id)
+        public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _businessRepo.GetByIdAsync(id);
             if (result != null)
@@ -69,7 +69,7 @@ namespace WalliCardsNet.API.Controllers
 
             Business business = new Business
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid(),
                 Name = registerBusinessDTO.Name,
                 PspId = Guid.NewGuid().ToString(),
                 CustomerDetailsJson = new List<string> { "Customer 1 detail", "Customer 2 detail", "Customer 3 detail" },
@@ -107,7 +107,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Remove(string id)
+        public async Task<IActionResult> Remove(Guid id)
         {
             try
             {
