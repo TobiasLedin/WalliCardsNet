@@ -18,9 +18,9 @@ namespace WalliCardsNet.API.Services
             _client = new SendGridClient(sendGridKey);
         }
 
-        public async Task SendEmailAsync(EmailAddress to, string subject, string plainTextContent, string htmlContent)
+        public async Task SendEmailAsync(EmailAddress to, string subject, string htmlContent, string plainTextContent)
         {
-            var msg = MailHelper.CreateSingleEmail(_emailSender, to, subject, htmlContent, plainTextContent);
+            var msg = MailHelper.CreateSingleEmail(_emailSender, to, subject, plainTextContent, htmlContent);
             var response = await _client.SendEmailAsync(msg);
             var responseBody = await response.Body.ReadAsStringAsync();
         }
