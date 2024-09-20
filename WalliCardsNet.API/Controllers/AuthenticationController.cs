@@ -8,14 +8,12 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-
         private readonly IAuthService _authService;
 
         public AuthenticationController(IAuthService authService)
         {
             _authService = authService;
         }
-
 
         [HttpPost]
         [Route("login")]
@@ -32,25 +30,6 @@ namespace WalliCardsNet.API.Controllers
 
             return Unauthorized(result.Details);
         }
-
-
-        //[HttpPost]
-        //[Route("register-employee")]
-        //[ProducesResponseType(StatusCodes.Status201Created)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //public async Task<IActionResult> RegisterEmployee(RegisterRequestDTO register)
-        //{
-        //    var result = await _authService.RegisterEmployeeAsync(register.UserName, register.Email, register.);
-
-        //    if (result.Success)
-        //    {
-        //        return Created();
-        //    }
-
-        //    return BadRequest(result.Details);
-
-        //}
-
 
         // TEST ENDPOINT FOR CREATING USERS
         [HttpPost]
