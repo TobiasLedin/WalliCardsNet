@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using WalliCardsNet.Client.Handlers;
@@ -28,7 +29,10 @@ namespace WalliCardsNet.Client
             {
                 client.BaseAddress = new Uri("https://localhost:7204");
             })
-            .AddHttpMessageHandler<AuthTokenHandler>();
+            .AddHttpMessageHandler<AuthMessageHandler>();
+
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
 
             builder.Services.AddScoped<WalliCardsApiService>();
             builder.Services.AddScoped<ClientAuthService>();
