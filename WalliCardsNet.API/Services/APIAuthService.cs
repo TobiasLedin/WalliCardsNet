@@ -31,7 +31,7 @@ namespace WalliCardsNet.API.Services
         /// </summary>
         /// <param name="email"></param>
         /// <param name="password"></param>
-        public async Task<RegisterResultDTO> RegisterEmployeeAsync(string userName, string email, string password)
+        public async Task<RegisterResponseDTO> RegisterEmployeeAsync(string userName, string email, string password)
         {
             if (email != null || password != null)
             {
@@ -62,10 +62,10 @@ namespace WalliCardsNet.API.Services
                             await _userManager.AddToRoleAsync(user, Constants.Roles.Manager);
                             await _userManager.SetLockoutEnabledAsync(user, false);  // Remove ?
 
-                            return new RegisterResultDTO(true, null);
+                            return new RegisterResponseDTO(true, null);
                         }
 
-                        return new RegisterResultDTO(false, null);
+                        return new RegisterResponseDTO(false, null);
                     }
                     catch (Exception ex)
                     {
@@ -74,7 +74,7 @@ namespace WalliCardsNet.API.Services
                 }
             }
 
-            return new RegisterResultDTO(false, "Email/Password not provided");
+            return new RegisterResponseDTO(false, "Email/Password not provided");
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace WalliCardsNet.API.Services
         /// <param name="email"></param>
         /// <param name="password"></param>
         /// <returns>LoginResultDTO containing access token, if login is successful.</returns>
-        public async Task<LoginResultDTO> LoginAsync(string email, string password)
+        public async Task<LoginResponseDTO> LoginAsync(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
@@ -95,7 +95,7 @@ namespace WalliCardsNet.API.Services
                 {
                     var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
                     
-                    return new LoginResultDTO(false, null, $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}");
+                    return new LoginResponseDTO(false, null, $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}");
                 }
 
                 var passwordIsValid = await _userManager.CheckPasswordAsync(user, password);
@@ -104,13 +104,13 @@ namespace WalliCardsNet.API.Services
                 {
                     var token = await GenerateTokenAsync(user);
 
-                    return new LoginResultDTO(true, token, null);
+                    return new LoginResponseDTO(true, token, null);
                 }
 
                 await _userManager.AccessFailedAsync(user);
             }
 
-            return new LoginResultDTO(false, null, "Email/Password incorrect");
+            return new LoginResponseDTO(false, null, "Email/Password incorrect");
         }
 
         #region Tokens
