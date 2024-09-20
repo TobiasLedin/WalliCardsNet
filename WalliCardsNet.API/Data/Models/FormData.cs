@@ -2,7 +2,7 @@
 {
     public class FormData
     {
-        public string Id { get; set; } = new Guid().ToString();
+        public Guid Id { get; set; } = new Guid();
         public required string BusinessId { get; set; }
         public required string Email { get; set; }
 
