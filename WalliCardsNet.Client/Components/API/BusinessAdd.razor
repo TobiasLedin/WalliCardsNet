@@ -1,4 +1,7 @@
 ﻿@using WalliCardsNet.ClassLibrary
+@using WalliCardsNet.Client.Classes
+@using WalliCardsNet.Client.Services
+@inject WalliCardsApiService WalliCardsApiService
 @inject HttpClient Http
 
 <h3>Add business</h3>
@@ -32,25 +35,14 @@
         ErrorMessage = "";
         Adding = true;
 
-        try
+        var response = await WalliCardsApiService.PostAsync<BusinessDTO>("Business", Business);
+        if (response.IsSuccess)
         {
-            Business.Id = Guid.Empty;
-            var response = await Http.PostAsJsonAsync<BusinessDTO>("/api/Business", Business);
-            if (response.IsSuccessStatusCode)
-            {
-                SuccessMessage = $"Successfully added {Business.Name}";
-                Business = new BusinessDTO();
-            }
-            else
-            {
-                ErrorMessage = $"Error creating {Business.Name}: {response.StatusCode}";
-            }
+            SuccessMessage = $"Successfully added {Business.Name}";
         }
-        finally
+        else
         {
-            Adding = false;
-            StateHasChanged();
+            ErrorMessage = $"{response.Message} {Business.Name}";
         }
-
     }
 }

@@ -1,5 +1,7 @@
 ﻿@inject HttpClient Http
 @using WalliCardsNet.ClassLibrary
+@using WalliCardsNet.Client.Services
+@inject WalliCardsApiService WalliCardsApiService
 
 <h3>All businesses</h3>
 @if (Fetching)
@@ -52,27 +54,18 @@
     {
         Businesses = null;
         Fetching = true;
-        try
+
+        var response = await WalliCardsApiService.GetAllAsync<List<BusinessDTO>>("Business");
+        if (response.IsSuccess)
         {
-            var response = await Http.GetAsync("api/Business");
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await Http.GetFromJsonAsync<List<BusinessDTO>>("api/Business");
-                if (result != null)
-                {
-                    Businesses = result;
-                }
-            }
-            else
-            {
-                ErrorMessage = $"Error fetching data: {response.StatusCode}";
-            }
+            Businesses = response.Data;
         }
-        finally
+        else
         {
-            Fetching = false;
-            StateHasChanged();
+            ErrorMessage = response.Message;
         }
+        Fetching = false;
+        StateHasChanged();
     }
 
     public void EditBusiness(Guid businessId)
@@ -87,22 +80,22 @@
 
     public async Task SaveChangesAsync(BusinessDTO business)
     {
-        var response = await Http.PutAsJsonAsync($"api/Business/", business);
-        if (response.IsSuccessStatusCode)
+        var response = await WalliCardsApiService.PutAsync<BusinessDTO>("Business", business);
+        if (response.IsSuccess)
         {
             EditBusinessId = Guid.Empty;
             StateHasChanged();
         }
         else
         {
-            ErrorMessage = $"Error saving changes: {response.StatusCode}";
+            ErrorMessage = $"{response.Message} {business.Name}";
         }
     }
 
     public async Task DeleteBusinessAsync(Guid id)
     {
-        var response = await Http.DeleteAsync($"api/Business/{id}");
-        if (response.IsSuccessStatusCode)
+        var response = await WalliCardsApiService.DeleteAsync<BusinessDTO>("Business", id);
+        if (response.IsSuccess)
         {
             EditBusinessId = Guid.Empty;
             await FetchBusinesses();
@@ -110,7 +103,7 @@
         }
         else
         {
-            ErrorMessage = "Something went wrong.";
+            ErrorMessage = $"Something went wrong";
         }
     }
 }
