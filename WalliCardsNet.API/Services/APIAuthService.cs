@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Models;
 using WalliCardsNet.ClassLibrary;
 
@@ -12,10 +13,12 @@ namespace WalliCardsNet.API.Services
     public class APIAuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IBusiness _businessRepository;
 
-        public APIAuthService(UserManager<ApplicationUser> userManager)
+        public APIAuthService(UserManager<ApplicationUser> userManager, IBusiness businessRepository)
         {
             _userManager = userManager;
+            _businessRepository = businessRepository;
         }
 
         /// <summary>
@@ -27,10 +30,11 @@ namespace WalliCardsNet.API.Services
         {
             if (email != null || password != null)
             {
-                List<string> results = new();
+                //var business = _businessRepository.GetByIdAsync(1);
 
                 var user = new ApplicationUser
                 {
+                    //Business = "123",
                     UserName = userName,
                     NormalizedUserName = userName.ToUpper(),
                     Email = email,
@@ -48,7 +52,7 @@ namespace WalliCardsNet.API.Services
 
                         if (createUserResult.Succeeded)
                         {
-                            //await _userManager.AddPasswordAsync(user, password);      // Set password in separate endpoint
+                            await _userManager.AddPasswordAsync(user, password);      // Set password in separate endpoint
                             await _userManager.SetEmailAsync(user, email);
                             await _userManager.AddToRoleAsync(user, Constants.Roles.Manager);
                             await _userManager.SetLockoutEnabledAsync(user, false);  // Remove ?
@@ -57,8 +61,6 @@ namespace WalliCardsNet.API.Services
                         }
 
                         return new RegisterResultDTO(false, null);
-                        /*return new RegisterResult { RegisterSuccess = false, Details = createUserResult.Errors.ToString() };*/ //TODO: Fix error messages
-
                     }
                     catch (Exception ex)
                     {
@@ -175,6 +177,7 @@ namespace WalliCardsNet.API.Services
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email!),
                 new Claim("security_stamp", user.SecurityStamp!),
+                // new Claim(ClaimTypes.Id, businessId                      //TODO: Add BusinessId
             };
 
             var roles = await _userManager.GetRolesAsync(user);
