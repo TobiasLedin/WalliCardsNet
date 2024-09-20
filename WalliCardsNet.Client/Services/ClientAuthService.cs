@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Json;
 using WalliCardsNet.ClassLibrary;
 
@@ -9,11 +10,13 @@ namespace WalliCardsNet.Client.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILocalStorageService _localStorage;
+        private readonly AuthStateProvider _authState;
 
-        public ClientAuthService(HttpClient httpClient, ILocalStorageService localStorage)
+        public ClientAuthService(HttpClient httpClient, ILocalStorageService localStorage, AuthStateProvider authState)
         {
             _httpClient = httpClient;
             _localStorage = localStorage;
+            _authState = authState;
         }
 
         public async Task LoginAsync(string email, string password)
@@ -22,7 +25,7 @@ namespace WalliCardsNet.Client.Services
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadFromJsonAsync<LoginResultDTO>();
+                var result = await response.Content.ReadFromJsonAsync<LoginResultDTO>() ?? throw new NullReferenceException("Unable to read Http response");
 
                 if (result.Token != null)
                 {
@@ -33,7 +36,8 @@ namespace WalliCardsNet.Client.Services
 
         public async Task LogoutAsync()
         {
-            await _localStorage.RemoveItemAsync("access-token");
+            await _authState.LogoutAsync();
+
         }
 
     }

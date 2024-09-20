@@ -3,11 +3,11 @@ using System.Net.Http.Headers;
 
 namespace WalliCardsNet.Client.Handlers
 {
-    public class AuthTokenHandler : DelegatingHandler
+    public class AuthMessageHandler : DelegatingHandler
     {
         private readonly ILocalStorageService _localStorage;
 
-        public AuthTokenHandler(ILocalStorageService localStorage)
+        public AuthMessageHandler(ILocalStorageService localStorage)
         {
             _localStorage = localStorage;
         }

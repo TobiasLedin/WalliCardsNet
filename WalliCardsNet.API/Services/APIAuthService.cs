@@ -14,11 +14,16 @@ namespace WalliCardsNet.API.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IBusiness _businessRepository;
+        private readonly IConfiguration _config;
 
-        public APIAuthService(UserManager<ApplicationUser> userManager, IBusiness businessRepository)
+        public APIAuthService(
+            UserManager<ApplicationUser> userManager,
+            IBusiness businessRepository,
+            IConfiguration config)
         {
             _userManager = userManager;
             _businessRepository = businessRepository;
+            _config = config;
         }
 
         /// <summary>
@@ -111,7 +116,12 @@ namespace WalliCardsNet.API.Services
         #region Tokens
         private async Task<string> GenerateTokenAsync(ApplicationUser user)
         {
-            var privateKey = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")!);
+
+            var jwtIssuer = _config["JwtSettings:Issuer"];
+            var jwtAudience = _config["JwtSettings:Audience"];
+            var jwtExpire = _config.GetValue<double>("JwtSettings:ExpireMinutes");
+            var privateKey = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")
+                                ?? throw new ArgumentNullException("JWT-PRIVATE-KEY is not set"));
 
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -120,8 +130,11 @@ namespace WalliCardsNet.API.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 SigningCredentials = credentials,
-                Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(Environment.GetEnvironmentVariable("JWT-EXPIRE-TIME"))),
-                Subject = await GenerateClaimsAsync(user)
+                IssuedAt = DateTime.UtcNow,
+                Expires = DateTime.UtcNow.AddMinutes(jwtExpire),
+                Subject = await GenerateClaimsAsync(user),
+                Issuer = jwtIssuer,
+                Audience = jwtAudience
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
