@@ -36,9 +36,8 @@ namespace WalliCardsNet.Client
 
             builder.Services.AddScoped<WalliCardsApiService>();
             builder.Services.AddScoped<ClientAuthService>();
-            builder.Services.AddScoped<AuthTokenHandler>();
+            builder.Services.AddScoped<AuthMessageHandler>();
 
-            //builder.Services.AddAuthorizationCore
 
             await builder.Build().RunAsync();
         }
