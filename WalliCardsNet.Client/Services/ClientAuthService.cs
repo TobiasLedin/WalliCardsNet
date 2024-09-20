@@ -12,9 +12,9 @@ namespace WalliCardsNet.Client.Services
         private readonly ILocalStorageService _localStorage;
         private readonly AuthStateProvider _authState;
 
-        public ClientAuthService(HttpClient httpClient, ILocalStorageService localStorage, AuthStateProvider authState)
+        public ClientAuthService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage, AuthStateProvider authState)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient("WalliCardsApi");
             _localStorage = localStorage;
             _authState = authState;
         }
@@ -25,11 +25,13 @@ namespace WalliCardsNet.Client.Services
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadFromJsonAsync<LoginResultDTO>() ?? throw new NullReferenceException("Unable to read Http response");
+                var result = await response.Content.ReadFromJsonAsync<LoginResponseDTO>() ?? throw new NullReferenceException("Unable to read Http response");
 
                 if (result.Token != null)
                 {
+                    // Add token validation ?
                     await _localStorage.SetItemAsync("access-token", result.Token);
+                    await _authState.GetAuthenticationStateAsync();
                 }
             };
         }
