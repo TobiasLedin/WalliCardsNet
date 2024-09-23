@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Models;
 using WalliCardsNet.ClassLibrary;
@@ -7,6 +8,7 @@ namespace WalliCardsNet.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BusinessController : ControllerBase
     {
         private readonly IBusiness _businessRepo;
