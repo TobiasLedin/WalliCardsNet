@@ -14,7 +14,7 @@ namespace WalliCardsNet.Client.Handlers
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var token = await _localStorage.GetItemAsStringAsync("access-token");
+            var token = await _localStorage.GetItemAsync<string>("access-token");
 
             if (!string.IsNullOrEmpty(token))
             {
