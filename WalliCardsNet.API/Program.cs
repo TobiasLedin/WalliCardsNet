@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WalliCardsNet.API.Data.Seeders;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace WalliCardsNet.API
 {
@@ -88,11 +90,13 @@ namespace WalliCardsNet.API
             {
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
+                    NameClaimType = ClaimTypes.Name,
+                    RoleClaimType = ClaimTypes.Role,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")!)),
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidAudience = Environment.GetEnvironmentVariable("JWT-VALID-AUDIENCE"),   // Needs configuring!
-                    ValidIssuer = Environment.GetEnvironmentVariable("JWT-VALID-ISSUER")        // Needs configuring!
+                    ValidAudience = builder.Configuration["JwtSettings:Audience"],
+                    ValidIssuer = builder.Configuration["JwtSettings:Issuer"]
                 };
             });
 
