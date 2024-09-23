@@ -1,6 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using WalliCardsNet.ClassLibrary;
 
@@ -29,7 +30,6 @@ namespace WalliCardsNet.Client.Services
 
                 if (result.Token != null)
                 {
-                    // Add token validation ?
                     await _localStorage.SetItemAsync("access-token", result.Token);
                     await _authState.GetAuthenticationStateAsync();
                 }
