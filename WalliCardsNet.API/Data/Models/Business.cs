@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace WalliCardsNet.API.Data.Models
 {
@@ -11,7 +12,6 @@ namespace WalliCardsNet.API.Data.Models
         public List<CardTemplate> CardTemplates { get; set; } = [];
         public List<Customer> Customers { get; set; } = [];
         public List<string> CustomerDetailsJson { get; set; } = [];
-
         public List<ApplicationUser> ApplicationUsers { get; set; } = [];
     }
 

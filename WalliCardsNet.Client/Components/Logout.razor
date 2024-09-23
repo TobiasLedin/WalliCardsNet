@@ -1,4 +1,5 @@
 ﻿@inject AuthStateProvider authState
+@inject NavigationManager navManager
 
 <button @onclick="async () => await LogoutAsync()">Logout</button>
 
@@ -7,6 +8,6 @@
     public async Task LogoutAsync()
     {
         await authState.LogoutAsync();
-        StateHasChanged();
+        navManager.NavigateTo("/", true);
     }
 }
