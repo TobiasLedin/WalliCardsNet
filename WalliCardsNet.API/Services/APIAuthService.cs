@@ -184,8 +184,8 @@ namespace WalliCardsNet.API.Services
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-                new Claim("security_stamp", user.SecurityStamp!),
-                //new Claim("business_id", user.Business!.Id.ToString())                  //TODO: Add BusinessId
+                new Claim("security-stamp", user.SecurityStamp!),
+                new Claim("business-id", user.BusinessId.ToString()!)
             };
 
             var roles = await _userManager.GetRolesAsync(user);
