@@ -16,37 +16,38 @@ namespace WalliCardsNet.Client.Services
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            // No JWT - return empty ClaimsPrincipal
+            var anonymousUser = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 
-            var accessToken = await _localStorage.GetItemAsStringAsync("access-token");
-
+            var accessToken = await _localStorage.GetItemAsync<string>("access-token");
             if (string.IsNullOrEmpty(accessToken))
             {
-                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())); // Empty ClaimsPrincipal
+                return anonymousUser;
             }
-
-            // JWT expired - return empty ClaimsPrincipal
-
+            
             var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtContent = new JwtSecurityToken();
 
-            var jwtContent = tokenHandler.ReadJwtToken(accessToken);
-
-            if (jwtContent.ValidTo < DateTime.UtcNow)
+            try
             {
-                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())); // Empty ClaimsPrincipal
+                jwtContent = tokenHandler.ReadJwtToken(accessToken);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Not able to read JWT");
+                await _localStorage.RemoveItemAsync("access-token");
+
+                return anonymousUser;
             }
 
-            // JWT Valid - add JWT claims to ClaimsPrinciple
+            if (jwtContent.ValidTo < DateTime.UtcNow)  // Add fresh-token integration?
+            {
+                return anonymousUser;
+            }
 
             var claimsIdentity = new ClaimsIdentity(jwtContent.Claims, "jwt");
-
             var user = new ClaimsPrincipal(claimsIdentity);
 
-            // NotifyAuthStateChanged
-
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
-
-            // Return authenticated user
 
             return new AuthenticationState(user);
         }

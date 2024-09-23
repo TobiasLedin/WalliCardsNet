@@ -32,8 +32,8 @@ namespace WalliCardsNet.Client
             .AddHttpMessageHandler<AuthMessageHandler>();
 
             builder.Services.AddAuthorizationCore();
-            builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
-
+            builder.Services.AddScoped<AuthStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider>(x => x.GetRequiredService<AuthStateProvider>());
             builder.Services.AddScoped<WalliCardsApiService>();
             builder.Services.AddScoped<ClientAuthService>();
             builder.Services.AddScoped<AuthMessageHandler>();

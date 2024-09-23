@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Models;
+using WalliCardsNet.API.Data.Repositories;
 using WalliCardsNet.ClassLibrary;
 
 namespace WalliCardsNet.API.Services
@@ -31,7 +33,7 @@ namespace WalliCardsNet.API.Services
         /// </summary>
         /// <param name="email"></param>
         /// <param name="password"></param>
-        public async Task<RegisterResultDTO> RegisterEmployeeAsync(string userName, string email, string password)
+        public async Task<RegisterResponseDTO> RegisterEmployeeAsync(string userName, string email, string password)
         {
             if (email != null || password != null)
             {
@@ -62,10 +64,10 @@ namespace WalliCardsNet.API.Services
                             await _userManager.AddToRoleAsync(user, Constants.Roles.Manager);
                             await _userManager.SetLockoutEnabledAsync(user, false);  // Remove ?
 
-                            return new RegisterResultDTO(true, null);
+                            return new RegisterResponseDTO(true, null);
                         }
 
-                        return new RegisterResultDTO(false, null);
+                        return new RegisterResponseDTO(false, null);
                     }
                     catch (Exception ex)
                     {
@@ -74,7 +76,7 @@ namespace WalliCardsNet.API.Services
                 }
             }
 
-            return new RegisterResultDTO(false, "Email/Password not provided");
+            return new RegisterResponseDTO(false, "Email/Password not provided");
         }
 
         /// <summary>
@@ -83,7 +85,7 @@ namespace WalliCardsNet.API.Services
         /// <param name="email"></param>
         /// <param name="password"></param>
         /// <returns>LoginResultDTO containing access token, if login is successful.</returns>
-        public async Task<LoginResultDTO> LoginAsync(string email, string password)
+        public async Task<LoginResponseDTO> LoginAsync(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
@@ -94,8 +96,8 @@ namespace WalliCardsNet.API.Services
                 if (lockoutActive)
                 {
                     var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
-                    
-                    return new LoginResultDTO(false, null, $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}");
+
+                    return new LoginResponseDTO(false, null, $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}");
                 }
 
                 var passwordIsValid = await _userManager.CheckPasswordAsync(user, password);
@@ -104,42 +106,35 @@ namespace WalliCardsNet.API.Services
                 {
                     var token = await GenerateTokenAsync(user);
 
-                    return new LoginResultDTO(true, token, null);
+                    return new LoginResponseDTO(true, token, null);
                 }
 
                 await _userManager.AccessFailedAsync(user);
             }
 
-            return new LoginResultDTO(false, null, "Email/Password incorrect");
+            return new LoginResponseDTO(false, null, "Email/Password incorrect");
         }
 
         #region Tokens
         private async Task<string> GenerateTokenAsync(ApplicationUser user)
         {
+            var privateKey = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")
+                                ?? throw new ArgumentNullException("JWT-PRIVATE-KEY is not set"));
 
             var jwtIssuer = _config["JwtSettings:Issuer"];
             var jwtAudience = _config["JwtSettings:Audience"];
             var jwtExpire = _config.GetValue<double>("JwtSettings:ExpireMinutes");
-            var privateKey = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")
-                                ?? throw new ArgumentNullException("JWT-PRIVATE-KEY is not set"));
+            var jwtCredentials = new SigningCredentials(new SymmetricSecurityKey(privateKey), SecurityAlgorithms.HmacSha256);
 
-            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = new JwtSecurityToken(
+                issuer: jwtIssuer,
+                audience: jwtAudience,
+                claims: await GenerateClaimsAsync(user),
+                expires: DateTime.UtcNow.AddMinutes(jwtExpire),
+                signingCredentials: jwtCredentials
+            );
 
-            var credentials = new SigningCredentials(new SymmetricSecurityKey(privateKey), SecurityAlgorithms.HmacSha256);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                SigningCredentials = credentials,
-                IssuedAt = DateTime.UtcNow,
-                Expires = DateTime.UtcNow.AddMinutes(jwtExpire),
-                Subject = await GenerateClaimsAsync(user),
-                Issuer = jwtIssuer,
-                Audience = jwtAudience
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            return tokenHandler.WriteToken(token);
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
         #endregion
 
@@ -182,7 +177,7 @@ namespace WalliCardsNet.API.Services
         #region Support methods and classes
 
         // ClaimsIdentity generator
-        private async Task<ClaimsIdentity> GenerateClaimsAsync(ApplicationUser user)
+        private async Task<List<Claim>> GenerateClaimsAsync(ApplicationUser user)
         {
             var claims = new List<Claim>
             {
@@ -190,7 +185,7 @@ namespace WalliCardsNet.API.Services
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email!),
                 new Claim("security_stamp", user.SecurityStamp!),
-                // new Claim(ClaimTypes.Id, businessId                      //TODO: Add BusinessId
+                //new Claim("business_id", user.Business!.Id.ToString())                  //TODO: Add BusinessId
             };
 
             var roles = await _userManager.GetRolesAsync(user);
@@ -200,7 +195,7 @@ namespace WalliCardsNet.API.Services
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            return new ClaimsIdentity(claims);
+            return claims;
         }
 
         public class RegisterResult

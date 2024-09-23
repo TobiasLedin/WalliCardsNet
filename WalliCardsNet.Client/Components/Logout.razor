@@ -1,0 +1,12 @@
+﻿@inject AuthStateProvider authState
+
+<button @onclick="async () => await LogoutAsync()">Logout</button>
+
+@code {
+
+    public async Task LogoutAsync()
+    {
+        await authState.LogoutAsync();
+        StateHasChanged();
+    }
+}

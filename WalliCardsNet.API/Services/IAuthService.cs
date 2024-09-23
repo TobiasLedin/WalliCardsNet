@@ -6,8 +6,8 @@ namespace WalliCardsNet.API.Services
     public interface IAuthService
     {
 
-        Task<RegisterResultDTO> RegisterEmployeeAsync(string name, string email, string password);
+        Task<RegisterResponseDTO> RegisterEmployeeAsync(string name, string email, string password);
 
-        Task<LoginResultDTO> LoginAsync(string email, string password);
+        Task<LoginResponseDTO> LoginAsync(string email, string password);
     }
 }
