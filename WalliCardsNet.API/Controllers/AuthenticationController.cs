@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary;
 
@@ -29,6 +30,14 @@ namespace WalliCardsNet.API.Controllers
             }
 
             return Unauthorized(result.Details);
+        }
+
+        [HttpGet]
+        [Route("test-auth")]
+        [Authorize]
+        public IActionResult Test()
+        {
+            return Ok();
         }
 
         // TEST ENDPOINT FOR CREATING USERS
