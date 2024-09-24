@@ -6,8 +6,8 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using WalliCardsNet.API.Data.Interfaces;
-using WalliCardsNet.API.Data.Models;
 using WalliCardsNet.API.Data.Repositories;
+using WalliCardsNet.API.Models;
 using WalliCardsNet.ClassLibrary;
 
 namespace WalliCardsNet.API.Services
@@ -115,7 +115,8 @@ namespace WalliCardsNet.API.Services
             return new LoginResponseDTO(false, null, "Email/Password incorrect");
         }
 
-        #region Tokens
+        #region Support methods
+
         private async Task<string> GenerateTokenAsync(ApplicationUser user)
         {
             var privateKey = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")
@@ -135,6 +136,28 @@ namespace WalliCardsNet.API.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        // ClaimsIdentity generator
+        private async Task<List<Claim>> GenerateClaimsAsync(ApplicationUser user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+                new Claim("security-stamp", user.SecurityStamp!),
+                new Claim("business-id", user.BusinessId.ToString()!)
+            };
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            return claims;
         }
         #endregion
 
@@ -170,48 +193,6 @@ namespace WalliCardsNet.API.Services
             }
 
             return IdentityResult.Success;
-        }
-
-        #endregion
-
-        #region Support methods and classes
-
-        // ClaimsIdentity generator
-        private async Task<List<Claim>> GenerateClaimsAsync(ApplicationUser user)
-        {
-            var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-                new Claim("security-stamp", user.SecurityStamp!),
-                new Claim("business-id", user.BusinessId.ToString()!)
-            };
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            return claims;
-        }
-
-        public class RegisterResult
-        {
-            public bool RegisterSuccess { get; set; }
-            public string? Email { get; set; }
-            public string? Details { get; set; }
-        }
-
-        public class LoginResult
-        {
-            public bool LoginSuccess { get; set; }
-
-            public string? Token { get; set; }
-
-            public string? Details { get; set; }
         }
 
         #endregion
