@@ -1,5 +1,5 @@
 ﻿using WalliCardsNet.API.Data.Interfaces;
-using WalliCardsNet.API.Data.Models;
+using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
@@ -16,7 +16,7 @@ namespace WalliCardsNet.API.Data.Repositories
         {
             if (customer != null)
             {
-                customer.Businesses = null;
+                //customer.Businesses = null;
                 customer.Devices = null;
                 await _applicationDbContext.Customers.AddAsync(customer);
             }

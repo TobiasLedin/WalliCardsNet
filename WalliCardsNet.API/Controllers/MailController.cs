@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WalliCardsNet.API.Data.Interfaces;
-using WalliCardsNet.API.Data.Models;
 using WalliCardsNet.API.Services;
 using SendGrid;
 using SendGrid.Helpers.Mail;

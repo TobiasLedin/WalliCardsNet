@@ -1,4 +1,4 @@
-﻿namespace WalliCardsNet.API.Data.Models
+﻿namespace WalliCardsNet.API.Models
 {
     public class FormData
     {
