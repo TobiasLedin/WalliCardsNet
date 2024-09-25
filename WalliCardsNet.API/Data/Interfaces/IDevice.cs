@@ -1,4 +1,4 @@
-﻿using WalliCardsNet.API.Data.Models;
+﻿using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Interfaces
 {

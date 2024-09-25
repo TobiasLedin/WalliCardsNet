@@ -1,9 +1,9 @@
-﻿namespace WalliCardsNet.API.Data.Models
+﻿namespace WalliCardsNet.API.Models
 {
     public class Device
     {
         public Guid Id { get; set; }
-        public Customer Customer { get; set; }
+        public required Customer Customer { get; set; }
         public DeviceType Type { get; set; }
     }
 

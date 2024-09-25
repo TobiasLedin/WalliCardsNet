@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Data.Interfaces;
-using WalliCardsNet.API.Data.Models;
+using WalliCardsNet.API.Models;
 using WalliCardsNet.ClassLibrary;
 
 namespace WalliCardsNet.API.Controllers
@@ -74,7 +74,7 @@ namespace WalliCardsNet.API.Controllers
                 Id = Guid.NewGuid(),
                 Name = registerBusinessDTO.Name,
                 PspId = Guid.NewGuid().ToString(),
-                CustomerDetailsJson = new List<string> { "Customer 1 detail", "Customer 2 detail", "Customer 3 detail" },
+                //CustomerDetailsJson = new List<string> { "Customer 1 detail", "Customer 2 detail", "Customer 3 detail" },
             };
 
             try

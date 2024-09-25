@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using WalliCardsNet.API.Data;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Repositories;
-using WalliCardsNet.API.Data.Models;
 using Microsoft.AspNetCore.Authentication;
 using WalliCardsNet.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,6 +14,7 @@ using System.Text;
 using WalliCardsNet.API.Data.Seeders;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API
 {
