@@ -8,7 +8,6 @@ namespace WalliCardsNet.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class BusinessController : ControllerBase
     {
         private readonly IBusiness _businessRepo;
@@ -18,6 +17,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAll()
         {
             var result = await _businessRepo.GetAllAsync();
@@ -41,7 +41,8 @@ namespace WalliCardsNet.API.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
+        [Authorize]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _businessRepo.GetByIdAsync(id);
@@ -60,7 +61,27 @@ namespace WalliCardsNet.API.Controllers
             }
         }
 
+        [HttpGet("{token}")]
+        public async Task<IActionResult> GetByToken(string token)
+        {
+            var result = await _businessRepo.GetByTokenAsync(token);
+            if (result != null) 
+            {
+                PublicBusinessTokenDTO dto = new PublicBusinessTokenDTO
+                {
+                    Token = token,
+                    Name = result.Name
+                };
+                return Ok(dto);
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
         [HttpPost]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> Add(BusinessDTO registerBusinessDTO)
         {
@@ -89,6 +110,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPut]
+        [Authorize]
         public async Task<IActionResult> Update(BusinessDTO businessDTO)
         {
             if (businessDTO == null)
@@ -109,6 +131,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> Remove(Guid id)
         {
             try
