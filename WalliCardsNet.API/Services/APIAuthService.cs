@@ -141,13 +141,15 @@ namespace WalliCardsNet.API.Services
         // ClaimsIdentity generator
         private async Task<List<Claim>> GenerateClaimsAsync(ApplicationUser user)
         {
+            var business = await _businessRepository.GetByIdAsync(user.BusinessId);
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email!),
                 new Claim("security-stamp", user.SecurityStamp!),
-                new Claim("business-id", user.BusinessId.ToString()!)
+                new Claim("business-id", user.BusinessId.ToString()!),
+                new Claim("business-token", business.UrlToken )
             };
 
             var roles = await _userManager.GetRolesAsync(user);

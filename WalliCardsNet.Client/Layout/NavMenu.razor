@@ -19,8 +19,24 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> API Test
             </NavLink>
         </div>
+        <AuthorizeView>
+            <Authorized>
+                @{
+                    var businessToken = context.User.Claims.FirstOrDefault(x => x.Type == "business-token")?.Value;
+                    var joinUrl = $"join/{businessToken}";
+                }
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="@joinUrl">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Join
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
     </nav>
 </div>
+
+
+
 
 @code {
     private bool collapseNavMenu = true;
