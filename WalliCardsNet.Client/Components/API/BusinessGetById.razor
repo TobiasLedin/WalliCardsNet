@@ -1,7 +1,5 @@
-﻿@inject HttpClient Http
-@using WalliCardsNet.ClassLibrary
-@inject WalliCardsNet.Client.Services.WalliCardsApiService WalliCardsApiService
-@using WalliCardsNet.Client.Classes
+﻿@* @inject HttpClient Http
+@inject WalliCardsApiService WalliCardsApiService
 
 <h3>Get by ID</h3>
 <InputText @bind-Value="BusinessId"></InputText>
@@ -44,4 +42,4 @@
         Fetching = false;
         StateHasChanged();
     }
-}
+} *@

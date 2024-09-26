@@ -1,5 +1,5 @@
-﻿@using WalliCardsNet.ClassLibrary
-@using WalliCardsNet.Client.Classes
+﻿@* @using WalliCardsNet.ClassLibrary.Business
+@using WalliCardsNet.Client.Models
 @using WalliCardsNet.Client.Services
 @inject WalliCardsApiService WalliCardsApiService
 @inject HttpClient Http
@@ -24,7 +24,7 @@
 }
 
 @code {
-    public BusinessDTO Business { get; set; } = new BusinessDTO();
+    public BusinessRequestDTO Business { get; set; }
     public string SuccessMessage { get; set; } = "";
     public string ErrorMessage { get; set; } = "";
     public bool Adding { get; set; } = false;
@@ -45,4 +45,4 @@
             ErrorMessage = $"{response.Message} {Business.Name}";
         }
     }
-}
+} *@

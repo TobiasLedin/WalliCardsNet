@@ -1,5 +1,5 @@
-﻿@using WalliCardsNet.ClassLibrary
-@inject HttpClient Http
+﻿
+@* @inject HttpClient Http
 
 <h3>JoinBusiness</h3>
 @if (Business != null)
@@ -20,4 +20,4 @@
             var result = await Http.GetFromJsonAsync<BusinessDTO>($"api/Business/{Id}");
         }
     }
-}
+} *@
