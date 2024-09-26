@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary;
 using WalliCardsNet.ClassLibrary.Business;
 
 namespace WalliCardsNet.API.Controllers
