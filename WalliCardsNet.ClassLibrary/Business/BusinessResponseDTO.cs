@@ -6,12 +6,6 @@ using System.Threading.Tasks;
 
 namespace WalliCardsNet.ClassLibrary.Business
 {
-    public class BusinessDTO
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string BusinessToken { get; set; }
-
-    }
+    public record BusinessResponseDTO(Guid Id, string Name);
     
 }

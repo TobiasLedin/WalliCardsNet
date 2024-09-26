@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary;
 using WalliCardsNet.ClassLibrary.Business;
 
 namespace WalliCardsNet.API.Controllers
@@ -27,10 +28,10 @@ namespace WalliCardsNet.API.Controllers
             var result = await _businessRepo.GetAllAsync();
             if (result != null && result.Any())
             {
-                List<BusinessDTO> businesses = new List<BusinessDTO>();
+                List<BusinessResponseDTO> businesses = new List<BusinessResponseDTO>();
                 foreach (var business in result)
                 {
-                    var dto = new BusinessDTO(business.Id, business.Name);
+                    var dto = new BusinessResponseDTO(business.Id, business.Name);
                     //{
                     //    Id = business.Id,
                     //    Name = business.Name
@@ -52,7 +53,7 @@ namespace WalliCardsNet.API.Controllers
             var result = await _businessRepo.GetByIdAsync(id);
             if (result != null)
             {
-                BusinessDTO dto = new BusinessDTO(result.Id, result.Name);
+                BusinessResponseDTO dto = new BusinessResponseDTO(result.Id, result.Name);
                 //{
                 //    Id = result.Id,
                 //    Name = result.Name
@@ -121,7 +122,7 @@ namespace WalliCardsNet.API.Controllers
                 // Create new ApplicationUser (manager of the specific business)
                 await _userManager.CreateAsync(manager, businessData.ManagerPassword);
 
-                return Created($"api/Business/{business.Id}", new BusinessDTO(business.Id, business.Name));
+                return Created($"api/Business/{business.Id}", new BusinessResponseDTO(business.Id, business.Name));
             }
             catch (Exception ex)
             {
