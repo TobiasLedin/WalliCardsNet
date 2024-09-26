@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
-using WalliCardsNet.ClassLibrary;
+using WalliCardsNet.ClassLibrary.Login;
 
 namespace WalliCardsNet.Client.Services
 {

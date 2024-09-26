@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -17,24 +18,31 @@ namespace WalliCardsNet.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var result = await _customerRepo.GetAllAsync();
-            if (result != null && result.Any())
+            var customers = await _customerRepo.GetAllAsync();
+            if (customers != null && customers.Any())
             {
-                return Ok(result);
+                List<CustomerResponseDTO> customersDTO = [];
+
+                foreach (var customer in customers)
+                {
+                    customersDTO.Add(new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));
+                }
+
+                return Ok(customersDTO);
             }
             else
             {
-                return Ok(new List<Customer>());
+                return Ok(new List<CustomerResponseDTO>());
             }
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(int id)
+        public async Task<IActionResult> GetByIdAsync(Guid id)
         {
-            var result = await _customerRepo.GetByIdAsync(id);
-            if (result != null)
+            var customer = await _customerRepo.GetByIdAsync(id);
+            if (customer != null)
             {
-                return Ok(result);
+                return Ok(new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));
             }
             else
             {
@@ -44,13 +52,17 @@ namespace WalliCardsNet.API.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAsync()
+        public async Task<IActionResult> AddAsync(CustomerRequestDTO customerData)
         {
             try
             {
-                Customer customer = new Customer();
+                var customer = new Customer
+                {
+                    BusinessId = customerData.BusinessId,
+                    CustomerDetails = customerData.CustomerDetails
+                };
                 await _customerRepo.AddAsync(customer);
-                return Created($"api/Customer/{customer.Id}", customer);
+                return Created($"api/Customer/{customer.Id}", new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));
             }
             catch (Exception ex)
             {
@@ -59,26 +71,35 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAsync(Customer customer)
+        public async Task<IActionResult> UpdateAsync(CustomerRequestDTO customerData)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            try
+            var customer = await _customerRepo.GetByIdAsync(customerData.Id);
+            if (customer != null && customerData.CustomerDetails != null)
             {
-                await _customerRepo.UpdateAsync(customer);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+                customer.CustomerDetails = customerData.CustomerDetails;
+
+                try
+                {
+                    await _customerRepo.UpdateAsync(customer);
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            };
+
+            return NotFound();
+  
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveAsync(int id)
+        public async Task<IActionResult> RemoveAsync(Guid id)
         {
             try
             {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace WalliCardsNet.API.Models
 {
@@ -8,6 +9,8 @@ namespace WalliCardsNet.API.Models
     {
         [ForeignKey(nameof(Business))]
         public Guid BusinessId { get; set; }
+
+        [JsonIgnore]
         public Business? Business { get; set; }
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
 

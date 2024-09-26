@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalliCardsNet.ClassLibrary
+namespace WalliCardsNet.ClassLibrary.Business
 {
-    public record RegisterResponseDTO(bool Success, string? Details);
+    public record BusinessDTO(Guid Id, string Name);
     
 }

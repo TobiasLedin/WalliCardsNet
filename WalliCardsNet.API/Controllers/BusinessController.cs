@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
-using WalliCardsNet.ClassLibrary;
+using WalliCardsNet.ClassLibrary.Business;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -11,9 +12,12 @@ namespace WalliCardsNet.API.Controllers
     public class BusinessController : ControllerBase
     {
         private readonly IBusiness _businessRepo;
-        public BusinessController(IBusiness businessRepo)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public BusinessController(IBusiness businessRepo, UserManager<ApplicationUser> userManager)
         {
             _businessRepo = businessRepo;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -26,11 +30,11 @@ namespace WalliCardsNet.API.Controllers
                 List<BusinessDTO> businesses = new List<BusinessDTO>();
                 foreach (var business in result)
                 {
-                    var dto = new BusinessDTO
-                    {
-                        Id = business.Id,
-                        Name = business.Name
-                    };
+                    var dto = new BusinessDTO(business.Id, business.Name);
+                    //{
+                    //    Id = business.Id,
+                    //    Name = business.Name
+                    //};
                     businesses.Add(dto);
                 }
                 return Ok(businesses);
@@ -48,11 +52,11 @@ namespace WalliCardsNet.API.Controllers
             var result = await _businessRepo.GetByIdAsync(id);
             if (result != null)
             {
-                BusinessDTO dto = new BusinessDTO 
-                {
-                    Id = result.Id,
-                    Name = result.Name
-                };
+                BusinessDTO dto = new BusinessDTO(result.Id, result.Name);
+                //{
+                //    Id = result.Id,
+                //    Name = result.Name
+                //};
                 return Ok(dto);
             }
             else
@@ -83,9 +87,9 @@ namespace WalliCardsNet.API.Controllers
         [HttpPost]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Add(BusinessDTO registerBusinessDTO)
+        public async Task<IActionResult> Add(BusinessCreateDTO businessData)
         {
-            if (registerBusinessDTO == null)
+            if (businessData == null)
             {
                 return BadRequest();
             }
@@ -93,15 +97,31 @@ namespace WalliCardsNet.API.Controllers
             Business business = new Business
             {
                 Id = Guid.NewGuid(),
-                Name = registerBusinessDTO.Name,
-                PspId = Guid.NewGuid().ToString(),
-                //CustomerDetailsJson = new List<string> { "Customer 1 detail", "Customer 2 detail", "Customer 3 detail" },
+                Name = businessData.Name,
+                PspId = businessData.PspId
+            };
+
+            // Add standard field definitions (customer data columns).
+            // Standard: <string> email
+            business.FieldDefinitions.Add(new FieldDefinition { Id = Guid.NewGuid(), BusinessId = business.Id, FieldName = "email", FieldType = "string", IsRequired = true });
+
+            // Add Manager account tied to business
+            var manager = new ApplicationUser
+            {
+                Email = businessData.ManagerEmail,
+                UserName = businessData.ManagerName,
+                NormalizedUserName = businessData.ManagerName.ToUpper(),
+                BusinessId = business.Id
             };
 
             try
             {
                 await _businessRepo.AddAsync(business);
-                return Created($"api/Business/{business.Id}", business);
+
+                // Create new ApplicationUser (manager of the specific business)
+                await _userManager.CreateAsync(manager, businessData.ManagerPassword);
+
+                return Created($"api/Business/{business.Id}", new BusinessDTO(business.Id, business.Name));
             }
             catch (Exception ex)
             {
