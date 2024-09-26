@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Services;
-using WalliCardsNet.ClassLibrary;
+using WalliCardsNet.ClassLibrary.Login;
 
 namespace WalliCardsNet.API.Controllers
 {

@@ -8,7 +8,8 @@ using System.Text;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Repositories;
 using WalliCardsNet.API.Models;
-using WalliCardsNet.ClassLibrary;
+using WalliCardsNet.ClassLibrary.Login;
+using WalliCardsNet.ClassLibrary.Register;
 
 namespace WalliCardsNet.API.Services
 {

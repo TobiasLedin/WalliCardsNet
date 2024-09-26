@@ -1,4 +1,5 @@
-﻿using WalliCardsNet.ClassLibrary;
+﻿using WalliCardsNet.ClassLibrary.Login;
+using WalliCardsNet.ClassLibrary.Register;
 using static WalliCardsNet.API.Services.APIAuthService;
 
 namespace WalliCardsNet.API.Services
