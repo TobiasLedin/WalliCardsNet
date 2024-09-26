@@ -21,6 +21,6 @@ namespace WalliCardsNet.API.Models
             set => CustomerDetailsJson = JsonSerializer.Serialize(value);
         }
         // Final storage of Customer details
-        public string CustomerDetailsJson { get; set; } = "{}";
+        public string CustomerDetailsJson { get; private set; } = "{}";
     }
 }
