@@ -1,4 +1,4 @@
-﻿namespace WalliCardsNet.Client.Classes
+﻿namespace WalliCardsNet.Client.Models
 {
     public class ApiResponse<T>
     {
