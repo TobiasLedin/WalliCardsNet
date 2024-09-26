@@ -18,6 +18,12 @@ namespace WalliCardsNet.Client.Services
             return await ProcessResponse<T>(response);
         }
 
+        public async Task<ApiResponse<T>> GetByTokenAsync<T>(string endpoint, string token)
+        {
+            var response = await _httpClient.GetAsync($"/api/{endpoint}/{token}");
+            return await ProcessResponse<T>(response);
+        }
+
         public async Task<ApiResponse<T>> GetAllAsync<T>(string endpoint)
         {
             var response = await _httpClient.GetAsync($"/api/{endpoint}");

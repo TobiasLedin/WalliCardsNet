@@ -1,23 +1,39 @@
-﻿
-@* @inject HttpClient Http
+@page "/join/{token}"
+@using WalliCardsNet.ClassLibrary
+@inject WalliCardsApiService WalliCardsApiService
+@inject HttpClient Http
+
 
 <h3>JoinBusiness</h3>
 @if (Business != null)
 {
-    <p>@Business.Name</p>
+    <p>Join @Business.Name</p>
+}
+else
+{
+    <p>@ErrorMessage</p>
 }
 
 @code {
     [Parameter]
-    public Guid Id { get; set; }
-    public BusinessDTO Business {get; set;} 
+    public string Token { get; set; }
+    public PublicBusinessTokenDTO Business {get; set;} 
+    public string ErrorMessage { get; set; }
+    public bool Fetching = false;
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await Http.GetAsync($"/api/Business/{Id}");
-        if (response.IsSuccessStatusCode)
+        Fetching = true;
+        var response = await WalliCardsApiService.GetByTokenAsync<PublicBusinessTokenDTO>("Business", Token);
+        if (response.IsSuccess)
         {
-            var result = await Http.GetFromJsonAsync<BusinessDTO>($"api/Business/{Id}");
+            Business = response.Data;
         }
+        else
+        {
+            ErrorMessage = response.Message;
+        }
+        Fetching = false;
+        StateHasChanged();
     }
-} *@
+}
