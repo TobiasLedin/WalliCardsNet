@@ -16,7 +16,13 @@ namespace WalliCardsNet.API.Data.Repositories
         {
             if (customer != null)
             {
-                //customer.Businesses = null;
+                var business = await _applicationDbContext.Businesses.FindAsync(customer.BusinessId);
+                if (business == null)
+                {
+                    throw new KeyNotFoundException("No existing business with the supplied id");
+                };
+
+                customer.Business = business;
                 customer.Devices = null;
                 await _applicationDbContext.Customers.AddAsync(customer);
             }
@@ -28,12 +34,12 @@ namespace WalliCardsNet.API.Data.Repositories
             throw new NotImplementedException("Customer/GetAllAsync method not yet implemented");
         }
 
-        public Task<Customer> GetByIdAsync(int id)
+        public Task<Customer> GetByIdAsync(Guid id)
         {
             throw new NotImplementedException("Customer/GetByIdAsync method not yet implemented");
         }
 
-        public Task RemoveAsync(int id)
+        public Task RemoveAsync(Guid id)
         {
             throw new NotImplementedException("Customer/RemoveAsync method not yet implemented");
         }
