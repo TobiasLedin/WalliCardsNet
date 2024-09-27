@@ -78,7 +78,7 @@ namespace WalliCardsNet.API.Controllers
                     DesignJson = cardRequestDTO.DesignJson
                 };
                 await _cardTemplateRepo.AddAsync(cardTemplate);
-                return Created($"api/Customer/{cardTemplate.Id}", cardTemplate);
+                return Created($"api/CardTemplate/{cardTemplate.Id}", cardTemplate);
             }
             catch (Exception ex)
             {
