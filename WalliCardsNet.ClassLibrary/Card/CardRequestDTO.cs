@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalliCardsNet.ClassLibrary.Customer
+namespace WalliCardsNet.ClassLibrary.Card
 {
-    public class JoinFormModel
+    public class CardRequestDTO
     {
-        public string FormDataJson { get; set; }
         public string BusinessToken { get; set; }
+        public string DesignJson { get; set; }
     }
 }

@@ -1,0 +1,73 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using WalliCardsNet.ClassLibrary.Card
+@using WalliCardsNet.Client.Models
+@page "/card/{token}"
+@attribute [Authorize]
+@inject WalliCardsApiService WalliCardsApiService;
+
+<h3>CardDesigner</h3>
+
+<EditForm Model="Card">
+    <div>
+        <button @onclick="CreateField">Create Field</button>
+        @foreach (var field in Fields)
+        {
+            <div>
+                <InputText @bind-Value="field.FieldName" placeholder="Field name"/>
+                <InputText @bind-Value="field.FieldType" placeholder="Field type"/>
+                <InputText @bind-Value="field.Label" placeholder="Label" />
+                <label>Required field</label>
+                <InputCheckbox @bind-Value="field.IsRequired"/>
+                <button type="button" @onclick="() => DeleteField(field)">Delete Field</button>
+            </div>
+        }
+    </div>
+   
+</EditForm>
+
+
+<button @onclick="CreateCard">Create Card</button>
+
+@code {
+    [Parameter]
+    public string Token { get; set; }
+
+    public CardRequestDTO Card { get; set; } = new CardRequestDTO();
+
+    public List<CardField> Fields { get; set; } = new List<CardField>();
+
+    public async Task CreateCard()
+    {
+        Card.BusinessToken = Token;
+        var cardDesign = new CardDesign
+        {
+            CardFields = Fields,
+            CssOptions = new Dictionary<string, string>
+            {
+                {"bg-color", "white" },
+                {"color", "black"}
+            }
+        };
+        Card.DesignJson = System.Text.Json.JsonSerializer.Serialize(cardDesign);
+        var response = await WalliCardsApiService.PostAsync<CardRequestDTO>("CardTemplate", Card);
+        if (response.IsSuccess)
+        {
+            Console.WriteLine("Success");
+        }
+        else
+        {
+            Console.WriteLine($"Error: {response.Message}");
+        }
+    }
+
+    public async Task CreateField()
+    {
+        Fields.Add(new CardField { FieldName = "", FieldType = "", Label = "", IsRequired = false });
+        StateHasChanged();
+    }
+
+    public async Task DeleteField(CardField field)
+    {
+        Fields.Remove(field);
+    }
+}
