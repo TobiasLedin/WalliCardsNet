@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.ClassLibrary;
@@ -83,10 +84,7 @@ namespace WalliCardsNet.API.Controllers
                 var customer = new Customer
                 {
                     BusinessId = business.Id,
-                    CustomerDetails = new Dictionary<string, object>
-                    {
-                        { "Email", joinFormModel.Email }
-                    }
+                    CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, object>>(joinFormModel.FormDataJson)
                 };
                 await _customerRepo.AddAsync(customer);
                 return Created($"api/Customer/{customer.Id}", new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));

@@ -1,23 +1,47 @@
 @page "/join/{token}"
 @using System.ComponentModel.DataAnnotations
+@using System.Text.Json
 @using WalliCardsNet.ClassLibrary
+@using WalliCardsNet.ClassLibrary.Card
 @using WalliCardsNet.ClassLibrary.Customer
+@using WalliCardsNet.Client.Models
 @inject WalliCardsApiService WalliCardsApiService
 @inject HttpClient Http
 
 
 <h3>JoinBusiness</h3>
-@if (Business != null)
+@if (Business != null && CardTemplate != null)
 {
     <p>Join @Business.Name</p>
     <EditForm Model="@JoinFormModel" OnValidSubmit="Submit">
         <DataAnnotationsValidator/>
+        @foreach (var field in CardTemplate.CardFields)
+        {
+            <div>
+                <label>@field.Label</label>
+                @{var formField = FormData.FirstOrDefault(x => x.FieldName == field.FieldName);}
 
-        <div>
-            <label>Email Adress</label>
-            <InputText @bind-Value="JoinFormModel.Email" type="email"></InputText>
-            <ValidationMessage For="@(() => JoinFormModel.Email)"/>
-        </div>
+                @if (formField != null)
+                {
+                    @switch (field.FieldType)
+                    {
+                        case "text":
+                            <InputText @bind-Value="formField.FieldData" />
+                            break;
+                        case "email":
+                            <InputText @bind-Value="formField.FieldData" type="email"></InputText>
+                            break;
+                        default:
+                            <p>Unsupported field type: @field.FieldType</p>
+                            break;
+                    }
+                }
+                else
+                {
+                <p>No data found for this field.</p>
+                }
+            </div>
+        }
         <button type="submit">Join</button>
     </EditForm>
 }
@@ -31,7 +55,8 @@ else
     public string Token { get; set; }
     public PublicBusinessTokenDTO Business {get; set;}
     public JoinFormModel JoinFormModel { get; set; } = new JoinFormModel();
-    public string Email { get; set; }
+    public List<JoinFormData> FormData { get; set; } = new List<JoinFormData>();
+    public CardDesign CardTemplate {get; set;} = new CardDesign();
     public string SuccessMessage { get; set; }
     public string ErrorMessage { get; set; }
     public bool Fetching = false;
@@ -39,14 +64,27 @@ else
     protected override async Task OnInitializedAsync()
     {
         Fetching = true;
-        var response = await WalliCardsApiService.GetByTokenAsync<PublicBusinessTokenDTO>("Business", Token);
-        if (response.IsSuccess)
+        var businessResponse = await WalliCardsApiService.GetByTokenAsync<PublicBusinessTokenDTO>("Business", Token);
+        if (businessResponse.IsSuccess)
         {
-            Business = response.Data;
+            Business = businessResponse.Data;
         }
         else
         {
-            ErrorMessage = response.Message;
+            ErrorMessage = businessResponse.Message;
+        }
+        var cardTemplateResponse = await WalliCardsApiService.GetByTokenAsync<CardResponseDTO>("CardTemplate", Token);
+        if (cardTemplateResponse.IsSuccess)
+        {
+            CardTemplate = JsonSerializer.Deserialize<CardDesign>(cardTemplateResponse.Data.DesignJson);
+            foreach (var field in CardTemplate.CardFields)
+            {
+                FormData.Add(new JoinFormData { FieldName = field.FieldName });
+            }
+        }
+        else
+        {
+            Console.WriteLine("Error fetching card template");
         }
         Fetching = false;
         StateHasChanged();
@@ -55,6 +93,8 @@ else
     public async Task Submit()
     {
         JoinFormModel.BusinessToken = Token;
+        var customerDetails = FormData.ToDictionary(f => f.FieldName, f => (object)f.FieldData);
+        JoinFormModel.FormDataJson = JsonSerializer.Serialize(customerDetails);
         var response = await WalliCardsApiService.PostAsync<JoinFormModel>("Customer/join", JoinFormModel);
         if (response.IsSuccess)
         {
