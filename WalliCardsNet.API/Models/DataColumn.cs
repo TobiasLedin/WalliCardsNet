@@ -2,7 +2,7 @@
 
 namespace WalliCardsNet.API.Models
 {
-    public class FieldDefinition
+    public class DataColumn
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -10,8 +10,8 @@ namespace WalliCardsNet.API.Models
         public Guid BusinessId { get; set; }
 
 
-        public string FieldName { get; set; } = string.Empty;   // Customer data fields (Name, Email, Adress etc)
-        public string FieldType { get; set; } = "string";   // Type of data (string, int/double etc)
+        public string ColumnName { get; set; } = string.Empty;   // Customer data fields (Name, Email, Adress etc)
+        public string ColumnType { get; set; } = "string";   // Type of data (string, int/double etc)
         public bool IsRequired { get; set; }
     }
 }

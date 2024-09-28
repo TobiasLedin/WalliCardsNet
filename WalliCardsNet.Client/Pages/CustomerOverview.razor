@@ -1,12 +1,95 @@
-﻿@page "/customer"
+﻿@using WalliCardsNet.ClassLibrary.Customer
+
+@page "/customers"
+
+@inject WalliCardsApiService ApiService
+@inject AuthStateProvider AuthStateProvider
+
 
 <h3>Customer Overview</h3>
 
-@* <QuickGrid Items="customer" >
+@if (Isloading == true)
+{
+    <p>Loading</p>
+}
 
-</QuickGrid> *@
+@if (Business != null)
+{
+
+    <QuickGrid Items="Customers" TGridItem="CustomerResponseDTO" Class="table">
+        @foreach (var column in Business.DataColumns)
+        {
+            <TemplateColumn Title="@column.ColumnName" >
+                @GetColumnValue(context.CustomerDetails, column)
+            </TemplateColumn>
+        }
+    </QuickGrid>
+}
+
 
 @code {
-    // private List<Customer> Customers { get; set; }
+
+    public BusinessResponseDTO? Business { get; set; }
+    public IQueryable<CustomerResponseDTO>? Customers { get; set; }
+    public bool Isloading { get; set; } = true;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Guid businessId;
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                var businessIdClaim = user.FindFirst("business-id");
+
+                if (businessIdClaim != null)
+                {
+                    var businessId = Guid.Parse(businessIdClaim.Value);
+                    var response = await ApiService.GetByIdAsync<BusinessResponseDTO>("Business", businessId);
+
+                    if (response.IsSuccess)
+                    {
+                        Business = response.Data;
+                    }
+                }
+
+                if (Business != null)
+                {
+                    var response = await ApiService.GetAllAsync<List<CustomerResponseDTO>>("Customer");
+
+                    if (response.IsSuccess)
+                    {
+                        Customers = response.Data.AsQueryable();
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+
+        }
+        finally
+        {
+            Isloading = false;
+        }
+    }
+
+    private string? GetColumnValue(Dictionary<string, object>? customerDetails, DataColumnDTO column)
+    {
+        if (customerDetails == null || !customerDetails.TryGetValue(column.ColumnName, out var value))
+        {
+            return null;
+        }
+
+        return value switch
+        {
+            DateTime dateTime => dateTime.ToString("g"),
+            _ => value?.ToString()
+        };
+    }
 
 }

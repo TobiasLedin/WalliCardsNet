@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace WalliCardsNet.ClassLibrary.Business
 {
-    public record BusinessResponseDTO(Guid Id, string Name);
+    public record BusinessResponseDTO(Guid Id, string Name, List<DataColumnDTO> DataColumns);
     
 }

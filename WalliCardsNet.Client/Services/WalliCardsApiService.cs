@@ -12,7 +12,7 @@ namespace WalliCardsNet.Client.Services
             _httpClient = httpClientFactory.CreateClient("WalliCardsApi");
         }
 
-        public async Task<ApiResponse<T>> GetByIdAsync<T>(string endpoint, string id)
+        public async Task<ApiResponse<T>> GetByIdAsync<T>(string endpoint, Guid id)     //TODO: Id som string eller Guid??
         {
             var response = await _httpClient.GetAsync($"/api/{endpoint}/{id}");
             return await ProcessResponse<T>(response);

@@ -1,4 +1,4 @@
-﻿@* @inject HttpClient Http
+﻿@inject HttpClient Http
 @inject WalliCardsApiService WalliCardsApiService
 
 <h3>Get by ID</h3>
@@ -29,7 +29,7 @@
         ErrorMessage = "";
         Fetching = true;
 
-        var response = await WalliCardsApiService.GetByIdAsync<BusinessDTO>("Business", BusinessId);
+        var response = await WalliCardsApiService.GetByIdAsync<BusinessDTO>("Business", Guid.Parse(BusinessId)); //TODO: TEST, utvärdera
         if (response.IsSuccess)
         {
             Business = response.Data;
@@ -42,4 +42,4 @@
         Fetching = false;
         StateHasChanged();
     }
-} *@
+}
