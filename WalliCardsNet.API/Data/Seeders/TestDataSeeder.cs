@@ -20,8 +20,9 @@ namespace WalliCardsNet.API.Data.Seeders
 
                 List<DataColumn> columns = new()
                 {
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, ColumnName = "Email", ColumnType = "string", IsRequired = true },
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, ColumnName = "Name", ColumnType = "string", IsRequired = true }
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Email", Title="Email", DataType = "string", IsRequired = true },
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Name", Title="Full name", DataType = "string", IsRequired = false },
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Phone", Title="Mobile phone", DataType = "string", IsRequired = false }
                 };
 
                 business.DataColumns.AddRange(columns);
@@ -54,7 +55,7 @@ namespace WalliCardsNet.API.Data.Seeders
                     {
                         BusinessId = business.Id,
                         Business = business,
-                        CustomerDetails = new Dictionary<string, object>
+                        CustomerDetails = new Dictionary<string, string>
                         {
                             { "Email", "john@mail.com" },
                             { "Name", "John Johnsson" }
@@ -64,7 +65,7 @@ namespace WalliCardsNet.API.Data.Seeders
                     {
                         BusinessId = business.Id,
                         Business = business,
-                        CustomerDetails = new Dictionary<string, object>
+                        CustomerDetails = new Dictionary<string, string>
                         {
                             { "Email", "sven@mail.com" },
                             { "Name", "Sven Svensson" }
@@ -74,7 +75,7 @@ namespace WalliCardsNet.API.Data.Seeders
                     {
                         BusinessId = business.Id,
                         Business = business,
-                        CustomerDetails = new Dictionary<string, object>
+                        CustomerDetails = new Dictionary<string, string>
                         {
                             { "Email", "lars@mail.com" },
                             { "Name", "Lars Larsson" }
