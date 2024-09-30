@@ -22,11 +22,53 @@
             </div>
         }
     </div>
+    <div>
+        <label>Background Color</label>
+        <input type="color" @bind="BackgroundColor" />
+    </div>
+    <div>
+        <label>Text Color</label>
+        <input type="color" @bind="TextColor" />
+    </div>
    
 </EditForm>
 
 
 <button @onclick="CreateCard">Create Card</button>
+
+
+<h3>Preview</h3>
+<div style="background-color:@BackgroundColor; color:@TextColor;">
+    @foreach (var field in Fields)
+    {
+        <div>
+            <label>
+                @field.Label 
+            </label>
+            @if (field.IsRequired == true)
+            {
+                <label>*</label>
+            }
+            @{
+                string exampleText = "";
+            }
+            @switch (field.FieldType)
+            {
+
+                case "text":
+                    <InputText @bind-Value="exampleText" />
+                    break;
+                case "email":
+                    <InputText @bind-Value="exampleText" />
+                    break;
+                default:
+                    <p>Unsupported field type: @field.FieldType</p>
+                    break;
+            }
+        </div>
+    }
+</div>
+
 
 @code {
     [Parameter]
@@ -35,6 +77,8 @@
     public CardRequestDTO Card { get; set; } = new CardRequestDTO();
 
     public List<CardField> Fields { get; set; } = new List<CardField>();
+    public string BackgroundColor { get; set; } = "#ffffff"; 
+    public string TextColor { get; set; } = "#000000"; 
 
     public async Task CreateCard()
     {
@@ -44,8 +88,8 @@
             CardFields = Fields,
             CssOptions = new Dictionary<string, string>
             {
-                {"bg-color", "white" },
-                {"color", "black"}
+                {"background-color", BackgroundColor },
+                {"color", TextColor }
             }
         };
         Card.DesignJson = System.Text.Json.JsonSerializer.Serialize(cardDesign);
