@@ -5,6 +5,7 @@ using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.ClassLibrary;
 using WalliCardsNet.ClassLibrary.Business;
+using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -25,33 +26,33 @@ namespace WalliCardsNet.API.Controllers
         /// API GET endpoint that returns list of all businessess in the database.
         /// </summary>
         /// <returns>List<BussinessResponseDTO</returns>
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetAll()
-        {
-            var result = await _businessRepo.GetAllAsync();
-            if (result.Count != 0)
-            {
-                var listBusinessDTO = new List<BusinessResponseDTO>();
-                foreach (var business in result)
-                {
-                    var dataColumns = new List<DataColumnDTO>();
-                    foreach (var column in business.DataColumns)
-                    {
-                       dataColumns.Add(new DataColumnDTO(column.ColumnName, column.ColumnType, column.IsRequired));
-                    }
+        //[HttpGet]
+        //[Authorize]
+        //public async Task<IActionResult> GetAll()
+        //{
+        //    var result = await _businessRepo.GetAllAsync();
+        //    if (result.Count != 0)
+        //    {
+        //        var listBusinessDTO = new List<BusinessResponseDTO>();
+        //        foreach (var business in result)
+        //        {
+        //            var dataColumns = new List<DataColumnDTO>();
+        //            foreach (var column in business.DataColumns)
+        //            {
+        //               dataColumns.Add(new DataColumnDTO(column.ColumnName, column.ColumnType, column.IsRequired));
+        //            }
 
-                    var businessDTO = new BusinessResponseDTO(business.Id, business.Name, dataColumns);
+        //            var businessDTO = new BusinessResponseDTO(business.Id, business.Name, dataColumns);
                     
-                    listBusinessDTO.Add(businessDTO);
-                }
-                return Ok(listBusinessDTO);
-            }
-            else
-            {
-                return Ok(new List<BusinessResponseDTO>());
-            }
-        }
+        //            listBusinessDTO.Add(businessDTO);
+        //        }
+        //        return Ok(listBusinessDTO);
+        //    }
+        //    else
+        //    {
+        //        return Ok(new List<BusinessResponseDTO>());
+        //    }
+        //}
 
         /// <summary>
         /// API GET endpoint that returns a specific business in the database.
@@ -67,7 +68,7 @@ namespace WalliCardsNet.API.Controllers
                 var dataColumns = new List<DataColumnDTO>();
                 foreach (var column in business.DataColumns)
                 {
-                    dataColumns.Add(new DataColumnDTO(column.ColumnName, column.ColumnType, column.IsRequired));
+                    dataColumns.Add(new DataColumnDTO(column.Key, column.Title, column.DataType, column.IsRequired));
                 }
 
                 var businessDTO = new BusinessResponseDTO(business.Id, business.Name, dataColumns);
@@ -121,8 +122,8 @@ namespace WalliCardsNet.API.Controllers
 
             List<DataColumn> columns = new()
             {
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, ColumnName = "Email", ColumnType = "string", IsRequired = true },
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, ColumnName = "Name", ColumnType = "string", IsRequired = true }
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Email", Title = "Email", DataType = "string" , IsRequired = true },
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Name", Title = "Full name", DataType = "string" , IsRequired = true }
             };
             business.DataColumns.AddRange(columns);
 
