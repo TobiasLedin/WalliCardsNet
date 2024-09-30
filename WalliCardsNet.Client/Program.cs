@@ -13,23 +13,19 @@ namespace WalliCardsNet.Client
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-            builder.Services.AddBlazoredLocalStorage();
+            
 
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => new HttpClient
-            {
-                BaseAddress = new Uri("https://localhost:7204")
-                
-            });
-
-            // TEST (HttpClientFactory)
             builder.Services.AddHttpClient("WalliCardsApi", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7204");
             })
             .AddHttpMessageHandler<AuthMessageHandler>();
+
+            builder.Services.AddBlazoredLocalStorage();
+            builder.Services.AddBlazorBootstrap();
 
             builder.Services.AddAuthorizationCore();
             builder.Services.AddScoped<AuthStateProvider>();
