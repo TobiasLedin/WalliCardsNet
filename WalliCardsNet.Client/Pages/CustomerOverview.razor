@@ -1,28 +1,26 @@
 ﻿@using WalliCardsNet.ClassLibrary.Customer
 @using WalliCardsNet.Client.Components.Customer
 
-
 @page "/customers"
-
 @inject WalliCardsApiService ApiService
 @inject AuthStateProvider AuthStateProvider
 
 
 <h3>Customer Overview</h3>
 
-@if (Isloading == true && Columns == null)
+@if (Isloading == true && Columns.Count == 0)
 {
     <p>Loading business settings</p>
 }
 
-@if (Isloading == true && Columns != null)
+@if (Isloading == true && Columns.Count > 0)
 {
     <p>Loading customer data</p>
 }
 
-@if (Columns != null && Customers != null)
+@if (Isloading == false && ErrorMessage == null)
 {
-        <EditTable Columns="Columns" OnColumnsUpdated="UpdateColumns" />
+    <EditTable Columns="Columns" OnColumnsUpdated="UpdateColumns" />
 
     <QuickGrid Items="Customers" Class="table">
 
@@ -34,14 +32,13 @@
                                 Property="@(c => c.CustomerDetails!.ContainsKey(column.Key) ? c.CustomerDetails[column.Key] : "-")"
                                 Sortable="true" />
             }
-
         }
 
     </QuickGrid>
 }
 else
 {
-    <p>@ErrorMessage</p>
+    @ErrorMessage
 }
 
 
@@ -72,6 +69,7 @@ else
                     {
                         var business = businessResponse.Data;
                         Columns = business.DataColumns;
+                        StateHasChanged();
                     }
 
                     var customerResponse = await ApiService.GetAllAsync<List<CustomerResponseDTO>>("Customer");
@@ -97,6 +95,6 @@ else
     private void UpdateColumns(List<DataColumnDTO> updatedColumns)
     {
         Columns = updatedColumns;
-        StateHasChanged(); // Update the UI
+        StateHasChanged();
     }
 }
