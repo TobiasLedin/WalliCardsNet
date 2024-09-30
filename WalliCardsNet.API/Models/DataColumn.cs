@@ -13,6 +13,6 @@ namespace WalliCardsNet.API.Models
         public string Key { get; set; } = string.Empty;   // Customer data fields (Name, Email, Adress etc)
         public string Title { get; set; } = string.Empty;
         public string DataType { get; set; } = "string";   // Type of data (string, int/double etc)
-        public bool IsRequired { get; set; }
+        public bool IsSelected { get; set; }
     }
 }

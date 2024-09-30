@@ -20,9 +20,10 @@ namespace WalliCardsNet.API.Data.Seeders
 
                 List<DataColumn> columns = new()
                 {
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Email", Title="Email", DataType = "string", IsRequired = true },
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Name", Title="Full name", DataType = "string", IsRequired = false },
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Phone", Title="Mobile phone", DataType = "string", IsRequired = false }
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Email", Title="Email", DataType = "string", IsSelected = true },
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Name", Title="Full name", DataType = "string", IsSelected = true },
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Phone", Title="Mobile phone", DataType = "string", IsSelected = true },
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Adress", Title="Adress", DataType = "string", IsSelected = false }
                 };
 
                 business.DataColumns.AddRange(columns);

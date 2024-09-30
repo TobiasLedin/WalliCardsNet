@@ -1,4 +1,6 @@
 ﻿@using WalliCardsNet.ClassLibrary.Customer
+@using WalliCardsNet.Client.Components.Customer
+
 
 @page "/customers"
 
@@ -18,16 +20,21 @@
     <p>Loading customer data</p>
 }
 
-@if (Columns != null && Customers != null )
+@if (Columns != null && Customers != null)
 {
+        <EditTable Columns="Columns" OnColumnsUpdated="UpdateColumns" />
 
     <QuickGrid Items="Customers" Class="table">
 
         @foreach (var column in Columns)
         {
-            <PropertyColumn Title="@(column.Title)"
-                            Property="@(c => c.CustomerDetails!.ContainsKey(column.Key) ? c.CustomerDetails[column.Key] : "-")"
-                            Sortable="true" />
+            if (column.IsSelected)
+            {
+                <PropertyColumn Title="@(column.Title)"
+                                Property="@(c => c.CustomerDetails!.ContainsKey(column.Key) ? c.CustomerDetails[column.Key] : "-")"
+                                Sortable="true" />
+            }
+
         }
 
     </QuickGrid>
@@ -39,7 +46,7 @@ else
 
 
 @code {
-    public List<DataColumnDTO> Columns { get; set; } = [];   // Sätta upp Cascading Parameter? 
+    public List<DataColumnDTO> Columns { get; set; } = [];   // Sätta upp Cascading Parameter?
     public IQueryable<CustomerResponseDTO> Customers { get; set; }
     public bool Isloading { get; set; } = true;
     public string? ErrorMessage { get; set; }
@@ -87,4 +94,9 @@ else
         }
     }
 
+    private void UpdateColumns(List<DataColumnDTO> updatedColumns)
+    {
+        Columns = updatedColumns;
+        StateHasChanged(); // Update the UI
+    }
 }

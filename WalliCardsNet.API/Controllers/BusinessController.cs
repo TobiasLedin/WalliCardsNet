@@ -68,7 +68,7 @@ namespace WalliCardsNet.API.Controllers
                 var dataColumns = new List<DataColumnDTO>();
                 foreach (var column in business.DataColumns)
                 {
-                    dataColumns.Add(new DataColumnDTO(column.Key, column.Title, column.DataType, column.IsRequired));
+                    dataColumns.Add(new DataColumnDTO(column.Key, column.Title, column.DataType, column.IsSelected));
                 }
 
                 var businessDTO = new BusinessResponseDTO(business.Id, business.Name, dataColumns);
@@ -122,8 +122,8 @@ namespace WalliCardsNet.API.Controllers
 
             List<DataColumn> columns = new()
             {
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Email", Title = "Email", DataType = "string" , IsRequired = true },
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Name", Title = "Full name", DataType = "string" , IsRequired = true }
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Email", Title = "Email", DataType = "string" , IsSelected = true },
+                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Name", Title = "Full name", DataType = "string" , IsSelected = true }
             };
             business.DataColumns.AddRange(columns);
 

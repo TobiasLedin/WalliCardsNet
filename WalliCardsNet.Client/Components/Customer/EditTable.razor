@@ -1,0 +1,62 @@
+﻿
+<button @onclick="ToggleEdit">Edit</button>
+
+@if (!IsCollapsed)
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Visible</th>
+                <th>Key</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var column in Columns)
+        {
+            <tr>
+                <td>
+                    <input type="checkbox"
+                           checked="@column.IsSelected"
+                           @onchange="() => UpdateColumnSelection(column)" />
+                </td>
+                <td>@column.Key</td>
+            </tr>
+        }
+        </tbody>
+
+    </table>
+
+}
+
+@code {
+
+    [Parameter]
+    public List<DataColumnDTO> Columns { get; set; }
+    [Parameter]
+    public EventCallback<List<DataColumnDTO>> OnColumnsUpdated { get; set; }
+    private bool IsCollapsed { get; set; } = true;
+
+
+    private void ToggleEdit()
+    {
+        if (IsCollapsed)
+        {
+            IsCollapsed = false;
+        }
+        else
+        {
+            IsCollapsed = true;
+        }
+    }
+
+    private void UpdateColumnSelection(DataColumnDTO column)
+    {
+        // Create a new list of columns with updated selection status
+        var updatedColumns = Columns.Select(c => c.Key == column.Key
+            ? column with { IsSelected = !column.IsSelected } // Toggle IsSelected
+            : c).ToList();
+
+        // Invoke the callback to update the parent component
+        OnColumnsUpdated.InvokeAsync(updatedColumns);
+    }
+}

@@ -95,7 +95,7 @@ namespace WalliCardsNet.API.Controllers
                 var customer = new Customer
                 {
                     BusinessId = business.Id,
-                    CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, object>>(joinFormModel.FormDataJson)
+                    CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(joinFormModel.FormDataJson)
                 };
                 await _customerRepo.AddAsync(customer);
                 return Created($"api/Customer/{customer.Id}", new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));
