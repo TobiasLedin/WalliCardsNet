@@ -1,8 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
-
+﻿
 namespace WalliCardsNet.API.Models
 {
     public class Business
