@@ -1,8 +1,12 @@
 ﻿
-<button @onclick="ToggleEdit">Edit</button>
+<button @onclick="ToggleEdit">
+    @(IsCollapsed ? "Edit" : "Close")
+</button>
 
 @if (!IsCollapsed)
 {
+    <button @onlick="AddColumn">Add</button> // Exempel
+
     <table>
         <thead>
             <tr>
@@ -11,27 +15,24 @@
             </tr>
         </thead>
         <tbody>
-        @foreach (var column in Columns)
-        {
-            <tr>
-                <td>
-                    <input type="checkbox"
-                           checked="@column.IsSelected"
-                           @onchange="() => UpdateColumnSelection(column)" />
-                </td>
-                <td>@column.Key</td>
-            </tr>
-        }
+            @foreach (var column in Columns)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox"
+                               checked="@column.IsSelected"
+                               @onchange="() => UpdateColumnSelection(column)" />
+                    </td>
+                    <td>@column.Key</td>
+                </tr>
+            }
         </tbody>
-
     </table>
-
 }
 
 @code {
-
     [Parameter]
-    public List<DataColumnDTO> Columns { get; set; }
+    public List<DataColumnDTO> Columns { get; set; } = [];
     [Parameter]
     public EventCallback<List<DataColumnDTO>> OnColumnsUpdated { get; set; }
     private bool IsCollapsed { get; set; } = true;
@@ -39,14 +40,7 @@
 
     private void ToggleEdit()
     {
-        if (IsCollapsed)
-        {
-            IsCollapsed = false;
-        }
-        else
-        {
-            IsCollapsed = true;
-        }
+        IsCollapsed = !IsCollapsed;
     }
 
     private void UpdateColumnSelection(DataColumnDTO column)
@@ -59,4 +53,5 @@
         // Invoke the callback to update the parent component
         OnColumnsUpdated.InvokeAsync(updatedColumns);
     }
+
 }
