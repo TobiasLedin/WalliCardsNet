@@ -1,4 +1,70 @@
+﻿@* Blazor Bootstrap code
+    
 ﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">WalliCardsNet.Client</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="api-test">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> API Test
+            </NavLink>
+        </div>
+        <AuthorizeView>
+            <Authorized>
+                @{
+                    var businessToken = context.User.Claims.FirstOrDefault(x => x.Type == "business-token")?.Value;
+                    var joinUrl = $"join/{businessToken}";
+                    var cardUrl = $"card/{businessToken}";
+                }
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="@joinUrl">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Join
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="customers">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Customers
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="@cardUrl">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Card Designer
+                    </NavLink>
+                </div>
+
+            </Authorized>
+        </AuthorizeView>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+} *@
+
+
+
+@* Original code *@
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">WalliCardsNet.Client</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
