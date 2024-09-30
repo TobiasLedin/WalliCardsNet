@@ -14,9 +14,9 @@ namespace WalliCardsNet.API.Models
 
         [NotMapped]
         [JsonIgnore]
-        public Dictionary<string, object> CustomerDetails
+        public Dictionary<string, string> CustomerDetails
         {
-            get => JsonSerializer.Deserialize<Dictionary<string, object>>(CustomerDetailsJson) ?? new Dictionary<string, object>();
+            get => JsonSerializer.Deserialize<Dictionary<string, string>>(CustomerDetailsJson) ?? new Dictionary<string, string>();
 
             set => CustomerDetailsJson = JsonSerializer.Serialize(value);
         }

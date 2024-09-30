@@ -1,4 +1,5 @@
-﻿using WalliCardsNet.API.Data.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
@@ -29,9 +30,16 @@ namespace WalliCardsNet.API.Data.Repositories
             await _applicationDbContext.SaveChangesAsync();
         }
 
-        public Task<List<Customer>> GetAllAsync()
+        public async Task<List<Customer>> GetAllByBusinessAsync(Guid businessId)
         {
-            throw new NotImplementedException("Customer/GetAllAsync method not yet implemented");
+            var customers = new List<Customer>();
+
+            if (businessId != null)
+            {
+                customers = await _applicationDbContext.Customers.Where(x => x.BusinessId == businessId).ToListAsync();
+            }
+
+            return customers;
         }
 
         public Task<Customer> GetByIdAsync(Guid id)

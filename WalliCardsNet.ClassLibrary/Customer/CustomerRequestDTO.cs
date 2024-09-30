@@ -10,7 +10,7 @@ namespace WalliCardsNet.ClassLibrary.Customer
     {
         public Guid Id { get; set; }
         public Guid BusinessId { get; set; }
-        public Dictionary<string, object>? CustomerDetails { get; set; }
+        public Dictionary<string, string>? CustomerDetails { get; set; }
 
     }
 }

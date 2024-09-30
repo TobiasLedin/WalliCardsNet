@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
@@ -19,11 +21,20 @@ namespace WalliCardsNet.API.Controllers
             _businessRepo = businessRepo;
         }
 
+        
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var customers = await _customerRepo.GetAllAsync();
-            if (customers != null && customers.Any())
+            var businessIdClaim = User.FindFirst("business-id");
+            if (businessIdClaim == null)
+            {
+                return Unauthorized();
+            };
+
+            Guid businessId = Guid.Parse(businessIdClaim.Value);    
+
+            var customers = await _customerRepo.GetAllByBusinessAsync(businessId);
+            if (customers.Count != 0)
             {
                 List<CustomerResponseDTO> customersDTO = [];
 

@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.ClassLibrary.Business
 {
-    public record BusinessResponseDTO(Guid Id, string Name);
+    public record BusinessResponseDTO(Guid Id, string Name, List<DataColumnDTO> DataColumns);
     
 }

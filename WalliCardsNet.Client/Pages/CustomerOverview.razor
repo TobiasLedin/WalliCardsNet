@@ -1,12 +1,90 @@
-﻿@page "/customer"
+﻿@using WalliCardsNet.ClassLibrary.Customer
+
+@page "/customers"
+
+@inject WalliCardsApiService ApiService
+@inject AuthStateProvider AuthStateProvider
+
 
 <h3>Customer Overview</h3>
 
-@* <QuickGrid Items="customer" >
+@if (Isloading == true && Columns == null)
+{
+    <p>Loading business settings</p>
+}
 
-</QuickGrid> *@
+@if (Isloading == true && Columns != null)
+{
+    <p>Loading customer data</p>
+}
+
+@if (Columns != null && Customers != null )
+{
+
+    <QuickGrid Items="Customers" Class="table">
+
+        @foreach (var column in Columns)
+        {
+            <PropertyColumn Title="@(column.Title)"
+                            Property="@(c => c.CustomerDetails!.ContainsKey(column.Key) ? c.CustomerDetails[column.Key] : "-")"
+                            Sortable="true" />
+        }
+
+    </QuickGrid>
+}
+else
+{
+    <p>@ErrorMessage</p>
+}
+
 
 @code {
-    // private List<Customer> Customers { get; set; }
+    public List<DataColumnDTO> Columns { get; set; } = [];   // Sätta upp Cascading Parameter? 
+    public IQueryable<CustomerResponseDTO> Customers { get; set; }
+    public bool Isloading { get; set; } = true;
+    public string? ErrorMessage { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                var businessIdClaim = user.FindFirst("business-id");
+
+                if (businessIdClaim != null)
+                {
+                    var businessId = Guid.Parse(businessIdClaim.Value);
+                    var businessResponse = await ApiService.GetByIdAsync<BusinessResponseDTO>("Business", businessId);
+
+                    if (businessResponse.IsSuccess)
+                    {
+                        var business = businessResponse.Data;
+                        Columns = business.DataColumns;
+                    }
+
+                    var customerResponse = await ApiService.GetAllAsync<List<CustomerResponseDTO>>("Customer");
+
+                    if (customerResponse.IsSuccess)
+                    {
+                        var data = customerResponse.Data;
+                        Customers = data.AsQueryable();
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Failed to load customer data";
+        }
+        finally
+        {
+            Isloading = false;
+        }
+    }
 
 }
