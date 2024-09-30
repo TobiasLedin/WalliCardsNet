@@ -13,7 +13,8 @@
 @if (Business != null && CardTemplate != null)
 {
     <p>Join @Business.Name</p>
-    <EditForm Model="@JoinFormModel" OnValidSubmit="Submit">
+    <EditForm Model="@JoinFormModel" OnValidSubmit="Submit"
+              style="@GenerateStyleString()">
         <DataAnnotationsValidator/>
         @foreach (var field in CardTemplate.CardFields)
         {
@@ -56,6 +57,7 @@ else
     public PublicBusinessTokenDTO Business {get; set;}
     public JoinFormModel JoinFormModel { get; set; } = new JoinFormModel();
     public List<JoinFormData> FormData { get; set; } = new List<JoinFormData>();
+    public Dictionary<string, string> CssOptions { get; set; } = new Dictionary<string, string>();
     public CardDesign CardTemplate {get; set;} = new CardDesign();
     public string SuccessMessage { get; set; }
     public string ErrorMessage { get; set; }
@@ -81,6 +83,7 @@ else
             {
                 FormData.Add(new JoinFormData { FieldName = field.FieldName });
             }
+            CssOptions = CardTemplate.CssOptions;
         }
         else
         {
@@ -104,6 +107,11 @@ else
         {
             Console.WriteLine($"Error: {response.Message}");
         }
+    }
+
+    private string GenerateStyleString()
+    {
+        return string.Join(";", CssOptions.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
     }
 
 }
