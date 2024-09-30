@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary.Card;
+using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -9,9 +11,11 @@ namespace WalliCardsNet.API.Controllers
     public class CardTemplateController : ControllerBase
     {
         private readonly ICardTemplate _cardTemplateRepo;
-        public CardTemplateController(ICardTemplate cardTemplateRepo)
+        private readonly IBusiness _businessRepo;
+        public CardTemplateController(ICardTemplate cardTemplateRepo, IBusiness businessRepo)
         {
             _cardTemplateRepo = cardTemplateRepo;
+            _businessRepo = businessRepo;
         }
 
         [HttpGet]
@@ -28,7 +32,7 @@ namespace WalliCardsNet.API.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
             var result = await _cardTemplateRepo.GetByIdAsync(id);
@@ -42,19 +46,39 @@ namespace WalliCardsNet.API.Controllers
             }
         }
 
+        [HttpGet("{token}")]
+        public async Task<IActionResult> GetByTokenAsync(string token)
+        {
+            var business = await _businessRepo.GetByTokenAsync(token);
+            var result = await _cardTemplateRepo.GetByBusinessIdAsync(business.Id);
+            if (result != null)
+            {
+                var cardResponseDTO = new CardResponseDTO
+                {
+                    DesignJson = result.DesignJson
+                };
+                return Ok(cardResponseDTO);
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAsync(CardTemplate cardTemplate)
+        public async Task<IActionResult> AddAsync(CardRequestDTO cardRequestDTO)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
+                var business = await _businessRepo.GetByTokenAsync(cardRequestDTO.BusinessToken);
+                var cardTemplate = new CardTemplate
+                {
+                    Business = business,
+                    DesignJson = cardRequestDTO.DesignJson
+                };
                 await _cardTemplateRepo.AddAsync(cardTemplate);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = cardTemplate.Id }, cardTemplate);
+                return Created($"api/CardTemplate/{cardTemplate.Id}", cardTemplate);
             }
             catch (Exception ex)
             {

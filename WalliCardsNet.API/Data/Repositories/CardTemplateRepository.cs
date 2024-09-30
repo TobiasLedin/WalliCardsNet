@@ -1,13 +1,24 @@
-﻿using WalliCardsNet.API.Data.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
     public class CardTemplateRepository : ICardTemplate
     {
-        public Task AddAsync(CardTemplate cardTemplate)
+        private readonly ApplicationDbContext _applicationDbContext;
+
+        public CardTemplateRepository(ApplicationDbContext applicationDbContext)
         {
-            throw new NotImplementedException("CardTemplate/AddAsync method not yet implemented");
+            _applicationDbContext = applicationDbContext;
+        }
+        public async Task AddAsync(CardTemplate cardTemplate)
+        {
+            if (cardTemplate != null)
+            {
+                await _applicationDbContext.CardTemplates.AddAsync(cardTemplate);
+                await _applicationDbContext.SaveChangesAsync();
+            }
         }
 
         public Task<List<CardTemplate>> GetAllAsync()
@@ -18,6 +29,19 @@ namespace WalliCardsNet.API.Data.Repositories
         public Task<CardTemplate> GetByIdAsync(int id)
         {
             throw new NotImplementedException("CardTemplate/GetByIdAsync method not yet implemented");
+        }
+
+        public async Task<CardTemplate> GetByBusinessIdAsync(Guid businessId)
+        {
+            var result = await _applicationDbContext.CardTemplates.FirstOrDefaultAsync(x => x.Business.Id == businessId && x.IsActive == true);
+            if (result != null)
+            {
+                return result;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public Task RemoveAsync(int id)

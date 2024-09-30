@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary;
 using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.API.Controllers
@@ -11,9 +14,11 @@ namespace WalliCardsNet.API.Controllers
     public class CustomerController : ControllerBase
     {
         private readonly ICustomer _customerRepo;
-        public CustomerController(ICustomer customerRepo)
+        private readonly IBusiness _businessRepo;
+        public CustomerController(ICustomer customerRepo, IBusiness businessRepo)
         {
             _customerRepo = customerRepo;
+            _businessRepo = businessRepo;
         }
 
         
@@ -70,6 +75,27 @@ namespace WalliCardsNet.API.Controllers
                 {
                     BusinessId = customerData.BusinessId,
                     CustomerDetails = customerData.CustomerDetails
+                };
+                await _customerRepo.AddAsync(customer);
+                return Created($"api/Customer/{customer.Id}", new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("join")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<IActionResult> AddByJoinFormModelAsync(JoinFormModel joinFormModel)
+        {
+            try
+            {
+                var business = await _businessRepo.GetByTokenAsync(joinFormModel.BusinessToken);
+                var customer = new Customer
+                {
+                    BusinessId = business.Id,
+                    CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, object>>(joinFormModel.FormDataJson)
                 };
                 await _customerRepo.AddAsync(customer);
                 return Created($"api/Customer/{customer.Id}", new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));

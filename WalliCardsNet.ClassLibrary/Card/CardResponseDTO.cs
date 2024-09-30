@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalliCardsNet.ClassLibrary
+namespace WalliCardsNet.ClassLibrary.Card
 {
-    public class CardTemplateDTO
+    public record CardResponseDTO
     {
-        public string DesignJson { get; set; } = "{}";
+        public string DesignJson { get; set; }
     }
 }
