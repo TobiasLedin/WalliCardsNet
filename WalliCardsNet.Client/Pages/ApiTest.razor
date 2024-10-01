@@ -28,13 +28,13 @@
     {
         componentMapping = new Dictionary<(string, string), Type>
         {
-            { ("Business", "GetById"), typeof(WalliCardsNet.Client.Components.API.BusinessGetById) },
-            { ("Business", "GetAll"), typeof(WalliCardsNet.Client.Components.API.BusinessGetAll) },
-            {("Business", "Add"), typeof(WalliCardsNet.Client.Components.API.BusinessAdd)},
+            { ("business", "GetById"), typeof(WalliCardsNet.Client.Components.API.BusinessGetById) },
+            { ("business", "GetAll"), typeof(WalliCardsNet.Client.Components.API.BusinessGetAll) },
+            {("business", "Add"), typeof(WalliCardsNet.Client.Components.API.BusinessAdd)},
         };
     }
 
-    public string CurrentDataType { get; set; } = "Business";
+    public string CurrentDataType { get; set; } = "business";
     public string CurrentApiEndpoint { get; set; } = "GetAll";
 
 

@@ -66,7 +66,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         Fetching = true;
-        var businessResponse = await WalliCardsApiService.GetByTokenAsync<PublicBusinessTokenDTO>("Business", Token);
+        var businessResponse = await WalliCardsApiService.GetByTokenAsync<PublicBusinessTokenDTO>("business", Token);
         if (businessResponse.IsSuccess)
         {
             Business = businessResponse.Data;
@@ -75,7 +75,7 @@ else
         {
             ErrorMessage = businessResponse.Message;
         }
-        var cardTemplateResponse = await WalliCardsApiService.GetByTokenAsync<CardResponseDTO>("CardTemplate", Token);
+        var cardTemplateResponse = await WalliCardsApiService.GetByTokenAsync<CardResponseDTO>("cardtemplate", Token);
         if (cardTemplateResponse.IsSuccess)
         {
             CardTemplate = JsonSerializer.Deserialize<CardDesign>(cardTemplateResponse.Data.DesignJson);
@@ -98,7 +98,7 @@ else
         JoinFormModel.BusinessToken = Token;
         var customerDetails = FormData.ToDictionary(f => f.FieldName, f => (object)f.FieldData);
         JoinFormModel.FormDataJson = JsonSerializer.Serialize(customerDetails);
-        var response = await WalliCardsApiService.PostAsync<JoinFormModel>("Customer/join", JoinFormModel);
+        var response = await WalliCardsApiService.PostAsync<JoinFormModel>("customer/join", JoinFormModel);
         if (response.IsSuccess)
         {
             Console.WriteLine("success");
