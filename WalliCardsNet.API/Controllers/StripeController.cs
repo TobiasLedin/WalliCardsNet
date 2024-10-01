@@ -5,7 +5,7 @@ using WalliCardsNet.API.Data.Interfaces;
 
 namespace WalliCardsNet.API.Controllers
 {
-    [Route("/api/{controller}")]
+    [Route("/api/payment")]
     [ApiController]
     public class StripeController : ControllerBase
     {
