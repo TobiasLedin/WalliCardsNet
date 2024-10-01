@@ -5,7 +5,7 @@ using SendGrid.Helpers.Mail;
 
 namespace WalliCardsNet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/mail")]
     [ApiController]
     public class MailController : ControllerBase
     {

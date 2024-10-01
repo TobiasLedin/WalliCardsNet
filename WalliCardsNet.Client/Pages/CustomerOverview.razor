@@ -63,7 +63,7 @@ else
                 if (businessIdClaim != null)
                 {
                     var businessId = Guid.Parse(businessIdClaim.Value);
-                    var businessResponse = await ApiService.GetByIdAsync<BusinessResponseDTO>("Business", businessId);
+                    var businessResponse = await ApiService.GetByIdAsync<BusinessResponseDTO>("business", businessId);
 
                     if (businessResponse.IsSuccess)
                     {
@@ -72,7 +72,7 @@ else
                         StateHasChanged();
                     }
 
-                    var customerResponse = await ApiService.GetAllAsync<List<CustomerResponseDTO>>("Customer");
+                    var customerResponse = await ApiService.GetAllAsync<List<CustomerResponseDTO>>("customer");
 
                     if (customerResponse.IsSuccess)
                     {

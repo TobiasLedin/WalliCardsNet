@@ -55,7 +55,7 @@
         Businesses = null;
         Fetching = true;
 
-        var response = await WalliCardsApiService.GetAllAsync<List<BusinessDTO>>("Business");
+        var response = await WalliCardsApiService.GetAllAsync<List<BusinessDTO>>("business");
         if (response.IsSuccess)
         {
             Businesses = response.Data;
@@ -80,7 +80,7 @@
 
     public async Task SaveChangesAsync(BusinessDTO business)
     {
-        var response = await WalliCardsApiService.PutAsync<BusinessDTO>("Business", business);
+        var response = await WalliCardsApiService.PutAsync<BusinessDTO>("business", business);
         if (response.IsSuccess)
         {
             EditBusinessId = Guid.Empty;
@@ -94,7 +94,7 @@
 
     public async Task DeleteBusinessAsync(Guid id)
     {
-        var response = await WalliCardsApiService.DeleteAsync<BusinessDTO>("Business", id);
+        var response = await WalliCardsApiService.DeleteAsync<BusinessDTO>("business", id);
         if (response.IsSuccess)
         {
             EditBusinessId = Guid.Empty;
