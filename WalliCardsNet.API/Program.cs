@@ -15,6 +15,7 @@ using WalliCardsNet.API.Data.Seeders;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using WalliCardsNet.API.Models;
+using Stripe;
 
 namespace WalliCardsNet.API
 {
@@ -37,6 +38,9 @@ namespace WalliCardsNet.API
 
             // DB connection string retrieval from environment variables
             var connectionString = Environment.GetEnvironmentVariable("CONNECTION-STRING");
+
+            // Stripe configuration
+            StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE-SECRET-KEY");
 
             // EntityFramework
             // Service registration
