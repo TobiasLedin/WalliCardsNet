@@ -1,0 +1,46 @@
+﻿@page "/stripe"
+@using System.Text.Json
+@inject HttpClient Http
+@inject WalliCardsApiService WalliCardsApiService
+@inject NavigationManager NavigationManager
+
+<h3>Subscribe to a Cool Product</h3>
+
+<button class="btn btn-primary" @onclick="CreateCheckoutSession">Checkout</button>
+
+@if (ErrorMessage != null)
+{
+    <p class="text-danger">@ErrorMessage</p>
+}
+
+@code {
+    private string lookupKey = "monthlySub"; 
+    private string ErrorMessage { get; set; } = "";
+
+    private async Task CreateCheckoutSession()
+    {
+        try
+        {
+            var formData = new Dictionary<string, string>
+            {
+                { "lookup-key", lookupKey }
+            };
+
+            var apiResponse = await WalliCardsApiService.PostFormUrlEncodedAsync("/api/payment/create-checkout-session", formData);
+            if (apiResponse.IsSuccessStatusCode)
+            {
+                var jsonResponse = await apiResponse.Content.ReadFromJsonAsync<JsonDocument>();
+                var location = jsonResponse.RootElement.GetProperty("url").GetString();
+                NavigationManager.NavigateTo(location, true);
+            }
+            else
+            {
+                ErrorMessage = "Failed to create checkout session.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+}

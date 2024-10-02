@@ -32,6 +32,11 @@ namespace WalliCardsNet.API.Controllers
             var priceService = new PriceService();
             StripeList<Price> prices = priceService.List(priceOptions);
 
+            if (prices.Data == null || prices.Data.Count == 0)
+            {
+                return BadRequest("No prices found for the provided lookup key.");
+            }
+
             var options = new SessionCreateOptions
             {
                 LineItems = new List<SessionLineItemOptions>
@@ -50,9 +55,10 @@ namespace WalliCardsNet.API.Controllers
             var service = new SessionService();
             Session session = service.Create(options);
 
-            Response.Headers.Add("Location", session.Url);
 
-            return new StatusCodeResult(303);
+            //Response.Headers.Add("Location", session.Url);
+            //return new StatusCodeResult(303);
+            return Ok(new { url = session.Url });
         }
     }
 }
