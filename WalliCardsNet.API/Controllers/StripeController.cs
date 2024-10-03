@@ -19,7 +19,7 @@ namespace WalliCardsNet.API.Controllers
         [HttpPost("create-checkout-session")]
         public IActionResult CreateCheckoutSession()
         {
-            var domain = "https://localhost:7102";
+            var domain = "https://localhost:7102/";
 
             var customerEmail = Request.Form["customer_email"];
             var priceOptions = new PriceListOptions
@@ -49,8 +49,8 @@ namespace WalliCardsNet.API.Controllers
                     },
                 },
                 Mode = "subscription",
-                SuccessUrl = domain + "/success?session_id={CHECKOUT_SESSION_ID}",
-                CancelUrl = domain + "/cancel.html",
+                SuccessUrl = domain + "success?session_id={CHECKOUT_SESSION_ID}",
+                CancelUrl = domain + "cancel",
                 CustomerEmail = customerEmail
             };
 
