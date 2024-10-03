@@ -6,6 +6,10 @@
 
 <h3>Subscribe to a Cool Product</h3>
 
+
+<label for="email">Email Adress:</label>
+<InputText type="email" id="email" @bind-Value="CustomerEmail"></InputText>
+
 <button class="btn btn-primary" @onclick="CreateCheckoutSession">Checkout</button>
 
 @if (ErrorMessage != null)
@@ -14,16 +18,23 @@
 }
 
 @code {
-    private string lookupKey = "monthlySub"; 
+    private string lookupKey = "monthlySub";
+    private string CustomerEmail { get; set; } = "";
     private string ErrorMessage { get; set; } = "";
 
     private async Task CreateCheckoutSession()
     {
         try
         {
+            if (string.IsNullOrEmpty(CustomerEmail))
+            {
+                ErrorMessage = "Please enter an email address";
+                return;
+            }
             var formData = new Dictionary<string, string>
             {
-                { "lookup-key", lookupKey }
+                { "lookup-key", lookupKey },
+                {"customer_email", CustomerEmail}
             };
 
             var apiResponse = await WalliCardsApiService.PostFormUrlEncodedAsync("/api/payment/create-checkout-session", formData);

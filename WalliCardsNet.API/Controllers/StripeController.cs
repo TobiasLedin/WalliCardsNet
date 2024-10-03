@@ -21,6 +21,7 @@ namespace WalliCardsNet.API.Controllers
         {
             var domain = "https://localhost:7102";
 
+            var customerEmail = Request.Form["customer_email"];
             var priceOptions = new PriceListOptions
             {
                 LookupKeys = new List<string>
@@ -49,7 +50,8 @@ namespace WalliCardsNet.API.Controllers
                 },
                 Mode = "subscription",
                 SuccessUrl = domain + "/success?session_id={CHECKOUT_SESSION_ID}",
-                CancelUrl = domain + "/cancel.html"
+                CancelUrl = domain + "/cancel.html",
+                CustomerEmail = customerEmail
             };
 
             var service = new SessionService();
