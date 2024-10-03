@@ -6,7 +6,9 @@ namespace WalliCardsNet.API.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public string UrlToken { get; set; } = "";
         public string Name { get; set; } = "";
-        public string PspId { get; set; } = "";
+        public string PspId { get; set; } = ""; // Stripe customer Id
+        public bool ActiveSubscription { get; set; } = false;
+        public DateOnly? SubscriptionEndDate { get; set; }
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
         public List<CardTemplate> CardTemplates { get; set; } = [];
         public List<DataColumn> DataColumns { get; set; } = [];
