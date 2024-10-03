@@ -1,0 +1,13 @@
+﻿@page "/success"
+
+<p>Thank you!</p>
+
+@code {
+    [Parameter]
+    public string SessionId { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine($"Session ID: {SessionId}");
+    }
+}
