@@ -21,6 +21,7 @@ namespace WalliCardsNet.API.Data
         public DbSet<CardTemplate> CardTemplates { get; set; }
         public DbSet<Device> Devices { get; set; }
         public DbSet<FormData> FormData { get; set; }
+        public DbSet<ActivationToken> ActivationTokens { get; set; }
 
         // DB context configuration
 
