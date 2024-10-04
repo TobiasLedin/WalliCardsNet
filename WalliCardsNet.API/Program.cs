@@ -54,6 +54,7 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<IDevice, DeviceRepository>();
             builder.Services.AddTransient<IFormData, FormDataRepository>();
             builder.Services.AddTransient<IActivationToken, ActivationTokenRepository>();
+            builder.Services.AddTransient<IApplicationUser, ApplicationUserRepository>();
 
             // Mail service
             builder.Services.AddTransient<IMailService, MailService>();

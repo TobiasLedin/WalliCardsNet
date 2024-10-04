@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WalliCardsNet.ClassLibrary.Business
+namespace WalliCardsNet.ClassLibrary.ApplicationUser
 {
-    public class BusinessRegisterDTO
+    public class ApplicationUserDTO
     {
+        public string Id { get; set; }
         public string Password { get; set; }
     }
 }

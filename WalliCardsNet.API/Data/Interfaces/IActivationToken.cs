@@ -4,6 +4,6 @@ namespace WalliCardsNet.API.Data.Interfaces
 {
     public interface IActivationToken
     {
-        public Task<ActivationToken> GetTokenAsync(Guid BusinessId);
+        public Task<ActivationToken> GetTokenAsync(string applicationUserId);
     }
 }

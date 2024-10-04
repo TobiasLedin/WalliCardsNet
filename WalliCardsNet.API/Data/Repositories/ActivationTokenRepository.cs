@@ -13,10 +13,9 @@ namespace WalliCardsNet.API.Data.Repositories
             _applicationDbContext = applicationDbContext;
         }
 
-        public async Task<ActivationToken> GetTokenAsync(Guid businessId)
+        public async Task<ActivationToken> GetTokenAsync(string applicationUserId)
         {
-            var token = await _applicationDbContext.ActivationTokens.FirstOrDefaultAsync(x => x.Business.Id == businessId);
-
+            var token = await _applicationDbContext.ActivationTokens.FirstOrDefaultAsync(x => x.ApplicationUser.Id == applicationUserId);
             if (token != null)
             {
                 if (token.ExpirationTime <= DateTime.UtcNow)
@@ -28,7 +27,7 @@ namespace WalliCardsNet.API.Data.Repositories
                     return token;
                 }
             }
-            return await GenerateTokenAsync(businessId);
+            return await GenerateTokenAsync(applicationUserId);
         }
 
         private async Task AddTokenAsync(ActivationToken token)
@@ -39,18 +38,19 @@ namespace WalliCardsNet.API.Data.Repositories
                 await _applicationDbContext.SaveChangesAsync();
             }
         }
-        private async Task<ActivationToken> GenerateTokenAsync(Guid businessId)
+        private async Task<ActivationToken> GenerateTokenAsync(string applicationUserId)
         {
-            var business = await _applicationDbContext.Businesses.FirstOrDefaultAsync(x => x.Id == businessId);
-            if (business == null)
+            var applicationUser = await _applicationDbContext.Users.FirstOrDefaultAsync(x => x.Id == applicationUserId);
+            if (applicationUser == null)
             {
-                throw new InvalidOperationException("Business not found");
+                throw new InvalidOperationException("User not found");
             }
             var token = new ActivationToken
             {
-                Business = business,
+                ApplicationUser = applicationUser, 
                 ExpirationTime = DateTime.UtcNow.AddDays(1)
             };
+            await AddTokenAsync(token);
             return token;
         }
 

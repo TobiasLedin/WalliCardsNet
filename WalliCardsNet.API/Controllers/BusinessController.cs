@@ -43,7 +43,7 @@ namespace WalliCardsNet.API.Controllers
         //            }
 
         //            var businessDTO = new BusinessResponseDTO(business.Id, business.Name, dataColumns);
-                    
+
         //            listBusinessDTO.Add(businessDTO);
         //        }
         //        return Ok(listBusinessDTO);
@@ -85,7 +85,7 @@ namespace WalliCardsNet.API.Controllers
         public async Task<IActionResult> GetByToken(string token)
         {
             var result = await _businessRepo.GetByTokenAsync(token);
-            if (result != null) 
+            if (result != null)
             {
                 PublicBusinessTokenDTO dto = new PublicBusinessTokenDTO
                 {
