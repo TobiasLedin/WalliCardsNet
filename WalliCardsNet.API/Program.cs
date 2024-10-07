@@ -16,6 +16,7 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using WalliCardsNet.API.Models;
 using Stripe;
+using System.Threading.Channels;
 
 namespace WalliCardsNet.API
 {
@@ -59,6 +60,16 @@ namespace WalliCardsNet.API
 
             // FormData service
             builder.Services.AddTransient<FormDataService>();
+
+            // Webhook events
+            builder.Services.AddHostedService<EventProcessingService>();
+            // In-memory storage of webhook events to manage potential idempotency issues.
+            builder.Services.AddSingleton<ProcessedEventStorage>();
+            // Channel to act as queue for PaymentEvents.
+            var paymentEventChannel = Channel.CreateUnbounded<PaymentEvent>();
+            builder.Services.AddSingleton(paymentEventChannel);
+
+
 
             // Identity
             // Service registration
@@ -115,7 +126,7 @@ namespace WalliCardsNet.API
             {
                 options.AddDefaultPolicy(builder =>
                 {
-                    builder.WithOrigins("https://localhost:7102")
+                    builder.WithOrigins("https://02qgplv0-7102.euw.devtunnels.ms", "https://localhost:7102") //TODO: städa upp.
                            .AllowAnyHeader()
                            .AllowAnyMethod();
                 });
