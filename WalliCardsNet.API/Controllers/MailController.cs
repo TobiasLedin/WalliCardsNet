@@ -28,5 +28,18 @@ namespace WalliCardsNet.API.Controllers
 
             return Ok("Email sent successfully");
         }
+
+        [HttpPost("send-activation-link")]
+        public async Task<IActionResult> SendActivationLinkAsync(EmailAddress email, string applicationUserId)
+        {
+            if (email == null || string.IsNullOrEmpty(email.Email))
+            {
+                return BadRequest("Invalid email data");
+            }
+
+            var to = new EmailAddress(email.Email, email.Name);
+            await _mailService.SendActivationLinkAsync(to, applicationUserId);
+            return Ok("Email sent successfully");
+        }
     }
 }

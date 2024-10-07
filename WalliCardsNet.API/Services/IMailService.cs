@@ -7,5 +7,6 @@ namespace WalliCardsNet.API.Services
     {
         public Task SendEmailAsync(EmailAddress to, string subject, string plainTextContent, string htmlContent);
         public Task InviteEmployeeEmailAsync(EmailAddress to, string businessName);
+        public Task SendActivationLinkAsync (EmailAddress to, string applicationUserId);
     }
 }
