@@ -17,7 +17,7 @@ namespace WalliCardsNet.API.Controllers
 
 
         [HttpPost("create-checkout-session")]
-        public IActionResult CreateCheckoutSession()
+        public IActionResult CreateCheckoutSession() //TODO: Fix input-validation of email
         {
             var domain = "https://localhost:7102";
 
