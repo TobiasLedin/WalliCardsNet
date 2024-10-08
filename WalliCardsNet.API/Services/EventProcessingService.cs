@@ -99,6 +99,7 @@ namespace WalliCardsNet.API.Services
 
             switch (paymentEvent.EventType)
             {
+                // Manage Stripe event Invoice.Paid
                 case Events.InvoicePaid:
 
                     invoice = paymentEvent.EventData as Stripe.Invoice;
@@ -108,14 +109,14 @@ namespace WalliCardsNet.API.Services
                         // Handle new business subscription (creation of Business and ApplicationUser entities).
                         foreach (var lineItem in invoice.Lines)
                         {
-                            if (lineItem.Plan.Active)                           // Listen for Active
+                            if (lineItem.Plan.Active)   //TODO: Check whether to filter for Active or something else in Lines.
                             {
                                 subscriptionType = lineItem.Plan.Interval;
                                 subscriptionEnd = lineItem.Period.End;
                             }
                         }
 
-                        // Update existing business subscription end date and return.
+                        // Update existing business SubscriptionEndDate and returns without creating Business and ApplicationUser.
                         if (await businessRepo.BusinessWithPspIdExists(invoice.CustomerId))
                         {
                             business = await businessRepo.GetByIdAsync(invoice.CustomerId);
@@ -166,14 +167,22 @@ namespace WalliCardsNet.API.Services
                     }
                     break;
 
+                // Manage Stripe event Invoice.PaymentFailed
                 case Events.InvoicePaymentFailed:
 
                     invoice = paymentEvent.EventData as Stripe.Invoice;
 
+                    if (invoice != null && await businessRepo.BusinessWithPspIdExists(invoice.CustomerId))
+                    {
+                        business = await businessRepo.GetByIdAsync(invoice.CustomerId);
 
+                        business.SubscriptionStatus = Status.PaymentFailed;
 
+                        await businessRepo.UpdateAsync(business);
+                    }
                     break;
 
+                // Manage Stripe event Customer.SubscriptionUpdated
                 case Events.CustomerSubscriptionUpdated:
 
                     subscription = paymentEvent.EventData as Stripe.Subscription;
@@ -185,7 +194,7 @@ namespace WalliCardsNet.API.Services
                         if (business == null)
                             return;
 
-                        foreach (var lineItem in subscription.Items) // ?
+                        foreach (var lineItem in subscription.Items)
                         {
                             if (lineItem.Plan.Active)
                             {
@@ -208,6 +217,7 @@ namespace WalliCardsNet.API.Services
                     }
                     break;
 
+                // Manage Stripe event Customer.SubscriptionDeleted
                 case Events.CustomerSubscriptionDeleted:
 
                     subscription = paymentEvent.EventData as Stripe.Subscription;
@@ -222,16 +232,7 @@ namespace WalliCardsNet.API.Services
                     }
                     break;
 
-                case Events.CustomerCreated: // Handled in checkout session completed
-                case Events.ChargeFailed:
-                case Events.CustomerUpdated:
-                case Events.CustomerDeleted:
-                case Events.CustomerSubscriptionCreated:
-                case Events.InvoicePaymentSucceeded:
-
-                    _logger.LogInformation("Method to manage Stripe event type not yet implemented: {}", paymentEvent.EventType);
-                    break;
-
+                // Unmanaged Stripe events. Logged for information and testing purposes.
                 default:
 
                     _logger.LogInformation("No method to manage Stripe event type: {}", paymentEvent.EventType);
@@ -241,6 +242,7 @@ namespace WalliCardsNet.API.Services
         }
         #endregion
 
+        // Example implementation of additional Payment Service Provider.
         private async Task ProcessLemonSqueezyEventAsync(UserManager<ApplicationUser> userManager, IBusiness businessRepo, PaymentEvent paymentEvent)
         {
             throw new NotImplementedException();
