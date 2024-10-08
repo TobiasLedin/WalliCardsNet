@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
+using WalliCardsNet.API.Helpers;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
@@ -18,43 +20,71 @@ namespace WalliCardsNet.API.Data.Repositories
             if (customer != null)
             {
                 var business = await _applicationDbContext.Businesses.FindAsync(customer.BusinessId);
-                if (business == null)
+                if (business != null)
                 {
-                    throw new KeyNotFoundException("No existing business with the supplied id");
-                };
+                    customer.Business = business;
 
-                customer.Business = business;
-                customer.Devices = null;
-                await _applicationDbContext.Customers.AddAsync(customer);
+                    customer.CustomerDetailsJson = await EncryptionHelper.EncryptAsync(JsonSerializer.Serialize(customer.CustomerDetails));
+
+                    await _applicationDbContext.Customers.AddAsync(customer);
+                    await _applicationDbContext.SaveChangesAsync();
+                }
             }
-            await _applicationDbContext.SaveChangesAsync();
         }
 
         public async Task<List<Customer>> GetAllByBusinessAsync(Guid businessId)
         {
-            var customers = new List<Customer>();
-
-            if (businessId != null)
+            if (businessId != Guid.Empty)
             {
-                customers = await _applicationDbContext.Customers.Where(x => x.BusinessId == businessId).ToListAsync();
+                var customers = await _applicationDbContext.Customers
+                    .Where(x => x.BusinessId == businessId)
+                    .ToListAsync();
+
+                foreach (var customer in customers)
+                {
+                    var decryptedJson = await EncryptionHelper.DecryptAsync(customer.CustomerDetailsJson);
+                    customer.CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(decryptedJson) ?? new Dictionary<string, string>();
+                }
+                return customers;
             }
-
-            return customers;
+            return new List<Customer>();
         }
 
-        public Task<Customer> GetByIdAsync(Guid id)
+        public async Task<Customer> GetByIdAsync(Guid id)
         {
-            throw new NotImplementedException("Customer/GetByIdAsync method not yet implemented");
+            var customer = await _applicationDbContext.Customers.FindAsync(id);
+            if (customer != null)
+            {
+                var decryptedJson = await EncryptionHelper.DecryptAsync(customer.CustomerDetailsJson);
+                customer.CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(decryptedJson) ?? new Dictionary<string, string>();
+            }
+            return customer;
         }
 
-        public Task RemoveAsync(Guid id)
+        public async Task RemoveAsync(Guid id)
         {
-            throw new NotImplementedException("Customer/RemoveAsync method not yet implemented");
+            var customer = await GetByIdAsync(id);
+            if (customer != null)
+            {
+                _applicationDbContext.Customers.Remove(customer);
+                await _applicationDbContext.SaveChangesAsync();
+            }
         }
 
-        public Task UpdateAsync(Customer customer)
+        public async Task UpdateAsync(Customer customer)
         {
-            throw new NotImplementedException("Customer/UpdateAsync method not yet implemented");
+            if (customer != null)
+            {
+                var existingCustomer = await GetByIdAsync(customer.Id);
+                if (existingCustomer != null)
+                {
+                    existingCustomer.BusinessId = customer.BusinessId;
+
+                    existingCustomer.CustomerDetailsJson = await EncryptionHelper.EncryptAsync(JsonSerializer.Serialize(customer.CustomerDetails));
+
+                    await _applicationDbContext.SaveChangesAsync();
+                }
+            }
         }
     }
 }

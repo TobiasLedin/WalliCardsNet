@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System.Security.Cryptography;
+using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Seeders
@@ -9,7 +10,7 @@ namespace WalliCardsNet.API.Data.Seeders
     public class TestDataSeeder
     {
 
-        public static async Task SeedAsync(ApplicationDbContext appDbContext, UserManager<ApplicationUser> userManager)
+        public static async Task SeedAsync(ApplicationDbContext appDbContext, UserManager<ApplicationUser> userManager, ICustomer customerRepo)
         {
 
             if (await appDbContext.Businesses.FirstOrDefaultAsync(x => x.PspId == "51c667dd-a97c-41ed-a2ca-3dcc4ca3ee9c") is null)
@@ -65,7 +66,8 @@ namespace WalliCardsNet.API.Data.Seeders
                         CustomerDetails = new Dictionary<string, string>
                         {
                             { "Email", "john@mail.com" },
-                            { "Name", "John Johnsson" }
+                            { "Name", "John Johnsson" },
+                            { "Phone", "070-555 555" }
                         }
                     },
                     new Customer()
@@ -75,7 +77,8 @@ namespace WalliCardsNet.API.Data.Seeders
                         CustomerDetails = new Dictionary<string, string>
                         {
                             { "Email", "sven@mail.com" },
-                            { "Name", "Sven Svensson" }
+                            { "Name", "Sven Svensson" },
+                            { "Phone", "070-666 666" }
                         }
                     },
                     new Customer()
@@ -85,13 +88,17 @@ namespace WalliCardsNet.API.Data.Seeders
                         CustomerDetails = new Dictionary<string, string>
                         {
                             { "Email", "lars@mail.com" },
-                            { "Name", "Lars Larsson" }
+                            { "Name", "Lars Larsson" },
+                            { "Phone", "070-777 777" }
                         }
                     }
                 };
 
-                await appDbContext.Customers.AddRangeAsync(customers);
-                await appDbContext.SaveChangesAsync();
+                foreach (var customer in customers)
+                {
+                    await customerRepo.AddAsync(customer);
+                }
+                
 
             }
 
