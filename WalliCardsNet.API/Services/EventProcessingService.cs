@@ -87,6 +87,7 @@ namespace WalliCardsNet.API.Services
             };
         }
 
+        #region Stripe event processing
         private async Task ProcessStripeEventAsync(UserManager<ApplicationUser> userManager, IBusiness businessRepo, PaymentEvent paymentEvent)
         {
             Business? business = null;
@@ -94,6 +95,7 @@ namespace WalliCardsNet.API.Services
             Stripe.Subscription? subscription = null;
             Stripe.Invoice? invoice = null;
             string? subscriptionType = null;
+            DateTime? subscriptionEnd = null;
 
             switch (paymentEvent.EventType)
             {
@@ -103,33 +105,31 @@ namespace WalliCardsNet.API.Services
 
                     if (invoice != null)
                     {
+                        // Handle new business subscription (creation of Business and ApplicationUser entities).
+                        foreach (var lineItem in invoice.Lines)
+                        {
+                            if (lineItem.Plan.Active)                           // Listen for Active
+                            {
+                                subscriptionType = lineItem.Plan.Interval;
+                                subscriptionEnd = lineItem.Period.End;
+                            }
+                        }
+
                         // Update existing business subscription end date and return.
                         if (await businessRepo.BusinessWithPspIdExists(invoice.CustomerId))
                         {
                             business = await businessRepo.GetByIdAsync(invoice.CustomerId);
 
-                            business.SubscriptionEndDate = invoice.Subscription.CurrentPeriodEnd;
+                            business.SubscriptionEndDate = subscriptionEnd;
 
-                            if (DateTime.UtcNow < invoice.Subscription.CurrentPeriodEnd)
+                            if (DateTime.UtcNow < subscriptionEnd)
                             {
-                                business.SubscriptionActive = true;
+                                business.SubscriptionStatus = Status.Active;
+
+                                await businessRepo.UpdateAsync(business);
                             }
-
-                            // TRIGGER EMAIL RECEIPT
-
-                            //invoice.HostedInvoiceUrl
-                            //invoice.InvoicePdf
 
                             return;
-                        }
-
-                        // Handle new business subscription (creation of Business and ApplicationUser entities).
-                        foreach (var lineItem in invoice.Lines)
-                        {
-                            if (lineItem.Plan.Active)
-                            {
-                                subscriptionType = lineItem.Plan.Interval;
-                            }
                         }
 
                         if (invoice.CustomerId != null && subscriptionType != null)
@@ -137,8 +137,9 @@ namespace WalliCardsNet.API.Services
                             business = new Business
                             {
                                 PspId = invoice.CustomerId,
-                                SubscriptionType = subscriptionType
-
+                                SubscriptionType = subscriptionType,
+                                SubscriptionStatus = Status.Active,
+                                SubscriptionEndDate = subscriptionEnd
                             };
 
                             user = new ApplicationUser
@@ -165,6 +166,14 @@ namespace WalliCardsNet.API.Services
                     }
                     break;
 
+                case Events.InvoicePaymentFailed:
+
+                    invoice = paymentEvent.EventData as Stripe.Invoice;
+
+
+
+                    break;
+
                 case Events.CustomerSubscriptionUpdated:
 
                     subscription = paymentEvent.EventData as Stripe.Subscription;
@@ -176,7 +185,7 @@ namespace WalliCardsNet.API.Services
                         if (business == null)
                             return;
 
-                        foreach (var lineItem in subscription.Items)
+                        foreach (var lineItem in subscription.Items) // ?
                         {
                             if (lineItem.Plan.Active)
                             {
@@ -191,7 +200,7 @@ namespace WalliCardsNet.API.Services
 
                             if (DateTime.UtcNow < subscription.CurrentPeriodEnd)
                             {
-                                business.SubscriptionActive = true;
+                                business.SubscriptionStatus = Status.Active;
                             }
 
                             await businessRepo.UpdateAsync(business);
@@ -207,22 +216,14 @@ namespace WalliCardsNet.API.Services
                     {
                         business = await businessRepo.GetByIdAsync(subscription.CustomerId);
 
-                        business.SubscriptionType = "cancelled";
+                        business.SubscriptionStatus = Status.Cancelled;
 
-                        try
-                        {
-                            await businessRepo.UpdateAsync(business);
-                        }
-                        catch (Exception ex)
-                        {
-                        }
-                          
+                        await businessRepo.UpdateAsync(business);
                     }
                     break;
 
                 case Events.CustomerCreated: // Handled in checkout session completed
                 case Events.ChargeFailed:
-                case Events.InvoicePaymentFailed:
                 case Events.CustomerUpdated:
                 case Events.CustomerDeleted:
                 case Events.CustomerSubscriptionCreated:
@@ -238,6 +239,7 @@ namespace WalliCardsNet.API.Services
             }
 
         }
+        #endregion
 
         private async Task ProcessLemonSqueezyEventAsync(UserManager<ApplicationUser> userManager, IBusiness businessRepo, PaymentEvent paymentEvent)
         {
