@@ -17,7 +17,7 @@ namespace WalliCardsNet.API.Services
 
             _emailSender = new EmailAddress(senderEmail, "WalliCards");
             _client = new SendGridClient(sendGridKey);
-            _activationTokenRepo = _activationTokenRepo;
+            _activationTokenRepo = activationTokenRepo;
         }
 
         public async Task SendEmailAsync(EmailAddress to, string subject, string htmlContent, string plainTextContent)
@@ -50,7 +50,7 @@ namespace WalliCardsNet.API.Services
         public async Task SendActivationLinkAsync(EmailAddress to, string applicationUserId)
         {
             var activationToken = _activationTokenRepo.GetTokenAsync(applicationUserId);
-            string activationLink = $"https://localhost/7102/activate/{activationToken.Result.Id}";
+            string activationLink = $"https://localhost:7102/activate/{activationToken.Result.Id}";
             var subject = $"Activate your account";
             var htmlContent = $@"
                 <!DOCTYPE html>

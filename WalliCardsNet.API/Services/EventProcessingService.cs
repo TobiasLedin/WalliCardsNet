@@ -10,6 +10,7 @@ using WalliCardsNet.API.Constants;
 using System.Threading.Channels;
 using System.Configuration;
 using System.Reflection.Metadata.Ecma335;
+using SendGrid.Helpers.Mail;
 
 namespace WalliCardsNet.API.Services
 {
@@ -70,15 +71,16 @@ namespace WalliCardsNet.API.Services
             using var scope = _serviceProvider.CreateScope();
             var businessRepository = scope.ServiceProvider.GetRequiredService<IBusiness>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var mailService = scope.ServiceProvider.GetService<IMailService>();
 
             switch (paymentEvent.PaymentServiceProvider)
             {
                 case PaymentServiceProviders.Stripe:
-                    await ProcessStripeEventAsync(userManager, businessRepository, paymentEvent);
+                    await ProcessStripeEventAsync(userManager, businessRepository, paymentEvent, mailService);
                     break;
 
                 case PaymentServiceProviders.LemonSqueezy:
-                    await ProcessLemonSqueezyEventAsync(userManager, businessRepository, paymentEvent);
+                    await ProcessLemonSqueezyEventAsync(userManager, businessRepository, paymentEvent, mailService);
                     break;
 
                 default:
@@ -88,7 +90,7 @@ namespace WalliCardsNet.API.Services
         }
 
         #region Stripe event processing
-        private async Task ProcessStripeEventAsync(UserManager<ApplicationUser> userManager, IBusiness businessRepo, PaymentEvent paymentEvent)
+        private async Task ProcessStripeEventAsync(UserManager<ApplicationUser> userManager, IBusiness businessRepo, PaymentEvent paymentEvent, IMailService mailService)
         {
             Business? business = null;
             ApplicationUser? user = null;
@@ -96,6 +98,7 @@ namespace WalliCardsNet.API.Services
             Stripe.Invoice? invoice = null;
             string? subscriptionType = null;
             DateTime? subscriptionEnd = null;
+            EmailAddress email = null;
 
             switch (paymentEvent.EventType)
             {
@@ -152,6 +155,11 @@ namespace WalliCardsNet.API.Services
                                 Business = business
                             };
 
+                            email = new EmailAddress
+                            {
+                                Email = user.Email
+                            };
+
                             try
                             {
                                 await businessRepo.AddAsync(business);
@@ -161,6 +169,14 @@ namespace WalliCardsNet.API.Services
                             catch (Exception ex)
                             {
                                 _logger.LogError(ex, "Error during Business or ApplicationUser creation");
+                            }
+                            try
+                            {
+                                await mailService.SendActivationLinkAsync(email, user.Id);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error while sending an account activation email");
                             }
                         }
                     }
@@ -241,7 +257,7 @@ namespace WalliCardsNet.API.Services
         }
         #endregion
 
-        private async Task ProcessLemonSqueezyEventAsync(UserManager<ApplicationUser> userManager, IBusiness businessRepo, PaymentEvent paymentEvent)
+        private async Task ProcessLemonSqueezyEventAsync(UserManager<ApplicationUser> userManager, IBusiness businessRepo, PaymentEvent paymentEvent, IMailService mailService)
         {
             throw new NotImplementedException();
         }
