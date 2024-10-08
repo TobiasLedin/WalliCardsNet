@@ -1,4 +1,6 @@
 ﻿
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace WalliCardsNet.API.Models
 {
     public class Business
@@ -7,7 +9,7 @@ namespace WalliCardsNet.API.Models
         public string UrlToken { get; set; } = "";
         public string Name { get; set; } = "";
         public string PspId { get; set; } = ""; // Stripe customer Id
-        public bool SubscriptionActive { get; set; } = false;
+        public Status? SubscriptionStatus { get; set; }
         public string SubscriptionType { get; set; } = "";
         public DateTime? SubscriptionEndDate { get; set; }
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
@@ -15,6 +17,13 @@ namespace WalliCardsNet.API.Models
         public List<DataColumn> DataColumns { get; set; } = [];
         public List<Customer> Customers { get; set; } = [];
         public List<ApplicationUser> ApplicationUsers { get; set; } = []; // Managers and Employees with access to client application.
+    }
+
+    public enum Status
+    {
+        Cancelled = 0,
+        Active = 1,
+        PaymentFailed = 2
     }
 
 }

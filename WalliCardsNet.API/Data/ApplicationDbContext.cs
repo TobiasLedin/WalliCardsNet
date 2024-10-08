@@ -56,6 +56,12 @@ namespace WalliCardsNet.API.Data
                     Name = Constants.Roles.Employee,
                     NormalizedName = Constants.Roles.Employee.ToUpper()
                 });
+
+            // String conversion of SubscriptionStatus enum.
+            builder.Entity<Business>()
+                .Property(p => p.SubscriptionStatus)
+                .HasConversion<string>();
+
         }
     }
 }
