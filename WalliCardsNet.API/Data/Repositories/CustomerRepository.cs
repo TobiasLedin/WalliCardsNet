@@ -20,17 +20,15 @@ namespace WalliCardsNet.API.Data.Repositories
             if (customer != null)
             {
                 var business = await _applicationDbContext.Businesses.FindAsync(customer.BusinessId);
-                if (business == null)
+                if (business != null)
                 {
-                    throw new KeyNotFoundException("No existing business with the supplied id");
+                    customer.Business = business;
+
+                    customer.CustomerDetailsJson = await EncryptionHelper.EncryptAsync(JsonSerializer.Serialize(customer.CustomerDetails));
+
+                    await _applicationDbContext.Customers.AddAsync(customer);
+                    await _applicationDbContext.SaveChangesAsync();
                 }
-
-                customer.Business = business;
-
-                customer.CustomerDetailsJson = await EncryptionHelper.EncryptAsync(JsonSerializer.Serialize(customer.CustomerDetails));
-
-                await _applicationDbContext.Customers.AddAsync(customer);
-                await _applicationDbContext.SaveChangesAsync();
             }
         }
 
