@@ -1,0 +1,59 @@
+﻿@inject WalliCardsApiService WalliCardsApiService
+
+@if (!string.IsNullOrEmpty(BusinessId))
+{
+    if (BusinessResponse != null && string.IsNullOrEmpty(BusinessResponse.Name))
+    {    
+        <EditForm Model="Business" OnSubmit="SetName">
+            <p>It looks like this is your first time signing in. Please set the name of your business.</p>
+            <InputText @bind-Value="BusinessName"></InputText>
+            <button class="btn btn-primary" type="submit">Update</button>
+        </EditForm>
+    }
+    if (!string.IsNullOrEmpty(Message))
+    {
+        <p>@Message</p>
+    }
+}
+
+@code {
+    [Parameter]
+    public string BusinessId { get; set; }
+
+    public BusinessDTO Business {get; set;} = new BusinessDTO();
+    public BusinessResponseDTO BusinessResponse { get; set; }
+    public string BusinessName { get; set; } = "";
+    public string Message { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await WalliCardsApiService.GetByIdAsync<BusinessResponseDTO>("business", new Guid(BusinessId));
+        if (response.IsSuccess)
+        {
+            BusinessResponse = response.Data;
+            Business.Id = BusinessResponse.Id;
+            Business.Name = BusinessResponse.Name;
+            Business.UrlToken = BusinessResponse.UrlToken;
+        }
+    }
+
+    public async Task SetName()
+    {
+        Business.Name = BusinessName;
+        var response = await WalliCardsApiService.PutAsync<BusinessDTO>("business", Business);
+        if (response.IsSuccess)
+        {
+            var businessResponse = await WalliCardsApiService.GetByIdAsync<BusinessResponseDTO>("business", new Guid(BusinessId));
+            if (response.IsSuccess)
+            {
+                BusinessResponse = businessResponse.Data;
+            }
+            Message = "Updated name.";
+        }
+        else
+        {
+            Message = "Something went wrong.";
+        }
+        StateHasChanged();
+    }
+}

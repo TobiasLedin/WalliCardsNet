@@ -11,7 +11,7 @@ namespace WalliCardsNet.ClassLibrary.Business
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string BusinessToken { get; set; }
+        public string UrlToken { get; set; }
         //public List<ColumnDefinition>? ColumnDefinitions { get; set; }
 
     }
