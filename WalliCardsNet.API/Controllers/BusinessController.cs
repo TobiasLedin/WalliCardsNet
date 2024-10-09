@@ -71,7 +71,7 @@ namespace WalliCardsNet.API.Controllers
                     dataColumns.Add(new DataColumnDTO(column.Key, column.Title, column.DataType, column.IsSelected));
                 }
 
-                var businessDTO = new BusinessResponseDTO(business.Id, business.Name, dataColumns);
+                var businessDTO = new BusinessResponseDTO(business.Id, business.UrlToken, business.Name, dataColumns);
 
                 return Ok(businessDTO);
             }
