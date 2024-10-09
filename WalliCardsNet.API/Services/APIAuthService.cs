@@ -39,7 +39,7 @@ namespace WalliCardsNet.API.Services
             {
                 var business = await _businessRepository.GetByIdAsync(businessId);
 
-                if (business == null)
+                if (business != null)
                 {
                     var user = new ApplicationUser
                     {
