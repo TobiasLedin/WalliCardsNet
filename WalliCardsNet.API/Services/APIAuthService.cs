@@ -13,6 +13,9 @@ using WalliCardsNet.ClassLibrary.Register;
 
 namespace WalliCardsNet.API.Services
 {
+
+    // Author: Tobias
+    // API controller to manage all login/authentication and Employee account creation related tasks.
     public class APIAuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -30,8 +33,9 @@ namespace WalliCardsNet.API.Services
         }
 
         /// <summary>
-        /// Register a new ApplicationUser with role User.
+        /// Register a new ApplicationUser with role Employee.
         /// </summary>
+        /// <param name="userName"></param>
         /// <param name="email"></param>
         /// <param name="password"></param>
         public async Task<RegisterResponseDTO> RegisterEmployeeAsync(string userName, string email, string password)
@@ -42,7 +46,7 @@ namespace WalliCardsNet.API.Services
 
                 var user = new ApplicationUser
                 {
-                    //Business = "123",
+                    //Business = "123",     //TODO: Fix BusinessId retrieval.
                     UserName = userName,
                     NormalizedUserName = userName.ToUpper(),
                     Email = email,
@@ -60,10 +64,10 @@ namespace WalliCardsNet.API.Services
 
                         if (createUserResult.Succeeded)
                         {
-                            await _userManager.AddPasswordAsync(user, password);      // Set password in separate endpoint
+                            await _userManager.AddPasswordAsync(user, password);
                             await _userManager.SetEmailAsync(user, email);
-                            await _userManager.AddToRoleAsync(user, Constants.Roles.Manager);
-                            await _userManager.SetLockoutEnabledAsync(user, false);  // Remove ?
+                            await _userManager.AddToRoleAsync(user, Constants.Roles.Employee);
+                            //await _userManager.SetLockoutEnabledAsync(user, false);  //TODO: Remove?
 
                             return new RegisterResponseDTO(true, null);
                         }
@@ -81,7 +85,8 @@ namespace WalliCardsNet.API.Services
         }
 
         /// <summary>
-        /// Client login method
+        /// Client login method.
+        /// Checks if user account exists, whether the account has been locked out and verifies the password.
         /// </summary>
         /// <param name="email"></param>
         /// <param name="password"></param>
@@ -116,8 +121,10 @@ namespace WalliCardsNet.API.Services
             return new LoginResponseDTO(false, null, "Email/Password incorrect");
         }
 
+        //TODO: Extract to separate helper classes?
         #region Support methods
 
+        // JWT generator
         private async Task<string> GenerateTokenAsync(ApplicationUser user)
         {
             var privateKey = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")
