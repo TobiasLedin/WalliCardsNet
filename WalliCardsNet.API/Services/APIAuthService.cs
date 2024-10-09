@@ -15,7 +15,7 @@ namespace WalliCardsNet.API.Services
 {
 
     // Author: Tobias
-    // API controller to manage all login/authentication and Employee account creation related tasks.
+    // Service to manage all login/authentication and account creation related tasks.
     public class APIAuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -32,65 +32,56 @@ namespace WalliCardsNet.API.Services
             _config = config;
         }
 
-        /// <summary>
-        /// Register a new ApplicationUser with role Employee.
-        /// </summary>
-        /// <param name="userName"></param>
-        /// <param name="email"></param>
-        /// <param name="password"></param>
-        public async Task<RegisterResponseDTO> RegisterEmployeeAsync(string userName, string email, string password)
+        // Create new ApplicationUser account.
+        public async Task<RegisterResponseDTO> CreateUserAccountAsync(Guid businessId, string role, string userName, string email)
         {
-            if (email != null || password != null)
+            if (role != null && userName != null && email != null)
             {
-                //var business = _businessRepository.GetByIdAsync(1);
+                var business = await _businessRepository.GetByIdAsync(businessId);
 
-                var user = new ApplicationUser
+                if (business == null)
                 {
-                    //Business = "123",     //TODO: Fix BusinessId retrieval.
-                    UserName = userName,
-                    NormalizedUserName = userName.ToUpper(),
-                    Email = email,
-                    NormalizedEmail = email!.ToUpper()
-                };
+                    var user = new ApplicationUser
+                    {
+                        Business = business,
+                        BusinessId = businessId,
+                        UserName = userName,
+                        NormalizedUserName = userName.ToUpper(),
+                        Email = email,
+                        NormalizedEmail = email!.ToUpper()
+                    };
 
-                var userNameValidation = await ValidateUserNameAsync(user);
-                var passwordValidation = await ValidatePasswordAsync(user, password);
+                    var userNameValidation = await ValidateUserNameAsync(user);
 
-                if (userNameValidation.Succeeded && passwordValidation.Succeeded)
-                {
+                    if (!userNameValidation.Succeeded)
+                    {
+                        return new RegisterResponseDTO(false, "Username validation failed", null);
+                    }
+
                     try
                     {
                         var createUserResult = await _userManager.CreateAsync(user);
 
                         if (createUserResult.Succeeded)
                         {
-                            await _userManager.AddPasswordAsync(user, password);
                             await _userManager.SetEmailAsync(user, email);
-                            await _userManager.AddToRoleAsync(user, Constants.Roles.Employee);
-                            //await _userManager.SetLockoutEnabledAsync(user, false);  //TODO: Remove?
+                            await _userManager.AddToRoleAsync(user, role);
 
-                            return new RegisterResponseDTO(true, null);
+                            return new RegisterResponseDTO(true, null, user.Id);
                         }
-
-                        return new RegisterResponseDTO(false, null);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-
+                        return new RegisterResponseDTO(false, "Failed to create and assign user properties", null);
                     }
                 }
             }
 
-            return new RegisterResponseDTO(false, "Email/Password not provided");
+            return new RegisterResponseDTO(false, "Required arguments not provided", null);
         }
 
-        /// <summary>
-        /// Client login method.
-        /// Checks if user account exists, whether the account has been locked out and verifies the password.
-        /// </summary>
-        /// <param name="email"></param>
-        /// <param name="password"></param>
-        /// <returns>LoginResultDTO containing access token, if login is successful.</returns>
+        // Client login method.
+        // Checks if user account exists, whether the account has been locked out and verifies the password.
         public async Task<LoginResponseDTO> LoginAsync(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);
