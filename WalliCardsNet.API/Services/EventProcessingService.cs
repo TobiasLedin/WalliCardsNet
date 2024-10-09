@@ -11,6 +11,7 @@ using System.Threading.Channels;
 using System.Configuration;
 using System.Reflection.Metadata.Ecma335;
 using SendGrid.Helpers.Mail;
+using WalliCardsNet.ClassLibrary.Register;
 
 namespace WalliCardsNet.API.Services
 {
@@ -70,17 +71,18 @@ namespace WalliCardsNet.API.Services
         {
             using var scope = _serviceProvider.CreateScope();
             var businessRepository = scope.ServiceProvider.GetRequiredService<IBusiness>();
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            //var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var authService = scope.ServiceProvider.GetService<IAuthService>();
             var mailService = scope.ServiceProvider.GetService<IMailService>();
 
             switch (paymentEvent.PaymentServiceProvider)
             {
                 case PaymentServiceProviders.Stripe:
-                    await ProcessStripeEventAsync(userManager, businessRepository, paymentEvent, mailService);
+                    await ProcessStripeEventAsync(authService, businessRepository, paymentEvent, mailService);
                     break;
 
                 case PaymentServiceProviders.LemonSqueezy:
-                    await ProcessLemonSqueezyEventAsync(userManager, businessRepository, paymentEvent, mailService);
+                    await ProcessLemonSqueezyEventAsync(authService, businessRepository, paymentEvent, mailService);
                     break;
 
                 default:
@@ -90,10 +92,9 @@ namespace WalliCardsNet.API.Services
         }
 
         #region Stripe event processing
-        private async Task ProcessStripeEventAsync(UserManager<ApplicationUser> userManager, IBusiness businessRepo, PaymentEvent paymentEvent, IMailService mailService)
+        private async Task ProcessStripeEventAsync(IAuthService authService, IBusiness businessRepo, PaymentEvent paymentEvent, IMailService mailService)
         {
             Business? business = null;
-            ApplicationUser? user = null;
             Stripe.Subscription? subscription = null;
             Stripe.Invoice? invoice = null;
             string? subscriptionType = null;
@@ -146,38 +147,41 @@ namespace WalliCardsNet.API.Services
                                 SubscriptionEndDate = subscriptionEnd
                             };
 
-                            user = new ApplicationUser
-                            {
-                                UserName = invoice.CustomerName,
-                                NormalizedUserName = invoice.CustomerName.ToUpper(),
-                                Email = invoice.CustomerEmail,
-                                NormalizedEmail = invoice.CustomerEmail.ToUpper(),
-                                EmailConfirmed = true,
-                                Business = business
-                            };
+                            //user = new ApplicationUser
+                            //{
+                            //    UserName = invoice.CustomerName,
+                            //    NormalizedUserName = invoice.CustomerName.ToUpper(),
+                            //    Email = invoice.CustomerEmail,
+                            //    NormalizedEmail = invoice.CustomerEmail.ToUpper(),
+                            //    EmailConfirmed = true,
+                            //    Business = business
+                            //};
 
                             email = new EmailAddress
                             {
-                                Email = user.Email
+                                Email = invoice.CustomerEmail
                             };
 
                             try
                             {
                                 await businessRepo.AddAsync(business);
-                                await userManager.CreateAsync(user);
-                                await userManager.AddToRoleAsync(user, Constants.Roles.Manager);
+                                var registerResult = await authService.CreateUserAccountAsync(business.Id, invoice.CustomerName, Constants.Roles.Manager, invoice.CustomerEmail);
+
+                                if (registerResult.Success && registerResult.userId != null)
+                                {
+                                    try
+                                    {
+                                        await mailService.SendActivationLinkAsync(email, registerResult.userId);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.LogError(ex, "Error while sending an account activation email");
+                                    }
+                                }
                             }
                             catch (Exception ex)
                             {
                                 _logger.LogError(ex, "Error during Business or ApplicationUser creation");
-                            }
-                            try
-                            {
-                                await mailService.SendActivationLinkAsync(email, user.Id);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Error while sending an account activation email");
                             }
                         }
                     }
@@ -254,11 +258,10 @@ namespace WalliCardsNet.API.Services
                     _logger.LogInformation("No method to manage Stripe event type: {}", paymentEvent.EventType);
                     break;
             }
-
         }
         #endregion
 
-        private async Task ProcessLemonSqueezyEventAsync(UserManager<ApplicationUser> userManager, IBusiness businessRepo, PaymentEvent paymentEvent, IMailService mailService)
+        private async Task ProcessLemonSqueezyEventAsync(IAuthService authService, IBusiness businessRepo, PaymentEvent paymentEvent, IMailService mailService)
         {
             throw new NotImplementedException();
         }
