@@ -32,14 +32,6 @@ namespace WalliCardsNet.API.Controllers
             return Unauthorized(result.Details);
         }
 
-        [HttpGet]
-        [Route("test-auth")]
-        [Authorize]
-        public IActionResult Test()
-        {
-            return Ok();
-        }
-
         // TEST ENDPOINT FOR CREATING USERS
         [HttpPost]
         [Route("register-employee")]
@@ -47,7 +39,14 @@ namespace WalliCardsNet.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RegisterEmployee(string userName, string email, string password)
         {
-            var result = await _authService.RegisterEmployeeAsync(userName, email, password);
+            var businessIdClaim = User.FindFirst("business-id");
+            if (businessIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            Guid businessId = Guid.Parse(businessIdClaim.Value);
+            var result = await _authService.CreateUserAccountAsync(businessId, Constants.Roles.Employee, userName, email);
 
             if (result.Success)
             {
