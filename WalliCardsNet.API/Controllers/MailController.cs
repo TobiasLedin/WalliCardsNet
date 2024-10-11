@@ -2,6 +2,7 @@
 using WalliCardsNet.API.Services;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using WalliCardsNet.API.Constants;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -49,7 +50,7 @@ namespace WalliCardsNet.API.Controllers
             foreach (var emailAddress in emailAddresses)
             {
                 var email = new EmailAddress { Email = emailAddress};
-                var result = await _authService.CreateUserAccountAsync(businessId, "Employee", emailAddress, emailAddress);
+                var result = await _authService.CreateUserAccountAsync(businessId, Roles.Employee, emailAddress, emailAddress);
                 if (result.Success)
                 {
                     emailAddressesList.Add(email);
