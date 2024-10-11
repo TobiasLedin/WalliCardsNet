@@ -21,6 +21,7 @@ namespace WalliCardsNet.API.Data
         public DbSet<CardTemplate> CardTemplates { get; set; }
         public DbSet<Device> Devices { get; set; }
         public DbSet<FormData> FormData { get; set; }
+        public DbSet<ActivationToken> ActivationTokens { get; set; }
 
         // DB context configuration
 
@@ -55,6 +56,12 @@ namespace WalliCardsNet.API.Data
                     Name = Constants.Roles.Employee,
                     NormalizedName = Constants.Roles.Employee.ToUpper()
                 });
+
+            // String conversion of SubscriptionStatus enum.
+            builder.Entity<Business>()
+                .Property(p => p.SubscriptionStatus)
+                .HasConversion<string>();
+
         }
     }
 }

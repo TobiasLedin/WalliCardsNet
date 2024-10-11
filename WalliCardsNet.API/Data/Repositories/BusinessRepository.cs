@@ -36,12 +36,28 @@ namespace WalliCardsNet.API.Data.Repositories
 
         public async Task<Business> GetByIdAsync(Guid id)
         {
-            var result = await _applicationDbContext.Businesses.Include(b => b.DataColumns).FirstOrDefaultAsync(x => x.Id == id);
+            var result = await _applicationDbContext.Businesses.Include(b => b.DataColumns).FirstOrDefaultAsync(b => b.Id == id);
             if (result != null)
             {
                 return result;
             }
             return null;
+        }
+
+        //Overloaded method accepting PSP ID
+        public async Task<Business> GetByIdAsync(string pspId)
+        {
+            var result = await _applicationDbContext.Businesses.FirstOrDefaultAsync(b => b.PspId == pspId);
+            if (result != null)
+            {
+                return result;
+            }
+            return null;
+        }
+
+        public async Task<bool> BusinessWithPspIdExists(string pspId)
+        {
+            return await _applicationDbContext.Businesses.AnyAsync(b => b.PspId == pspId);
         }
 
         public async Task<Business> GetByTokenAsync(string token)

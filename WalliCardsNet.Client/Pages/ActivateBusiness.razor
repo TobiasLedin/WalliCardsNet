@@ -1,0 +1,66 @@
+﻿@page "/activate/{token:guid}"
+@using WalliCardsNet.ClassLibrary.ApplicationUser
+@inject WalliCardsApiService WalliCardsApiService
+
+@if (IsValidToken)
+{
+    <EditForm Model="User" OnSubmit="Submit">
+        <h3>Activate your account by setting your password.</h3>
+        <div>
+            <label>Password</label>
+            <InputText @bind-Value="User.Password" type="password"></InputText>
+        </div>
+        <div>
+            <label>Confirm Password</label>
+            <InputText @bind-Value="ConfirmPassword" type="password"></InputText>
+        </div>
+        <button type="submit" class="btn btn-primary">Activate Account</button>
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <p class="text-danger">@ErrorMessage</p>
+        }
+    </EditForm>
+}
+else
+{
+    <p>Invalid or expired link.</p>
+}
+
+
+@code {
+    [Parameter]
+    public Guid Token { get; set; }
+
+    public ApplicationUserDTO User { get; set; } = new ApplicationUserDTO();
+
+    public string ConfirmPassword { get; set; } = "";
+
+    public string ErrorMessage { get; set; } = "";
+    public bool IsValidToken { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await WalliCardsApiService.GetByIdAsync<ApplicationUserDTO>($"user", Token);
+        if (result.IsSuccess)
+        {
+            IsValidToken = true;
+            User = result.Data;
+        }
+    }
+
+    public async Task Submit()
+    {
+        if (ConfirmPassword == User.Password)
+        {
+            var result = await WalliCardsApiService.PutAsync<ApplicationUserDTO>($"user/set-password", User);
+            if (result.IsSuccess == false)
+            {
+                ErrorMessage = "Something went wrong.";
+            }
+        }
+        else
+        {
+            ErrorMessage = "Passwords do not match.";
+        }
+    }
+}

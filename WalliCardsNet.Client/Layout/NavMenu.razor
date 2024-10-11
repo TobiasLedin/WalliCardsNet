@@ -85,6 +85,11 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> API Test
             </NavLink>
         </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/stripe">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Stripe Test
+            </NavLink>
+        </div>
         <AuthorizeView>
             <Authorized>
                 @{
@@ -107,7 +112,11 @@
                         <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Card Designer
                     </NavLink>
                 </div>
-
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="invite">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Invite Employees
+                    </NavLink>
+                </div>
             </Authorized>
         </AuthorizeView>
     </nav>

@@ -15,6 +15,8 @@ using WalliCardsNet.API.Data.Seeders;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using WalliCardsNet.API.Models;
+using Stripe;
+using System.Threading.Channels;
 
 namespace WalliCardsNet.API
 {
@@ -38,6 +40,9 @@ namespace WalliCardsNet.API
             // DB connection string retrieval from environment variables
             var connectionString = Environment.GetEnvironmentVariable("CONNECTION-STRING");
 
+            // Stripe configuration
+            StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE-SECRET-KEY");
+
             // EntityFramework
             // Service registration
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -49,12 +54,24 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<ICustomer, CustomerRepository>();
             builder.Services.AddTransient<IDevice, DeviceRepository>();
             builder.Services.AddTransient<IFormData, FormDataRepository>();
+            builder.Services.AddTransient<IActivationToken, ActivationTokenRepository>();
+            builder.Services.AddTransient<IApplicationUser, ApplicationUserRepository>();
 
             // Mail service
             builder.Services.AddTransient<IMailService, MailService>();
 
             // FormData service
             builder.Services.AddTransient<FormDataService>();
+
+            // Webhook events
+            builder.Services.AddHostedService<EventProcessingService>();
+            // In-memory storage of webhook events to manage potential idempotency issues.
+            builder.Services.AddSingleton<ProcessedEventStorage>();
+            // Channel to act as queue for PaymentEvents.
+            var paymentEventChannel = Channel.CreateUnbounded<PaymentEvent>();
+            builder.Services.AddSingleton(paymentEventChannel);
+
+
 
             // Identity
             // Service registration
@@ -111,7 +128,7 @@ namespace WalliCardsNet.API
             {
                 options.AddDefaultPolicy(builder =>
                 {
-                    builder.WithOrigins("https://localhost:7102")
+                    builder.WithOrigins("https://02qgplv0-7102.euw.devtunnels.ms", "https://localhost:7102") //TODO: städa upp.
                            .AllowAnyHeader()
                            .AllowAnyMethod();
                 });

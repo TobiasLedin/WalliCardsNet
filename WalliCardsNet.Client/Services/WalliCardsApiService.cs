@@ -36,6 +36,13 @@ namespace WalliCardsNet.Client.Services
             return await ProcessResponse<T>(response);
         }
 
+        public async Task<HttpResponseMessage> PostFormUrlEncodedAsync(string endpoint, Dictionary<string, string> formData)
+        {
+            var content = new FormUrlEncodedContent(formData);
+            var response = await _httpClient.PostAsync(endpoint, content);
+            return response;
+        }
+
         public async Task<ApiResponse<T>> PutAsync<T>(string endpoint, T data)
         {
             var apiResponse = new ApiResponse<T>();

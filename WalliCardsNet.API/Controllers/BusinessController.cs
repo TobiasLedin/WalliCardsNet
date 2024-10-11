@@ -43,7 +43,7 @@ namespace WalliCardsNet.API.Controllers
         //            }
 
         //            var businessDTO = new BusinessResponseDTO(business.Id, business.Name, dataColumns);
-                    
+
         //            listBusinessDTO.Add(businessDTO);
         //        }
         //        return Ok(listBusinessDTO);
@@ -71,7 +71,7 @@ namespace WalliCardsNet.API.Controllers
                     dataColumns.Add(new DataColumnDTO(column.Key, column.Title, column.DataType, column.IsSelected));
                 }
 
-                var businessDTO = new BusinessResponseDTO(business.Id, business.Name, dataColumns);
+                var businessDTO = new BusinessResponseDTO(business.Id, business.UrlToken, business.Name, dataColumns);
 
                 return Ok(businessDTO);
             }
@@ -85,7 +85,7 @@ namespace WalliCardsNet.API.Controllers
         public async Task<IActionResult> GetByToken(string token)
         {
             var result = await _businessRepo.GetByTokenAsync(token);
-            if (result != null) 
+            if (result != null)
             {
                 PublicBusinessTokenDTO dto = new PublicBusinessTokenDTO
                 {
