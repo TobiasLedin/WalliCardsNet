@@ -12,16 +12,12 @@ namespace WalliCardsNet.API.Models
         public List<Device> Devices { get; set; } = [];
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
 
-        // Exposed working property for customer details.
+        // Working property for customer details.
         [NotMapped]
         [JsonIgnore]
-        public Dictionary<string, string> CustomerDetails
-        {
-            get => JsonSerializer.Deserialize<Dictionary<string, string>>(CustomerDetailsJson) ?? new Dictionary<string, string>();
-
-            set => CustomerDetailsJson = JsonSerializer.Serialize(value);
-        }
-        // EF Core storage property.
-        public string CustomerDetailsJson { get; private set; } = "{}";
+        public Dictionary<string, string> CustomerDetails { get; set; } = new Dictionary<string, string>();
+       
+        // EF Core storage property after serialization and encryption.
+        public string CustomerDetailsJson { get; set; } = "{}";
     }
 }
