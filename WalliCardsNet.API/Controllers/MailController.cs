@@ -5,14 +5,16 @@ using SendGrid.Helpers.Mail;
 
 namespace WalliCardsNet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/mail")]
     [ApiController]
     public class MailController : ControllerBase
     {
         private readonly IMailService _mailService;
-        public MailController(IMailService mailService)
+        private readonly IAuthService _authService;
+        public MailController(IMailService mailService, IAuthService authService)
         {
             _mailService = mailService;
+            _authService = authService;
         }
 
         [HttpPost("invite-employee")]
@@ -27,6 +29,35 @@ namespace WalliCardsNet.API.Controllers
             await _mailService.InviteEmployeeEmailAsync(to, "BusinesName");
 
             return Ok("Email sent successfully");
+        }
+
+        [HttpPost("batch-invite")]
+        public async Task<IActionResult> BatchInviteAsync(List<string> emailAddresses)
+        {
+            var businessIdClaim = User.FindFirst("business-id");
+            if (businessIdClaim == null || !Guid.TryParse(businessIdClaim.Value, out Guid businessId))
+            {
+                return BadRequest("Invalid or missing business ID claim.");
+            }
+
+            if (emailAddresses == null || emailAddresses.Count == 0)
+            {
+                return BadRequest("Invalid email data");
+            }
+
+            List<EmailAddress> emailAddressesList = new List<EmailAddress>();
+            foreach (var emailAddress in emailAddresses)
+            {
+                var email = new EmailAddress { Email = emailAddress};
+                var result = await _authService.CreateUserAccountAsync(businessId, "Employee", emailAddress, emailAddress);
+                if (result.Success)
+                {
+                    emailAddressesList.Add(email);
+                }
+            }
+
+            await _mailService.BatchInviteAsync(emailAddressesList);
+            return Ok(emailAddresses);
         }
 
         [HttpPost("send-activation-link")]

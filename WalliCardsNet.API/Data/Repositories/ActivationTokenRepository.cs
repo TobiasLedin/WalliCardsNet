@@ -30,6 +30,23 @@ namespace WalliCardsNet.API.Data.Repositories
             return await GenerateTokenAsync(applicationUserId);
         }
 
+        public async Task<ActivationToken> GetTokenByEmailAsync(string email)
+        {
+            var token = await _applicationDbContext.ActivationTokens.FirstOrDefaultAsync(x => x.ApplicationUser.Email == email);
+            if (token != null)
+            {
+                if (token.ExpirationTime <= DateTime.UtcNow)
+                {
+                    await DeleteTokenAsync(token.Id);
+                }
+                else
+                {
+                    return token;
+                }
+            }
+            return await GenerateTokenByEmailAsync(email);
+        }
+
         private async Task AddTokenAsync(ActivationToken token)
         {
             if (token != null)
@@ -54,6 +71,22 @@ namespace WalliCardsNet.API.Data.Repositories
             return token;
         }
 
+        private async Task<ActivationToken> GenerateTokenByEmailAsync(string email)
+        {
+            var applicationUser = await _applicationDbContext.Users.FirstOrDefaultAsync(x => x.Email == email);
+            if (applicationUser == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+            var token = new ActivationToken
+            {
+                ApplicationUser = applicationUser,
+                ExpirationTime = DateTime.UtcNow.AddDays(1)
+            };
+            await AddTokenAsync(token);
+            return token;
+        }
+
         private async Task DeleteTokenAsync(Guid id)
         {
             var token = await _applicationDbContext.ActivationTokens.FirstOrDefaultAsync(x => x.Id == id);
@@ -63,5 +96,7 @@ namespace WalliCardsNet.API.Data.Repositories
                 await _applicationDbContext.SaveChangesAsync();
             }
         }
+
+
     }
 }

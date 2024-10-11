@@ -1,0 +1,68 @@
+﻿@page "/invite"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject WalliCardsApiService WalliCardsApiService
+
+<EditForm Model="Emails" OnValidSubmit="SubmitForm">
+    @foreach (var email in Emails.ToList())
+    {
+        var index = Emails.IndexOf(email);
+        <div class="form-group d-flex">
+            <div class="flex-grow-1">
+                <label>Email address</label>
+                <InputText @bind-Value="Emails[index]" class="form-control" />
+            </div>
+            <div>
+                <button type="button" class="btn btn-danger" @onclick="(() => RemoveEmailField(index))">Remove</button>
+            </div>
+        </div>
+    }
+    <button type="button" class="btn btn-secondary" @onclick="AddEmailField">Add Another Email</button>
+    <button type="submit" class="btn btn-primary">Invite Employees</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <p>@Message</p>
+}
+
+@code {
+    public List<string> Emails { get; set; } = new List<string> { "" };
+
+    public void AddEmailField()
+    {
+        Emails.Add("");
+    }
+
+    public void RemoveEmailField(int index)
+    {
+        if (Emails.Count > 1)
+        {
+            Emails.RemoveAt(index);
+            StateHasChanged(); 
+        }
+    }
+
+    public async Task SubmitForm()
+    {
+        Emails.RemoveAll(e => string.IsNullOrEmpty(e)); 
+
+        if (!Emails.Any())
+        {
+            Message = "Please enter at least one email address.";
+            return;
+        }
+
+        var response = await WalliCardsApiService.PostAsync<List<string>>("mail/batch-invite", Emails);
+        if (response.IsSuccess)
+        {
+            Message = "Invitations sent successfully!";
+        }
+        else
+        {
+            Message = "Failed to send invitations.";
+        }
+    }
+
+    public string Message { get; set; }
+}

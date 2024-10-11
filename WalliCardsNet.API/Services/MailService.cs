@@ -47,10 +47,52 @@ namespace WalliCardsNet.API.Services
             await SendEmailAsync(to, subject, htmlContent, plainTextContent);
         }
 
+        public async Task BatchInviteAsync(List<EmailAddress> emailAddresses)
+        {
+            var subject = "You've been invited to join WalliCards!";
+            var htmlContentTemplate = @"
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta charset='UTF-8'>
+                        <title>Invitation to WalliCards</title>
+                    </head>
+                    <body>
+                        <p>Hello!</p>
+                        <p>You have been invited to join WalliCards.</p>
+                        <p><a href='{0}' style='color: blue;'>Click here to activate your account!</a></p>
+                    </body>
+                </html>";
+            var plainTextTemplate = "Hello! You have been invited to join WalliCards. Click the following link to activate your account: {0}";
+
+            foreach (var email in emailAddresses)
+            {
+                try
+                {
+                    var activationToken = await _activationTokenRepo.GetTokenByEmailAsync(email.Email);
+                    if (activationToken == null)
+                    {
+                        Console.WriteLine($"No activation token found for {email.Email}");
+                        continue;
+                    }
+                    var activationLink = $"https://localhost:7102/activate/{activationToken.Id}";
+
+                    var htmlContent = string.Format(htmlContentTemplate, activationLink);
+                    var plainTextContent = string.Format(plainTextTemplate, activationLink);
+
+                    await SendEmailAsync(email, subject, htmlContent, plainTextContent);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending email to {email.Email}: {ex.Message}");
+                }
+            }
+        } 
+
         public async Task SendActivationLinkAsync(EmailAddress to, string applicationUserId)
         {
-            var activationToken = _activationTokenRepo.GetTokenAsync(applicationUserId);
-            string activationLink = $"https://localhost:7102/activate/{activationToken.Result.Id}";
+            var activationToken = await _activationTokenRepo.GetTokenAsync(applicationUserId);
+            string activationLink = $"https://localhost:7102/activate/{activationToken.Id}";
             var subject = $"Activate your account";
             var htmlContent = $@"
                 <!DOCTYPE html>
