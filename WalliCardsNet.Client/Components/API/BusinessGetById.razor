@@ -29,7 +29,7 @@
         ErrorMessage = "";
         Fetching = true;
 
-        var response = await WalliCardsApiService.GetByIdAsync<BusinessDTO>("Business", Guid.Parse(BusinessId)); //TODO: TEST, utvärdera
+        var response = await WalliCardsApiService.GetByIdAsync<BusinessDTO>("business", Guid.Parse(BusinessId)); //TODO: TEST, utvärdera
         if (response.IsSuccess)
         {
             Business = response.Data;

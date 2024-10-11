@@ -6,7 +6,7 @@ using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/cardtemplate")]
     [ApiController]
     public class CardTemplateController : ControllerBase
     {

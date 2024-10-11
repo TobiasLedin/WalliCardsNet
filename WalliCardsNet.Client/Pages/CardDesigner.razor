@@ -93,7 +93,7 @@
             }
         };
         Card.DesignJson = System.Text.Json.JsonSerializer.Serialize(cardDesign);
-        var response = await WalliCardsApiService.PostAsync<CardRequestDTO>("CardTemplate", Card);
+        var response = await WalliCardsApiService.PostAsync<CardRequestDTO>("cardtemplate", Card);
         if (response.IsSuccess)
         {
             Console.WriteLine("Success");

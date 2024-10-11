@@ -11,6 +11,7 @@ namespace WalliCardsNet.API.Models
         public Business Business { get; set; }
         public List<Device> Devices { get; set; } = [];
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
+        public string CustomerDetailsJson { get; set; } = "{}";
 
         // Exposed working property for customer details.
         [NotMapped]

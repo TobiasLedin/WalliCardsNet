@@ -4,7 +4,7 @@ using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/device")]
     [ApiController]
     public class DeviceController : ControllerBase
     {

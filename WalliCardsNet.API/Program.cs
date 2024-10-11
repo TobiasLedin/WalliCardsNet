@@ -148,8 +148,9 @@ namespace WalliCardsNet.API
                     var services = scope.ServiceProvider;
                     var appDbContext = services.GetRequiredService<ApplicationDbContext>();
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                    var customerRepo = services.GetRequiredService<ICustomer>();
 
-                    await TestDataSeeder.SeedAsync(appDbContext, userManager);
+                    await TestDataSeeder.SeedAsync(appDbContext, userManager, customerRepo);
                 }
             }
 

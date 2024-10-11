@@ -9,7 +9,7 @@ using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/customer")]
     [ApiController]
     public class CustomerController : ControllerBase
     {
