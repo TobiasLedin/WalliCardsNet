@@ -165,13 +165,13 @@ namespace WalliCardsNet.API.Services
                             try
                             {
                                 await businessRepo.AddAsync(business);
-                                var registerResult = await authService.CreateUserAccountAsync(business.Id, invoice.CustomerName, Constants.Roles.Manager, invoice.CustomerEmail);
+                                var registerResult = await authService.CreateUserAccountAsync(business.Id, Constants.Roles.Manager, invoice.CustomerName, invoice.CustomerEmail);
 
-                                if (registerResult.Success && registerResult.userId != null)
+                                if (registerResult.Success && registerResult.UserId != null)
                                 {
                                     try
                                     {
-                                        await mailService.SendActivationLinkAsync(email, registerResult.userId);
+                                        await mailService.SendActivationLinkAsync(email, registerResult.UserId);
                                     }
                                     catch (Exception ex)
                                     {
