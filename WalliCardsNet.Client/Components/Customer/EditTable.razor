@@ -1,5 +1,6 @@
 ﻿
 <button @onclick="ToggleEditMenu">
+    @* Kugghjulsikon *@
     @(IsCollapsed ? "Edit" : "Close")
 </button>
 
@@ -7,31 +8,35 @@
 {
 
 
-    <button @onlick="ToggleAddField">Add</button>
+    <button @onclick="ToggleAddField">
+        Add
+    </button>
     if (ShowAddField)
     {
-        <EditForm Model="NewColumn" OnSubmit="AddColumn" FormName="AddColumnName">
-
-            <InputText @bind-Value="NewColumn"/>
-
-            <button type="submit">Save</button>
-        </EditForm>
+        <div>
+            <input type="text" @bind="NewColumnName" placeholder="Column name" />
+            <button @onclick="AddColumn">Save</button>
+        </div>
     }
-    
+
 
     <table>
         <thead>
             <tr>
                 <th>Name</th>
-                <th></th>
             </tr>
         </thead>
         <tbody>
             @foreach (var column in Columns)
             {
                 <tr>
-                    <td>@column</td>
-                    <td><b>X</b></td>
+                    <td>
+                        @column
+                        @if (column != "Email")
+                        {
+                            <b @onclick="(() => DeleteColumn(column))">X</b>
+                        }
+                    </td>
                 </tr>
             }
         </tbody>
@@ -43,7 +48,9 @@
     public List<string> Columns { get; set; }
     [Parameter]
     public EventCallback<List<string>> OnColumnsUpdated { get; set; }
-    public string? NewColumn { get; set; }
+    public string? NewColumnName { get; set; }
+    private string? ValidationMessage { get; set; } = null;
+    private const int MaxColumnNameLength = 20;
     private bool IsCollapsed { get; set; } = true;
     private bool ShowAddField { get; set; } = false;
 
@@ -58,13 +65,38 @@
         ShowAddField = !ShowAddField;
     }
 
-    private void AddColumn()
+    private async void AddColumn()
     {
-        Columns.Add(NewColumn);
-        StateHasChanged();
+        if (!string.IsNullOrEmpty(NewColumnName))
+        {
+            ValidationMessage = null;
 
+            if (string.IsNullOrWhiteSpace(NewColumnName))
+            {
+                ValidationMessage = "Cannot be empty";
+            }
+            else if (NewColumnName.Length > MaxColumnNameLength)
+            {
+                ValidationMessage = $"Column name cannot be more than {MaxColumnNameLength} characters";
+            }
+            else
+            {
+                Columns.Add(NewColumnName);
+                NewColumnName = string.Empty;
+
+                await OnColumnsUpdated.InvokeAsync(Columns);
+                ShowAddField = false;
+                StateHasChanged();
+            }
+        }
     }
 
-    
+    private async void DeleteColumn(string column)
+    {
+        Columns.Remove(column);
+
+        await OnColumnsUpdated.InvokeAsync(Columns);
+        StateHasChanged();
+    }
 
 }

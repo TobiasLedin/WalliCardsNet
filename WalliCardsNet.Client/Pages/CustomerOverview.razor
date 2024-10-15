@@ -42,7 +42,7 @@
 
         </QuickGrid>
     }
-    
+
 }
 else
 {
@@ -51,6 +51,7 @@ else
 
 
 @code {
+    private BusinessResponseDTO? Business { get; set; }
     public List<string> TableColumns { get; set; }
     public IQueryable<CustomerResponseDTO> Customers { get; set; }
     public bool Isloading { get; set; } = true;
@@ -75,8 +76,8 @@ else
 
                     if (businessResponse.IsSuccess)
                     {
-                        var business = businessResponse.Data;
-                        TableColumns = business.ColumnPreset.ToList<string>();
+                        Business = businessResponse.Data; //TODO: Fixa så att enbart TableColumns hämtas, ej hela Business objektet ???
+                        TableColumns = Business.ColumnPreset.ToList<string>();
                         StateHasChanged();
                     }
 
@@ -100,9 +101,25 @@ else
         }
     }
 
-    private void UpdateColumns(List<string> updatedColumns)
+    private async Task UpdateColumns(List<string> updatedColumns)
     {
-        TableColumns = updatedColumns;
+        var columnsArray = updatedColumns.ToArray<string>();
+
+        if (Business != null)
+        {
+            var businessDTO = new BusinessRequestDTO(Business.Id, null, columnsArray);
+            var response = await ApiService.PutAsync<BusinessRequestDTO>("Business", businessDTO);
+
+            if (response.IsSuccess)
+            {
+                TableColumns = updatedColumns;
+            }
+            else
+            {
+                ErrorMessage = "Failed to save updates to database";
+            }
+        }
+
         StateHasChanged();
     }
 }

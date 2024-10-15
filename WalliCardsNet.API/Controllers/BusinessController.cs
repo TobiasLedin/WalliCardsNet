@@ -100,68 +100,78 @@ namespace WalliCardsNet.API.Controllers
             }
         }
 
-        [HttpPost]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Add(BusinessCreateDTO businessData)
-        {
-            if (businessData == null)
-            {
-                return BadRequest();
-            }
+        //[HttpPost]
+        //[Authorize]
+        //[ProducesResponseType(StatusCodes.Status201Created)]
+        //public async Task<IActionResult> Add(BusinessCreateDTO businessData)
+        //{
+        //    if (businessData == null)
+        //    {
+        //        return BadRequest();
+        //    }
 
-            Business business = new Business
-            {
-                Id = Guid.NewGuid(),
-                Name = businessData.Name,
-                PspId = businessData.PspId
-            };
+        //    Business business = new Business
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = businessData.Name,
+        //        PspId = businessData.PspId
+        //    };
 
-            // Add standard field definitions (customer data columns).
-            // Standard: <string> Email, <string> Name
+        //    // Add standard field definitions (customer data columns).
+        //    // Standard: <string> Email, <string> Name
 
-            List<DataColumn> columns = new()
-            {
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Email", Title = "Email", DataType = "string" , IsSelected = true },
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Name", Title = "Full name", DataType = "string" , IsSelected = true }
-            };
-            business.DataColumns.AddRange(columns);
+        //    List<DataColumn> columns = new()
+        //    {
+        //        new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Email", Title = "Email", DataType = "string" , IsSelected = true },
+        //        new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Name", Title = "Full name", DataType = "string" , IsSelected = true }
+        //    };
+        //    business.DataColumns.AddRange(columns);
 
-            // Add Manager account tied to business
-            var manager = new ApplicationUser
-            {
-                Email = businessData.ManagerEmail,
-                UserName = businessData.ManagerName,
-                NormalizedUserName = businessData.ManagerName.ToUpper(),
-                BusinessId = business.Id
-            };
+        //    // Add Manager account tied to business
+        //    var manager = new ApplicationUser
+        //    {
+        //        Email = businessData.ManagerEmail,
+        //        UserName = businessData.ManagerName,
+        //        NormalizedUserName = businessData.ManagerName.ToUpper(),
+        //        BusinessId = business.Id
+        //    };
 
-            try
-            {
-                await _businessRepo.AddAsync(business);
+        //    try
+        //    {
+        //        await _businessRepo.AddAsync(business);
 
-                // Create new ApplicationUser (manager of the specific business)
-                await _userManager.CreateAsync(manager, businessData.ManagerPassword);
+        //        // Create new ApplicationUser (manager of the specific business)
+        //        await _userManager.CreateAsync(manager, businessData.ManagerPassword);
 
-                //return Created($"api/Business/{business.Id}", new BusinessResponseDTO(business.Id, business.Name, columns));  //TODO: Utkommenterat pga avsaknad av DataColumn DTO mappning. Behov?
-                return Created();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //        //return Created($"api/Business/{business.Id}", new BusinessResponseDTO(business.Id, business.Name, columns));  //TODO: Utkommenterat pga avsaknad av DataColumn DTO mappning. Behov?
+        //        return Created();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
 
         [HttpPut]
-        [Authorize]
-        public async Task<IActionResult> Update(BusinessDTO businessDTO)
+        [Authorize(Roles = Constants.Roles.Manager)]
+        public async Task<IActionResult> Update(BusinessRequestDTO businessDTO)
         {
             if (businessDTO == null)
             {
                 return BadRequest();
             }
             var business = await _businessRepo.GetByIdAsync(businessDTO.Id);
-            business.Name = businessDTO.Name;
+
+            // Business properties to update if not null in DTO.
+            if (businessDTO.Name != null)
+            {
+                business.Name = businessDTO.Name;
+            }
+            if (businessDTO.ColumnPreset != null)
+            {
+                business.ColumnPreset = businessDTO.ColumnPreset;
+            }
+
             try
             {
                 await _businessRepo.UpdateAsync(business);

@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace WalliCardsNet.ClassLibrary.Business
 {
-    public class BusinessRegisterDTO
-    {
-        public string Password { get; set; }
-    }
+    public record BusinessRequestDTO(Guid Id, string? Name, string[]? ColumnPreset);
+    
 }
