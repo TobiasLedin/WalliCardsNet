@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace WalliCardsNet.ClassLibrary.Business
 {
-    public record BusinessCreateDTO(string Name, string PspId, string ManagerEmail, string ManagerName, string ManagerPassword);
+    public record BusinessRequestDTO(Guid Id, string? Name, string[]? ColumnPreset);
     
 }

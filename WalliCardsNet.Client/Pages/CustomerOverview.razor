@@ -8,7 +8,7 @@
 
 <h3>Customer Overview</h3>
 
-@if (Isloading == true && Columns.Count == 0)
+@* @if (Isloading == true && TableColumns == null)
 {
     <p>Loading business settings</p>
 }
@@ -16,25 +16,33 @@
 @if (Isloading == true && Columns.Count > 0)
 {
     <p>Loading customer data</p>
+} *@
+
+@if (Isloading == true)
+{
+    <p>Loading data</p>
 }
 
 @if (Isloading == false && ErrorMessage == null)
 {
-    <EditTable Columns="Columns" OnColumnsUpdated="UpdateColumns" />
+    <EditTable Columns="TableColumns" OnColumnsUpdated="UpdateColumns" />
 
-    <QuickGrid Items="Customers" Class="table">
+    if (TableColumns != null)
+    {
+        <QuickGrid Items="Customers" Class="table">
 
-        @foreach (var column in Columns)
-        {
-            if (column.IsSelected)
+            @foreach (var column in TableColumns)
             {
-                <PropertyColumn Title="@(column.Title)"
-                                Property="@(c => c.CustomerDetails!.ContainsKey(column.Key) ? c.CustomerDetails[column.Key] : "-")"
-                                Sortable="true" />
-            }
-        }
 
-    </QuickGrid>
+                <PropertyColumn Title="@(column)"
+                                Property="@(c => c.CustomerDetails!.ContainsKey(column) ? c.CustomerDetails[column] : "-")"
+                                Sortable="true" />
+
+            }
+
+        </QuickGrid>
+    }
+
 }
 else
 {
@@ -43,7 +51,8 @@ else
 
 
 @code {
-    public List<DataColumnDTO> Columns { get; set; } = [];   // Sätta upp Cascading Parameter?
+    private BusinessResponseDTO? Business { get; set; }
+    public List<string> TableColumns { get; set; }
     public IQueryable<CustomerResponseDTO> Customers { get; set; }
     public bool Isloading { get; set; } = true;
     public string? ErrorMessage { get; set; }
@@ -67,8 +76,8 @@ else
 
                     if (businessResponse.IsSuccess)
                     {
-                        var business = businessResponse.Data;
-                        Columns = business.DataColumns;
+                        Business = businessResponse.Data; //TODO: Fixa så att enbart TableColumns hämtas, ej hela Business objektet ???
+                        TableColumns = Business.ColumnPreset.ToList<string>();
                         StateHasChanged();
                     }
 
@@ -92,9 +101,25 @@ else
         }
     }
 
-    private void UpdateColumns(List<DataColumnDTO> updatedColumns)
+    private async Task UpdateColumns(List<string> updatedColumns)
     {
-        Columns = updatedColumns;
+        var columnsArray = updatedColumns.ToArray<string>();
+
+        if (Business != null)
+        {
+            var businessDTO = new BusinessRequestDTO(Business.Id, null, columnsArray);
+            var response = await ApiService.PutAsync<BusinessRequestDTO>("Business", businessDTO);
+
+            if (response.IsSuccess)
+            {
+                TableColumns = updatedColumns;
+            }
+            else
+            {
+                ErrorMessage = "Failed to save updates to database";
+            }
+        }
+
         StateHasChanged();
     }
 }

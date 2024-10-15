@@ -1,17 +1,29 @@
 ﻿
-<button @onclick="ToggleEdit">
+<button @onclick="ToggleEditMenu">
+    @* Kugghjulsikon *@
     @(IsCollapsed ? "Edit" : "Close")
 </button>
 
 @if (!IsCollapsed)
 {
-    <button @onlick="AddColumn">Add</button> // Exempel
+
+
+    <button @onclick="ToggleAddField">
+        Add
+    </button>
+    if (ShowAddField)
+    {
+        <div>
+            <input type="text" @bind="NewColumnName" placeholder="Column name" />
+            <button @onclick="AddColumn">Save</button>
+        </div>
+    }
+
 
     <table>
         <thead>
             <tr>
-                <th>Visible</th>
-                <th>Key</th>
+                <th>Name</th>
             </tr>
         </thead>
         <tbody>
@@ -19,11 +31,12 @@
             {
                 <tr>
                     <td>
-                        <input type="checkbox"
-                               checked="@column.IsSelected"
-                               @onchange="() => UpdateColumnSelection(column)" />
+                        @column
+                        @if (column != "Email")
+                        {
+                            <b @onclick="(() => DeleteColumn(column))">X</b>
+                        }
                     </td>
-                    <td>@column.Key</td>
                 </tr>
             }
         </tbody>
@@ -32,26 +45,58 @@
 
 @code {
     [Parameter]
-    public List<DataColumnDTO> Columns { get; set; } = [];
+    public List<string> Columns { get; set; }
     [Parameter]
-    public EventCallback<List<DataColumnDTO>> OnColumnsUpdated { get; set; }
+    public EventCallback<List<string>> OnColumnsUpdated { get; set; }
+    public string? NewColumnName { get; set; }
+    private string? ValidationMessage { get; set; } = null;
+    private const int MaxColumnNameLength = 20;
     private bool IsCollapsed { get; set; } = true;
+    private bool ShowAddField { get; set; } = false;
 
 
-    private void ToggleEdit()
+    private void ToggleEditMenu()
     {
         IsCollapsed = !IsCollapsed;
     }
 
-    private void UpdateColumnSelection(DataColumnDTO column)
+    private void ToggleAddField()
     {
-        // Create a new list of columns with updated selection status
-        var updatedColumns = Columns.Select(c => c.Key == column.Key
-            ? column with { IsSelected = !column.IsSelected } // Toggle IsSelected
-            : c).ToList();
+        ShowAddField = !ShowAddField;
+    }
 
-        // Invoke the callback to update the parent component
-        OnColumnsUpdated.InvokeAsync(updatedColumns);
+    private async void AddColumn()
+    {
+        if (!string.IsNullOrEmpty(NewColumnName))
+        {
+            ValidationMessage = null;
+
+            if (string.IsNullOrWhiteSpace(NewColumnName))
+            {
+                ValidationMessage = "Cannot be empty";
+            }
+            else if (NewColumnName.Length > MaxColumnNameLength)
+            {
+                ValidationMessage = $"Column name cannot be more than {MaxColumnNameLength} characters";
+            }
+            else
+            {
+                Columns.Add(NewColumnName);
+                NewColumnName = string.Empty;
+
+                await OnColumnsUpdated.InvokeAsync(Columns);
+                ShowAddField = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async void DeleteColumn(string column)
+    {
+        Columns.Remove(column);
+
+        await OnColumnsUpdated.InvokeAsync(Columns);
+        StateHasChanged();
     }
 
 }

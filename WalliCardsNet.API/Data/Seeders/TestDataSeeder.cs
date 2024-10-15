@@ -25,15 +25,7 @@ namespace WalliCardsNet.API.Data.Seeders
                                         .Substring(0, 10)
                 };
 
-                List<DataColumn> columns = new()
-                {
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Name", Title="Full name", DataType = "string", IsSelected = true },
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Email", Title="Email", DataType = "string", IsSelected = true },
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Phone", Title="Mobile phone", DataType = "string", IsSelected = true },
-                new DataColumn { Id = Guid.NewGuid(), BusinessId = business.Id, Key = "Adress", Title="Adress", DataType = "string", IsSelected = false }
-                };
-
-                business.DataColumns.AddRange(columns);
+                business.ColumnPreset = ["Email", "Name", "Phone"];
 
                 await appDbContext.Businesses.AddAsync(business);
                 await appDbContext.SaveChangesAsync();
