@@ -5,27 +5,27 @@ namespace WalliCardsNet.API.Data.Repositories
 {
     public class DeviceRepository : IDevice
     {
-        public void AddAsync(Device device)
+        public Task AddAsync(Device device)
         {
             throw new NotImplementedException("Device/AddAsync method not yet implemented");
         }
 
-        public List<Device> GetAllAsync()
+        public async Task<List<Device>> GetAllAsync()
         {
             throw new NotImplementedException("Device/GetAllAsync method not yet implemented");
         }
 
-        public Device GetByIdAsync(int id)
+        public Task<Device> GetByIdAsync(int id)
         {
-           throw new NotImplementedException("Device/GetByIdAsync method not yet implemented");
+            throw new NotImplementedException("Device/GetByIdAsync method not yet implemented");
         }
 
-        public void RemoveAsync(int id)
+        public Task RemoveAsync(int id)
         {
             throw new NotImplementedException("Device/RemoveAsync method not yet implemented");
         }
 
-        public void UpdateAsync(Device device)
+        public Task UpdateAsync(Device device)
         {
             throw new NotImplementedException("Device/UpdateAsync method not yet implemented");
         }
