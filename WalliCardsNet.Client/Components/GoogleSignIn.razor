@@ -1,0 +1,20 @@
+﻿@inject NavigationManager NavigationManager
+<button @onclick="RedirectToGoogleSignIn">Sign in with Google</button>
+
+@code {
+    private string clientId = "";
+    private string redirectUri = "https://localhost:7102/auth/google/";
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientId = AppConfiguration.GoogleClientId;
+        Console.WriteLine(clientId);
+    }
+
+    private void RedirectToGoogleSignIn()
+    {
+        var googleSignInUrl = $"https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={clientId}&redirect_uri={redirectUri}&scope=email%20profile";
+        Console.WriteLine(googleSignInUrl);
+        NavigationManager.NavigateTo(googleSignInUrl, true);
+    }
+}

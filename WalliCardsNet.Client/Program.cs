@@ -13,8 +13,6 @@ namespace WalliCardsNet.Client
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-            
-
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
@@ -33,7 +31,6 @@ namespace WalliCardsNet.Client
             builder.Services.AddScoped<WalliCardsApiService>();
             builder.Services.AddScoped<ClientAuthService>();
             builder.Services.AddScoped<AuthMessageHandler>();
-
 
             await builder.Build().RunAsync();
         }

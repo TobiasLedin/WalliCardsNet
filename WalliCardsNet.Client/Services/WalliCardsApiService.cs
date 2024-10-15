@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using WalliCardsNet.Client.Models;
+using static System.Net.WebRequestMethods;
 
 namespace WalliCardsNet.Client.Services
 {
@@ -75,6 +76,16 @@ namespace WalliCardsNet.Client.Services
                 apiResponse.Message = $"{response.StatusCode} - Error deleting";
             }
             return apiResponse;
+        }
+
+        public async Task<string> LinkGoogleAccountAsync(string code)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/link/google", code);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<string>();
+            }
+            throw new Exception("Error authenticating with Google.");
         }
 
         private async Task<ApiResponse<T>> ProcessResponse<T>(HttpResponseMessage response)
