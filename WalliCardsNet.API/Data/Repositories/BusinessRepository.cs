@@ -36,7 +36,8 @@ namespace WalliCardsNet.API.Data.Repositories
 
         public async Task<Business> GetByIdAsync(Guid id)
         {
-            var result = await _applicationDbContext.Businesses.Include(b => b.DataColumns).FirstOrDefaultAsync(b => b.Id == id);
+            //var result = await _applicationDbContext.Businesses.FirstOrDefaultAsync(b => b.Id == id);
+            var result = await _applicationDbContext.Businesses.FindAsync(id);
             if (result != null)
             {
                 return result;
