@@ -65,13 +65,13 @@ namespace WalliCardsNet.API.Controllers
             var business = await _businessRepo.GetByIdAsync(id);
             if (business != null)
             {
-                var dataColumns = new List<DataColumnDTO>();
-                foreach (var column in business.DataColumns)
-                {
-                    dataColumns.Add(new DataColumnDTO(column.Key, column.Title, column.DataType, column.IsSelected));
-                }
+                //var dataColumns = new List<DataColumnDTO>();
+                //foreach (var column in business.DataColumns)
+                //{
+                //    dataColumns.Add(new DataColumnDTO(column.Key, column.Title, column.DataType, column.IsSelected));
+                //}
 
-                var businessDTO = new BusinessResponseDTO(business.Id, business.UrlToken, business.Name, dataColumns);
+                var businessDTO = new BusinessResponseDTO(business.Id, business.UrlToken, business.Name, business.ColumnPreset);
 
                 return Ok(businessDTO);
             }

@@ -1,29 +1,37 @@
 ﻿
-<button @onclick="ToggleEdit">
+<button @onclick="ToggleEditMenu">
     @(IsCollapsed ? "Edit" : "Close")
 </button>
 
 @if (!IsCollapsed)
 {
-    <button @onlick="AddColumn">Add</button> // Exempel
+
+
+    <button @onlick="ToggleAddField">Add</button>
+    if (ShowAddField)
+    {
+        <EditForm Model="NewColumn" OnSubmit="AddColumn" FormName="AddColumnName">
+
+            <InputText @bind-Value="NewColumn"/>
+
+            <button type="submit">Save</button>
+        </EditForm>
+    }
+    
 
     <table>
         <thead>
             <tr>
-                <th>Visible</th>
-                <th>Key</th>
+                <th>Name</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             @foreach (var column in Columns)
             {
                 <tr>
-                    <td>
-                        <input type="checkbox"
-                               checked="@column.IsSelected"
-                               @onchange="() => UpdateColumnSelection(column)" />
-                    </td>
-                    <td>@column.Key</td>
+                    <td>@column</td>
+                    <td><b>X</b></td>
                 </tr>
             }
         </tbody>
@@ -32,26 +40,31 @@
 
 @code {
     [Parameter]
-    public List<DataColumnDTO> Columns { get; set; } = [];
+    public List<string> Columns { get; set; }
     [Parameter]
-    public EventCallback<List<DataColumnDTO>> OnColumnsUpdated { get; set; }
+    public EventCallback<List<string>> OnColumnsUpdated { get; set; }
+    public string? NewColumn { get; set; }
     private bool IsCollapsed { get; set; } = true;
+    private bool ShowAddField { get; set; } = false;
 
 
-    private void ToggleEdit()
+    private void ToggleEditMenu()
     {
         IsCollapsed = !IsCollapsed;
     }
 
-    private void UpdateColumnSelection(DataColumnDTO column)
+    private void ToggleAddField()
     {
-        // Create a new list of columns with updated selection status
-        var updatedColumns = Columns.Select(c => c.Key == column.Key
-            ? column with { IsSelected = !column.IsSelected } // Toggle IsSelected
-            : c).ToList();
-
-        // Invoke the callback to update the parent component
-        OnColumnsUpdated.InvokeAsync(updatedColumns);
+        ShowAddField = !ShowAddField;
     }
+
+    private void AddColumn()
+    {
+        Columns.Add(NewColumn);
+        StateHasChanged();
+
+    }
+
+    
 
 }
