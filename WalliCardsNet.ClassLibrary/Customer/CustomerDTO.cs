@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace WalliCardsNet.ClassLibrary.Customer
 {
-    public record CustomerResponseDTO(Guid Id, DateTime? RegistrationDate, Dictionary<string, string>? CustomerDetails);
+    public record CustomerDTO(Guid Id, Guid BusinessId, DateTime? RegistrationDate, Dictionary<string, string>? CustomerDetails);
     
 }

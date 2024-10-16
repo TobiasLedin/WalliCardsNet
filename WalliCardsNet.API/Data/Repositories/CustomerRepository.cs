@@ -71,16 +71,16 @@ namespace WalliCardsNet.API.Data.Repositories
             }
         }
 
-        public async Task UpdateAsync(Customer customer)
+        public async Task UpdateAsync(Customer customer) // Customer.details "tappas"/återgår till ursprung efter GetById().
         {
             if (customer != null)
             {
+                var updatedDetails = customer.CustomerDetails; // Persist CustomerDetails past GetByIdAsync().
+
                 var existingCustomer = await GetByIdAsync(customer.Id);
                 if (existingCustomer != null)
                 {
-                    existingCustomer.BusinessId = customer.BusinessId;
-
-                    existingCustomer.CustomerDetailsJson = await EncryptionHelper.EncryptAsync(JsonSerializer.Serialize(customer.CustomerDetails));
+                    existingCustomer.CustomerDetailsJson = await EncryptionHelper.EncryptAsync(JsonSerializer.Serialize(updatedDetails));
 
                     await _applicationDbContext.SaveChangesAsync();
                 }
