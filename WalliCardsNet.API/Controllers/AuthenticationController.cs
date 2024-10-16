@@ -15,11 +15,13 @@ namespace WalliCardsNet.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IGoogleService _googleService;
 
-        public AuthenticationController(IAuthService authService, UserManager<ApplicationUser> userManager)
+        public AuthenticationController(IAuthService authService, UserManager<ApplicationUser> userManager, IGoogleService googleService)
         {
             _authService = authService;
             _userManager = userManager;
+            _googleService = googleService;
         }
 
         [HttpPost]
@@ -41,51 +43,29 @@ namespace WalliCardsNet.API.Controllers
         [HttpPost("link/google")]
         public async Task<IActionResult> GoogleAuth([FromBody] string code)
         {
-            var tokenEndpoint = "https://oauth2.googleapis.com/token";
-
-            var httpClient = new HttpClient();
-            var requestData = new Dictionary<string, string>
+            try
             {
-                {"code", code },
-                {"client_id", Environment.GetEnvironmentVariable("GOOGLE-CLIENT-ID") },
-                {"client_secret", Environment.GetEnvironmentVariable("GOOGLE-CLIENT-SECRET") },
-                {"redirect_uri", "https://localhost:7102/auth/google/" },
-                {"grant_type", "authorization_code" }
-            };
+                var tokenData = await _googleService.ExchangeCodeForTokensAsync(code);
+                var idToken = tokenData["id_token"].ToString();
+                var (googleUserId, googleEmail) = _googleService.DecodeIdToken(idToken);
 
-            var response = await httpClient.PostAsync(tokenEndpoint, new FormUrlEncodedContent(requestData));
-            var responseContent = await response.Content.ReadAsStringAsync();
+                var user = await _userManager.FindByEmailAsync(googleEmail);
+                if (user == null)
+                {
+                    return Unauthorized("Account does not exist.");
+                }
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return BadRequest("Error exchanging code for tokens");
+                var success = await _googleService.LinkGoogleAccountAsync(user, googleUserId);
+                if (success)
+                {
+                    return Ok("Google account linked successfully.");
+                }
+                return BadRequest("Error linking Google account.");
             }
-
-            Console.WriteLine(responseContent);
-            var tokenData = JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
-            var accessToken = tokenData["access_token"];
-            var idToken = tokenData["id_token"].ToString();
-            var jwtHandler = new JwtSecurityTokenHandler();
-            var jwtToken = jwtHandler.ReadJwtToken(idToken);
-            var googleUserId = jwtToken.Claims.First(claim => claim.Type == "sub").Value;
-            var googleEmail = jwtToken.Claims.First(claim => claim.Type == "email").Value;
-
-            var user = await _userManager.FindByEmailAsync(googleEmail);
-
-            if (user == null)
+            catch (Exception ex)
             {
-                return Unauthorized("Account does not exist.");
+                return BadRequest(ex.Message);
             }
-
-            var loginInfo = new UserLoginInfo("Google", googleUserId, "Google");
-            var result = await _userManager.AddLoginAsync(user, loginInfo);
-
-            if (result.Succeeded)
-            {
-                return Ok("Google account linked successfully.");
-            }
-
-            return BadRequest("Error linking Google account.");
         }
 
         // TEST ENDPOINT FOR CREATING USERS

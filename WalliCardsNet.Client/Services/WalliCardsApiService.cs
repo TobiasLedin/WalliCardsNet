@@ -83,7 +83,8 @@ namespace WalliCardsNet.Client.Services
             var response = await _httpClient.PostAsJsonAsync("api/auth/link/google", code);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<string>();
+                var result = await response.Content.ReadAsStringAsync();
+                return result;
             }
             throw new Exception("Error authenticating with Google.");
         }
