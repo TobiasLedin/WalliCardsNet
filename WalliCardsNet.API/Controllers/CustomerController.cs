@@ -36,18 +36,18 @@ namespace WalliCardsNet.API.Controllers
             var customers = await _customerRepo.GetAllByBusinessAsync(businessId);
             if (customers.Count != 0)
             {
-                List<CustomerResponseDTO> customersDTO = [];
+                List<CustomerDTO> customersDTO = [];
 
                 foreach (var customer in customers)
                 {
-                    customersDTO.Add(new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));
+                    customersDTO.Add(new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
                 }
 
                 return Ok(customersDTO);
             }
             else
             {
-                return Ok(new List<CustomerResponseDTO>());
+                return Ok(new List<CustomerDTO>());
             }
         }
 
@@ -57,7 +57,7 @@ namespace WalliCardsNet.API.Controllers
             var customer = await _customerRepo.GetByIdAsync(id);
             if (customer != null)
             {
-                return Ok(new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));
+                return Ok(new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
             }
             else
             {
@@ -67,7 +67,7 @@ namespace WalliCardsNet.API.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAsync(CustomerRequestDTO customerData)
+        public async Task<IActionResult> AddAsync(CustomerDTO customerData)
         {
             try
             {
@@ -77,7 +77,7 @@ namespace WalliCardsNet.API.Controllers
                     CustomerDetails = customerData.CustomerDetails
                 };
                 await _customerRepo.AddAsync(customer);
-                return Created($"api/Customer/{customer.Id}", new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));
+                return Created($"api/Customer/{customer.Id}", new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
             }
             catch (Exception ex)
             {
@@ -98,7 +98,7 @@ namespace WalliCardsNet.API.Controllers
                     CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(joinFormModel.FormDataJson)
                 };
                 await _customerRepo.AddAsync(customer);
-                return Created($"api/Customer/{customer.Id}", new CustomerResponseDTO(customer.Id, customer.RegistrationDate, customer.CustomerDetails));
+                return Created($"api/Customer/{customer.Id}", new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
             }
             catch (Exception ex)
             {
@@ -107,7 +107,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAsync(CustomerRequestDTO customerData)
+        public async Task<IActionResult> UpdateAsync(CustomerDTO customerData)
         {
             if (!ModelState.IsValid)
             {
