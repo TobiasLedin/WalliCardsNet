@@ -152,6 +152,13 @@ namespace WalliCardsNet.API.Services
                 new Claim("business-token", business.UrlToken )
             };
 
+            var logins = await _userManager.GetLoginsAsync(user);
+            var googleLogin = logins.FirstOrDefault(login => login.LoginProvider == "Google");
+            if (googleLogin != null)
+            {
+                claims.Add(new Claim("google-id", googleLogin.ProviderKey));
+            }
+
             var roles = await _userManager.GetRolesAsync(user);
 
             foreach (var role in roles)

@@ -1,9 +1,16 @@
 ﻿@inject NavigationManager NavigationManager
-<button @onclick="RedirectToGoogleSignIn">Sign in with Google</button>
+@if (string.IsNullOrEmpty(GoogleId))
+{
+    <button @onclick="RedirectToGoogleSignIn">Link your Google account</button>
+}
 
 @code {
+    [Parameter]
+    public string GoogleId { get; set; }
+
     private string clientId = "";
     private string redirectUri = "https://localhost:7102/auth/google/";
+
 
     protected override async Task OnInitializedAsync()
     {

@@ -26,10 +26,14 @@
                 {
                     BusinessId = claim.Value;
                 }
+                if (claim.Type == "google-id")
+                {
+                    GoogleId = claim.Value;
+                }
             }
         </ul>
         <SetBusinessName BusinessId="@BusinessId"></SetBusinessName>
-        <GoogleSignIn></GoogleSignIn>
+        <LinkGoogleAccount GoogleId="@GoogleId"></LinkGoogleAccount>
     </Authorized>
     
     
@@ -41,6 +45,7 @@
     public List<string> Roles {get; set; }
     public string Token { get; set; }
     public string BusinessId { get; set; }
+    public string GoogleId { get; set; }
 
     protected override Task OnInitializedAsync()
     {
