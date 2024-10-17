@@ -113,7 +113,8 @@ namespace WalliCardsNet.API
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidAudience = builder.Configuration["JwtSettings:Audience"],
-                    ValidIssuer = builder.Configuration["JwtSettings:Issuer"]
+                    ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+                    ClockSkew = TimeSpan.Zero
                 };
             });
 
