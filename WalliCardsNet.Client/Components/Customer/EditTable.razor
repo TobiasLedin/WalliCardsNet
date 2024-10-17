@@ -1,29 +1,63 @@
 ﻿
-<button @onclick="ToggleEditMenu">
-    @* Kugghjulsikon *@
-    @(IsCollapsed ? "Edit" : "Close")
-</button>
+<div>
+    @if (IsCollapsed)
+    {
+        <Icon Name="IconName.Gear" Size="IconSize.x2" @onclick="ToggleEditMenu" />
+    }
+    else
+    {
+        <Icon Name="IconName.GearFill" Size="IconSize.x2" @onclick="ToggleEditMenu" />
+        <Icon Name="IconName.Plus" Size="IconSize.x2" @onclick="ToggleAddField" />
+    }
+</div>
+@* <Icon Name="IconName.Gear" Size="IconSize.x2" @onclick="ToggleEditMenu" /> *@
+
+@* <button @onclick="ToggleEditMenu">
+    @(IsCollapsed ? "Edit table" : "Close")
+</button> *@
 
 @if (!IsCollapsed)
 {
 
 
-    <button @onclick="ToggleAddField">
+    @* <button @onclick="ToggleAddField">
         Add
-    </button>
+    </button> *@
     if (ShowAddField)
     {
         <div>
-            <input type="text" @bind="NewColumnName" placeholder="Column name" />
+            <input type="text" @bind="NewColumnName" placeholder="Input column name..." />
             <button @onclick="AddColumn">Save</button>
         </div>
     }
 
+    @* Blazor Bootstrap sortable list *@
+    <SortableList Class="mb-3"
+                  Handle=".bb-sortable-list-handle"
+                  TItem="string"
+                  Data="Columns"
+                  Context="column"
+                  OnUpdate="@UpdateColumns"
+                  Style="width: 260px">
 
-    <table>
+        <ItemTemplate>
+            <div class="d-flex justify-content-start">
+                <div class="bb-sortable-list-handle pe-2"><Icon Name="IconName.GripVertical" /></div>
+                <div>@column</div>
+                @if (column != "Email")
+                {
+                    <div class="ms-auto"><Icon Name="IconName.Trash" @onclick="(() => DeleteColumn(column))" /></div>
+                }
+                
+            </div>
+        </ItemTemplate>
+
+    </SortableList>
+
+    @* <table>
         <thead>
             <tr>
-                <th>Name</th>
+                <th>Column</th>
             </tr>
         </thead>
         <tbody>
@@ -34,13 +68,14 @@
                         @column
                         @if (column != "Email")
                         {
-                            <b @onclick="(() => DeleteColumn(column))">X</b>
+                            <Icon Name="IconName.Trash" @onclick="(() => DeleteColumn(column))" />
+                            <b @onclick="(() => DeleteColumn(column))"> X</b>
                         }
                     </td>
                 </tr>
             }
         </tbody>
-    </table>
+    </table> *@
 }
 
 @code {
@@ -53,6 +88,8 @@
     private const int MaxColumnNameLength = 20;
     private bool IsCollapsed { get; set; } = true;
     private bool ShowAddField { get; set; } = false;
+
+    public record Column(string Name);
 
 
     private void ToggleEditMenu()
@@ -91,7 +128,26 @@
         }
     }
 
-    private async void DeleteColumn(string column)
+    private async Task UpdateColumns(SortableListEventArgs args)
+    {
+        var columnToMove = Columns[args.OldIndex];
+        Columns.RemoveAt(args.OldIndex);
+
+        if(args.NewIndex < Columns.Count)
+        {
+            Columns.Insert(args.NewIndex, columnToMove);
+        }
+        else
+        {
+            Columns.Add(columnToMove);
+        }
+
+        await OnColumnsUpdated.InvokeAsync(Columns);
+        StateHasChanged();
+
+    }
+
+    private async Task DeleteColumn(string column)
     {
         Columns.Remove(column);
 
