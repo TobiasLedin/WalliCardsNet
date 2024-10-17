@@ -1,7 +1,7 @@
 ﻿
 <button @onclick="ToggleEditMenu">
     @* Kugghjulsikon *@
-    @(IsCollapsed ? "Edit" : "Close")
+    @(IsCollapsed ? "Edit table" : "Close")
 </button>
 
 @if (!IsCollapsed)
@@ -14,7 +14,7 @@
     if (ShowAddField)
     {
         <div>
-            <input type="text" @bind="NewColumnName" placeholder="Column name" />
+            <input type="text" @bind="NewColumnName" placeholder="Input column name..." />
             <button @onclick="AddColumn">Save</button>
         </div>
     }
@@ -23,7 +23,7 @@
     <table>
         <thead>
             <tr>
-                <th>Name</th>
+                <th>Column</th>
             </tr>
         </thead>
         <tbody>
@@ -34,7 +34,7 @@
                         @column
                         @if (column != "Email")
                         {
-                            <b @onclick="(() => DeleteColumn(column))">X</b>
+                            <b @onclick="(() => DeleteColumn(column))"> X</b>
                         }
                     </td>
                 </tr>
