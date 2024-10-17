@@ -26,7 +26,8 @@
 
             @* Edit column *@
             <TemplateColumn>
-                <button @onclick="() => OnShowModalClick(context)">Edit</button>
+                <Icon Name="IconName.Pencil" @onclick="() => OnShowModalClick(context)" />
+                @* <button @onclick="() => OnShowModalClick(context)">Edit</button> *@
             </TemplateColumn>
 
             @* Customer detail columns *@
@@ -91,7 +92,7 @@
                 <span>@DataStoreStatusMessage</span>
             }
             <button @onclick="OnHideModalClick">Close</button>
-            <button @onclick="SaveChanges">Save</button>
+            <button @onclick="SaveCustomerChanges">Save</button>
         </FooterTemplate>
     </Modal>
     @* Blazor Bootstrap modal end *@
@@ -121,7 +122,7 @@ else
     private CustomerDTO? _selectedCustomer;
     private CustomerDTO? _editedCustomer;
     private bool _hasAdditionalData = false;
-    private Dictionary<string, string>? _editableCustomerDetails = new Dictionary<string, string>();
+    private Dictionary<string, string> _editableCustomerDetails = new Dictionary<string, string>();
     //
 
     protected override async Task OnInitializedAsync()
@@ -185,8 +186,24 @@ else
         await _modal.HideAsync();
     }
 
-    private async void SaveChanges()
+    private async void SaveCustomerChanges()
     {
+        // Look for keys with no stored value and delete these before saving the updated CustomerDetails dictionary.
+        var kvpToRemove = new List<string>();
+
+        foreach (var kvp in _editableCustomerDetails)
+        {
+            if (string.IsNullOrWhiteSpace(kvp.Value))
+            {
+                kvpToRemove.Add(kvp.Key);
+            }
+        }
+
+        foreach (var key in kvpToRemove)
+        {
+            _editableCustomerDetails.Remove(key);
+        }
+
         _editedCustomer = _selectedCustomer with { CustomerDetails = new Dictionary<string, string>(_editableCustomerDetails) };
 
         var result = await ApiService.PutAsync("Customer", _editedCustomer);
