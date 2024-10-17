@@ -41,11 +41,11 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPost("link/google")]
-        public async Task<IActionResult> GoogleAuth([FromBody] string code)
+        public async Task<IActionResult> LinkGoogleAccountAsync([FromBody] string code)
         {
             try
             {
-                var tokenData = await _googleService.ExchangeCodeForTokensAsync(code);
+                var tokenData = await _googleService.ExchangeCodeForTokensAsync(code, "https://localhost:7102/auth/google/link/");
                 var idToken = tokenData["id_token"].ToString();
                 var (googleUserId, googleEmail) = _googleService.DecodeIdToken(idToken);
 
@@ -65,6 +65,26 @@ namespace WalliCardsNet.API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("google")]
+        public async Task<IActionResult> SignInGoogleAccountAsync([FromBody] string code)
+        {
+            try
+            {
+                var loginResponse = await _authService.LoginWithGoogleAsync(code);
+
+                if (!loginResponse.Success)
+                {
+                    return Unauthorized(loginResponse.Details);
+                }
+
+                return Ok(loginResponse);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
             }
         }
 

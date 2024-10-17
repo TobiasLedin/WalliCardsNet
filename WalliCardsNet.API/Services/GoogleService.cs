@@ -16,7 +16,7 @@ namespace WalliCardsNet.API.Services
             _configuration = configuration;
         }
 
-        public async Task<Dictionary<string, object>> ExchangeCodeForTokensAsync(string code)
+        public async Task<Dictionary<string, object>> ExchangeCodeForTokensAsync(string code, string redirectUri)
         {
             var tokenEndpoint = "https://oauth2.googleapis.com/token";
             var httpClient = new HttpClient();
@@ -25,7 +25,7 @@ namespace WalliCardsNet.API.Services
                 {"code", code },
                 {"client_id", Environment.GetEnvironmentVariable("GOOGLE-CLIENT-ID") },
                 {"client_secret", Environment.GetEnvironmentVariable("GOOGLE-CLIENT-SECRET") },
-                {"redirect_uri", "https://localhost:7102/auth/google/" },
+                {"redirect_uri", redirectUri },
                 {"grant_type", "authorization_code" }
             };
 

@@ -21,15 +21,18 @@ namespace WalliCardsNet.API.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IBusiness _businessRepository;
+        private readonly IGoogleService _googleService;
         private readonly IConfiguration _config;
 
         public APIAuthService(
             UserManager<ApplicationUser> userManager,
             IBusiness businessRepository,
+            IGoogleService googleService,
             IConfiguration config)
         {
             _userManager = userManager;
             _businessRepository = businessRepository;
+            _googleService = googleService;
             _config = config;
         }
 
@@ -111,6 +114,26 @@ namespace WalliCardsNet.API.Services
             }
 
             return new LoginResponseDTO(false, null, "Email/Password incorrect");
+        }
+
+        public async Task<LoginResponseDTO> LoginWithGoogleAsync(string code)
+        {
+            var tokenData = await _googleService.ExchangeCodeForTokensAsync(code, "https://localhost:7102/auth/google/login/");
+            var idToken = tokenData["id_token"]?.ToString();
+            if (idToken == null)
+            {
+                return new LoginResponseDTO(false, null, "Failed to retrieve ID token from Google.");
+            }
+            var (googleUserId, googleEmail) = _googleService.DecodeIdToken(idToken);
+
+            var user = await _userManager.FindByEmailAsync(googleEmail);
+            if (user == null)
+            {
+                return new LoginResponseDTO(false, null, "No user found with this Google email.");
+            }
+
+            var token = await GenerateTokenAsync(user);
+            return new LoginResponseDTO(true, token, null);
         }
 
         //TODO: Extract to separate helper classes?

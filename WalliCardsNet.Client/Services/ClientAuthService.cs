@@ -36,6 +36,33 @@ namespace WalliCardsNet.Client.Services
             };
         }
 
+        public async Task LinkGoogleAccountAsync(string code)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/link/google", code);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("Something went wrong");
+            }
+        }
+
+        public async Task LoginGoogleAsync(string code)
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/google", code);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponseDTO>();
+                if (result?.Token != null)
+                {
+                    await _localStorage.SetItemAsync("access-token", result.Token);
+                    await _authState.GetAuthenticationStateAsync();
+                }
+            }
+            else
+            {
+                throw new Exception("Login failed");
+            }
+        }
+
         public async Task LogoutAsync()
         {
             await _authState.LogoutAsync();

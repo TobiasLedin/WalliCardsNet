@@ -1,16 +1,12 @@
-﻿@page "/auth/google"
+﻿@page "/auth/google/login/"
 @inject NavigationManager NavigationManager
-@inject WalliCardsApiService WalliCardsApiService
+@inject ClientAuthService AuthService
 
-<p>hej</p>
-<p>Code: @Code</p>
+<p>Loading...</p>
 
 @code {
     [Parameter]
     public string Code { get; set; }
-
-    [Parameter]
-    public string Scope { get; set; }
 
     protected override async void OnInitialized()
     {
@@ -18,8 +14,10 @@
         var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
         Code = queryParams["code"];
-        // Scope = queryParams["scope"];
-
-        var response = await WalliCardsApiService.LinkGoogleAccountAsync(Code);
+        if (Code != null)
+        {
+            await AuthService.LoginGoogleAsync(Code);
+            NavigationManager.NavigateTo("/");
+        }
     }
 }

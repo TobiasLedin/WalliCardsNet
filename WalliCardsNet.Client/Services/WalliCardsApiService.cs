@@ -78,17 +78,6 @@ namespace WalliCardsNet.Client.Services
             return apiResponse;
         }
 
-        public async Task<string> LinkGoogleAccountAsync(string code)
-        {
-            var response = await _httpClient.PostAsJsonAsync("api/auth/link/google", code);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsStringAsync();
-                return result;
-            }
-            throw new Exception("Error authenticating with Google.");
-        }
-
         private async Task<ApiResponse<T>> ProcessResponse<T>(HttpResponseMessage response)
         {
             var apiResponse = new ApiResponse<T>();
