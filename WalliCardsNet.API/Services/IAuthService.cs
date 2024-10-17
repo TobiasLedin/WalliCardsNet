@@ -10,5 +10,6 @@ namespace WalliCardsNet.API.Services
         Task<RegisterResponseDTO> CreateUserAccountAsync(Guid businessId, string role, string userName, string email);
 
         Task<LoginResponseDTO> LoginAsync(string email, string password);
+        Task<LoginResponseDTO> LoginWithGoogleAsync(string code);
     }
 }

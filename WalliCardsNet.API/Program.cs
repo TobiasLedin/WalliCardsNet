@@ -57,6 +57,9 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<IActivationToken, ActivationTokenRepository>();
             builder.Services.AddTransient<IApplicationUser, ApplicationUserRepository>();
 
+            //Custom Google Service
+            builder.Services.AddTransient<IGoogleService, GoogleService>();
+
             // Mail service
             builder.Services.AddTransient<IMailService, MailService>();
 

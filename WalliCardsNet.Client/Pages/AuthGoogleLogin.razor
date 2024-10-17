@@ -1,0 +1,23 @@
+﻿@page "/auth/google/login/"
+@inject NavigationManager NavigationManager
+@inject ClientAuthService AuthService
+
+<p>Loading...</p>
+
+@code {
+    [Parameter]
+    public string Code { get; set; }
+
+    protected override async void OnInitialized()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        Code = queryParams["code"];
+        if (Code != null)
+        {
+            await AuthService.LoginGoogleAsync(Code);
+            NavigationManager.NavigateTo("/");
+        }
+    }
+}

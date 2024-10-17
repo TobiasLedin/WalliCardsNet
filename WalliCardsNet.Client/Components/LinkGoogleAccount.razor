@@ -1,0 +1,25 @@
+﻿@inject NavigationManager NavigationManager
+@if (string.IsNullOrEmpty(GoogleId))
+{
+    <button @onclick="RedirectToGoogleSignIn">Link your Google account</button>
+}
+
+@code {
+    [Parameter]
+    public string GoogleId { get; set; }
+
+    private string clientId = "";
+    private string redirectUri = "https://localhost:7102/auth/google/link/";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientId = AppConfiguration.GoogleClientId;
+    }
+
+    private void RedirectToGoogleSignIn()
+    {
+        var googleSignInUrl = $"https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={clientId}&redirect_uri={redirectUri}&scope=email%20profile";
+        NavigationManager.NavigateTo(googleSignInUrl, true);
+    }
+}

@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using WalliCardsNet.Client.Models;
+using static System.Net.WebRequestMethods;
 
 namespace WalliCardsNet.Client.Services
 {
