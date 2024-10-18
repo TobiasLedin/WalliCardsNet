@@ -9,56 +9,122 @@
 
 <h3>Customer Overview</h3>
 
-@* @if (Isloading == true && TableColumns == null)
-{
-    <p>Loading business settings</p>
-}
-
-@if (Isloading == true && Columns.Count > 0)
-{
-    <p>Loading customer data</p>
-} *@
-
 @if (Isloading == true)
 {
     <p>Loading data</p>
 }
 
-@if (Isloading == false && ErrorMessage == null)
+@if (Isloading == false && DataLoadErrorMessage == null)
 {
     <button class="btn btn-primary" @onclick="ExportCustomers">Export as CSV</button>
+    @* Component to customize table appearance *@
     <EditTable Columns="TableColumns" OnColumnsUpdated="UpdateColumns" />
 
     if (TableColumns != null)
     {
-        <QuickGrid Items="Customers" Class="table">
+        @* Customer details table *@
+        <QuickGrid Items="Customers" Pagination="@pagination" Class="table">
 
+            @* Edit column *@
+            <TemplateColumn>
+
+                <button @onclick="() => OnShowModalClick(context)">Edit</button>
+
+            </TemplateColumn>
+
+            @* Customer detail columns *@
             @foreach (var column in TableColumns)
             {
-
                 <PropertyColumn Title="@(column)"
                                 Property="@(c => c.CustomerDetails!.ContainsKey(column) ? c.CustomerDetails[column] : "-")"
-                                Sortable="true" />
+                                Sortable="true" >
 
+                                @* <ColumnOptions>
+                                    <div class="search-box">
+                                        <input type="search" autofocus @bind="filterText" @bind:event="oninput" placeholder="" />
+                                    </div>
+                                </ColumnOptions> *@
+
+                </PropertyColumn>
             }
 
         </QuickGrid>
+        <Paginator State="@pagination" />
     }
+
+    @* Blazor Bootstrap modal start - Edit customer details *@
+    <Modal @ref="_modal" title="Customer details" IsVerticallyCentered="true">
+        <BodyTemplate>
+
+            <div>
+                @* List all available business columns and corresponding CustomerDetails value. *@
+                @foreach (var column in TableColumns)
+                {
+                    <label>@column</label>
+                    <InputText @bind-Value="@_editableCustomerDetails[column]" maxlength="30" />
+                    <br />
+                }
+                <br />
+
+                @* List all additional CustomerDetails stored, but not matching a business column *@
+                @if (_hasAdditionalData)
+                {
+                    <span>Additional stored data</span>
+                    <br />
+                    @foreach (var key in _editableCustomerDetails.Keys.ToList())
+                    {
+                        if (!TableColumns.Contains(key))
+                        {
+                            <label>@key</label>
+                            <InputText @bind-Value="_editableCustomerDetails[key]" maxlength="30" />
+                            <br />
+                        }
+                    }
+                }
+            </div>
+
+
+        </BodyTemplate>
+        <FooterTemplate>
+            @if (DataStoreStatusMessage != null)
+            {
+                <span>@DataStoreStatusMessage</span> @* Status message as returned from ApiService Put method *@
+            }
+            <button @onclick="OnHideModalClick">Close</button>
+            <button @onclick="SaveChanges">Save</button>
+        </FooterTemplate>
+
+
+    </Modal>
+    @* Blazor Bootstrap modal end *@
+
+
 
 }
 else
 {
-    @ErrorMessage
+    @DataLoadErrorMessage
 }
 
 
 @code {
-    private BusinessResponseDTO? Business { get; set; }
+    private BusinessResponseDTO? _business;
     public List<string> TableColumns { get; set; }
-    public IQueryable<CustomerResponseDTO> Customers { get; set; }
     public bool Isloading { get; set; } = true;
-    public string? ErrorMessage { get; set; }
+    public string? DataLoadErrorMessage { get; set; }
+    public string? DataStoreStatusMessage { get; set; }
 
+    //QuickGrid
+    public IQueryable<CustomerDTO> Customers { get; set; }
+    PaginationState pagination = new PaginationState { ItemsPerPage = 20 };
+
+    //TODO: Blazor Bootstrap modal
+    private Modal _modal = default!;
+    private CustomerDTO? _selectedCustomer;
+    private CustomerDTO? _editedCustomer;
+    private bool _hasAdditionalData = false;
+    private Dictionary<string, string>? _editableCustomerDetails = new Dictionary<string, string>();
+    //
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,28 +140,25 @@ else
                 if (businessIdClaim != null)
                 {
                     var businessId = Guid.Parse(businessIdClaim.Value);
-                    var businessResponse = await ApiService.GetByIdAsync<BusinessResponseDTO>("business", businessId);
 
-                    if (businessResponse.IsSuccess)
-                    {
-                        Business = businessResponse.Data; //TODO: Fixa så att enbart TableColumns hämtas, ej hela Business objektet ???
-                        TableColumns = Business.ColumnPreset.ToList<string>();
-                        StateHasChanged();
-                    }
+                    await GetBusinessAsync(businessId);
+                    await GetCustomersAsync();
 
-                    var customerResponse = await ApiService.GetAllAsync<List<CustomerResponseDTO>>("customer");
+                    StateHasChanged();
 
-                    if (customerResponse.IsSuccess)
-                    {
-                        var data = customerResponse.Data;
-                        Customers = data.AsQueryable();
-                    }
+                    // var customerResponse = await ApiService.GetAllAsync<List<CustomerDTO>>("customer");
+
+                    // if (customerResponse.IsSuccess)
+                    // {
+                    //     var data = customerResponse.Data;
+                    //     Customers = data.AsQueryable();
+                    // }
                 }
             }
         }
         catch (Exception)
         {
-            ErrorMessage = "Failed to load customer data";
+            DataLoadErrorMessage = "Failed to load customer data";
         }
         finally
         {
@@ -103,13 +166,57 @@ else
         }
     }
 
+    //TODO: Blazor Bootstrap modal
+    private async Task OnShowModalClick(CustomerDTO customer)
+    {
+        _selectedCustomer = customer;
+        _editableCustomerDetails = new Dictionary<string, string>(customer.CustomerDetails);
+
+        // Ensure all TableColumns are present in _editableCustomerDetails
+        foreach (var column in TableColumns)
+        {
+            if (!_editableCustomerDetails.ContainsKey(column))
+            {
+                _editableCustomerDetails[column] = string.Empty;
+            }
+        }
+
+        _hasAdditionalData = customer.CustomerDetails.Keys.Any(key => !TableColumns.Contains(key));
+
+        await _modal.ShowAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        _selectedCustomer = null;
+        _hasAdditionalData = false;
+        DataStoreStatusMessage = null;
+        await _modal.HideAsync();
+    }
+
+    private async void SaveChanges()
+    {
+        _editedCustomer = _selectedCustomer with { CustomerDetails = new Dictionary<string, string>(_editableCustomerDetails) };
+
+        // Persist changes through API call
+        var result = await ApiService.PutAsync("Customer", _editedCustomer);
+
+        DataStoreStatusMessage = result.Message;
+
+        await GetCustomersAsync();
+
+        StateHasChanged();
+
+    }
+    //
+
     private async Task UpdateColumns(List<string> updatedColumns)
     {
         var columnsArray = updatedColumns.ToArray<string>();
 
-        if (Business != null)
+        if (_business != null)
         {
-            var businessDTO = new BusinessRequestDTO(Business.Id, null, columnsArray);
+            var businessDTO = new BusinessRequestDTO(_business.Id, null, columnsArray);
             var response = await ApiService.PutAsync<BusinessRequestDTO>("Business", businessDTO);
 
             if (response.IsSuccess)
@@ -118,14 +225,14 @@ else
             }
             else
             {
-                ErrorMessage = "Failed to save updates to database";
+                DataLoadErrorMessage = "Failed to save updates to database";
             }
         }
 
         StateHasChanged();
     }
 
-    private string ConvertToCsv(IEnumerable<CustomerResponseDTO> customers)
+    private string ConvertToCsv(IQueryable<CustomerDTO> customers)
     {
         var csvBuilder = new StringBuilder();
         var allHeaders = new HashSet<string>();
@@ -160,5 +267,28 @@ else
         var base64 = Convert.ToBase64String(bytes);
 
         await JS.InvokeVoidAsync("saveAsFile", "customers.csv", base64);
+    }
+
+    private async Task GetBusinessAsync(Guid businessId)
+    {
+        var businessResponse = await ApiService.GetByIdAsync<BusinessResponseDTO>("business", businessId);
+
+        if (businessResponse.IsSuccess)
+        {
+            _business = businessResponse.Data;
+            TableColumns = _business.ColumnPreset.ToList<string>();
+            // StateHasChanged();
+        }
+    }
+
+    private async Task GetCustomersAsync()
+    {
+        var customerResponse = await ApiService.GetAllAsync<List<CustomerDTO>>("customer");
+
+        if (customerResponse.IsSuccess)
+        {
+            var data = customerResponse.Data;
+            Customers = data.AsQueryable();
+        }
     }
 }
