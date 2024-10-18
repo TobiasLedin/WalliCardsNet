@@ -1,10 +1,11 @@
-﻿@using WalliCardsNet.ClassLibrary.Customer
+﻿@using System.Text
+@using WalliCardsNet.ClassLibrary.Customer
 @using WalliCardsNet.Client.Components.Customer
 
 @page "/customers"
 @inject WalliCardsApiService ApiService
 @inject AuthStateProvider AuthStateProvider
-
+@inject IJSRuntime JS
 
 <h3>Customer Overview</h3>
 
@@ -25,6 +26,7 @@
 
 @if (Isloading == false && ErrorMessage == null)
 {
+    <button class="btn btn-primary" @onclick="ExportCustomers">Export as CSV</button>
     <EditTable Columns="TableColumns" OnColumnsUpdated="UpdateColumns" />
 
     if (TableColumns != null)
@@ -121,5 +123,42 @@ else
         }
 
         StateHasChanged();
+    }
+
+    private string ConvertToCsv(IEnumerable<CustomerResponseDTO> customers)
+    {
+        var csvBuilder = new StringBuilder();
+        var allHeaders = new HashSet<string>();
+
+        foreach (var customer in customers)
+        {
+            foreach (var key in customer.CustomerDetails.Keys)
+            {
+                allHeaders.Add(key);
+            }
+        }
+
+        csvBuilder.AppendLine(string.Join(",", allHeaders));
+
+        foreach (var customer in customers)
+        {
+            var row = new List<string>();
+            foreach (var header in allHeaders)
+            {
+                customer.CustomerDetails.TryGetValue(header, out var value);
+                row.Add(value ?? string.Empty);
+            }
+            csvBuilder.AppendLine(string.Join(",", row));
+        }
+        return csvBuilder.ToString();
+    }
+
+    private async Task ExportCustomers()
+    {
+        var csvData = ConvertToCsv(Customers);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csvData);
+        var base64 = Convert.ToBase64String(bytes);
+
+        await JS.InvokeVoidAsync("saveAsFile", "customers.csv", base64);
     }
 }
