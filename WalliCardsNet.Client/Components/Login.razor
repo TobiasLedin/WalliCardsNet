@@ -8,15 +8,18 @@
 <h3>Login</h3>
 
 <EditForm Model="Credentials" OnValidSubmit="LoginAsync" FormName="LoginForm">
-    <DataAnnotationsValidator />
+    <div>
+        <DataAnnotationsValidator />
 
-    <InputText @bind-Value="Credentials.Email" placeholder="Email" />
-    <ValidationMessage For="@(() => Credentials.Email)" />
+        <InputText @bind-Value="Credentials.Email" placeholder="Email" />
+        <ValidationMessage For="@(() => Credentials.Email)" />
 
-    <InputText @bind-Value="Credentials.Password" placeholder="Password" type="password" />
-    <ValidationMessage For="@(() => Credentials.Password)" />
+        <InputText @bind-Value="Credentials.Password" placeholder="Password" type="password" />
+        <ValidationMessage For="@(() => Credentials.Password)" />
 
-    <button type="submit">Login</button>
+        <button type="submit">Login</button>
+    </div>
+    <NavLink href="/forgot-password">Forgot your password?</NavLink>
 
 </EditForm>
 

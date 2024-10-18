@@ -109,5 +109,26 @@ namespace WalliCardsNet.API.Services
             var plainTextContent = $"Hello! Click here to activate your account.";
             await SendEmailAsync(to, subject, htmlContent, plainTextContent);
         }
+
+        public async Task SendForgotPasswordEmail(EmailAddress to, string applicationUserId)
+        {
+            var activationToken = await _activationTokenRepo.GetTokenAsync(applicationUserId);
+            string activationLink = $"https://localhost:7102/activate/{activationToken.Id}";
+            var subject = $"Reset your password";
+            var htmlContent = $@"
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta charset='UTF-8'>
+                        <title>Reset your WalliCards password</title>
+                    </head>
+                    <body>
+                        <p>Hello!</p>
+                        <p><a href='{activationLink}'>Click here</a> to reset your password.</p>
+                    </body>
+                </html>";
+            var plainTextContent = $"Hello! Click here to reset your password.";
+            await SendEmailAsync(to, subject, htmlContent, plainTextContent);
+        }
     }
 }
