@@ -54,6 +54,13 @@ namespace WalliCardsNet.API.Data.Repositories
             {
                 throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
             }
+
+            var activationToken = await _applicationDbContext.ActivationTokens.FirstOrDefaultAsync(x => x.ApplicationUser.Id == user.Id);
+            if (activationToken != null)
+            {
+                _applicationDbContext.ActivationTokens.Remove(activationToken);
+                _applicationDbContext.SaveChanges();
+            }
         }
     }
 }

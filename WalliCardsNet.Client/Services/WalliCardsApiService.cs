@@ -84,7 +84,14 @@ namespace WalliCardsNet.Client.Services
             if (response.IsSuccessStatusCode)
             {
                 apiResponse.IsSuccess = true;
-                apiResponse.Data = await response.Content.ReadFromJsonAsync<T>();
+                if (typeof(T) == typeof(string))
+                {
+                    apiResponse.Data = (T)(object)await response.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    apiResponse.Data = await response.Content.ReadFromJsonAsync<T>();
+                }
             }
             else
             {

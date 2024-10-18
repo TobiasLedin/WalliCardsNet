@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using SendGrid.Helpers.Mail;
 using WalliCardsNet.API.Data.Interfaces;
+using WalliCardsNet.API.Models;
+using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary.ApplicationUser;
 
 namespace WalliCardsNet.API.Controllers
@@ -10,9 +14,13 @@ namespace WalliCardsNet.API.Controllers
     public class ApplicationUserController : ControllerBase
     {
         private readonly IApplicationUser _userRepo;
-        public ApplicationUserController(IApplicationUser userRepo)
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IMailService _mailService;
+        public ApplicationUserController(IApplicationUser userRepo, UserManager<ApplicationUser> userManager, IMailService mailService)
         {
             _userRepo = userRepo;
+            _userManager = userManager;
+            _mailService = mailService;
         }
 
 
@@ -50,6 +58,21 @@ namespace WalliCardsNet.API.Controllers
             {
                 return StatusCode(500, new { Message = "An error occurred while setting the password.", Details = ex.Message });
             }
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPasswordAsync([FromBody] string email)
+        {
+            if (!string.IsNullOrEmpty(email))
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user != null)
+                {
+                    var emailAddress = new EmailAddress(user.Email);
+                    await _mailService.SendForgotPasswordEmail(emailAddress, user.Id);
+                }
+            }
+            return Ok("If the email is registered, an email was sent.");
         }
     }
 }

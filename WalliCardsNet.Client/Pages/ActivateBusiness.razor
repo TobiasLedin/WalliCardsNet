@@ -4,22 +4,29 @@
 
 @if (IsValidToken)
 {
-    <EditForm Model="User" OnSubmit="Submit">
-        <h3>Activate your account by setting your password.</h3>
-        <div>
-            <label>Password</label>
-            <InputText @bind-Value="User.Password" type="password"></InputText>
-        </div>
-        <div>
-            <label>Confirm Password</label>
-            <InputText @bind-Value="ConfirmPassword" type="password"></InputText>
-        </div>
-        <button type="submit" class="btn btn-primary">Activate Account</button>
-        @if (!string.IsNullOrEmpty(ErrorMessage))
-        {
-            <p class="text-danger">@ErrorMessage</p>
-        }
-    </EditForm>
+    @if (!Success)
+    {
+        <EditForm Model="User" OnSubmit="Submit">
+            <h3>Set your password.</h3>
+            <div>
+                <label>Password</label>
+                <InputText @bind-Value="User.Password" type="password"></InputText>
+            </div>
+            <div>
+                <label>Confirm Password</label>
+                <InputText @bind-Value="ConfirmPassword" type="password"></InputText>
+            </div>
+            <button type="submit" class="btn btn-primary">Activate Account</button>
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <p class="text-danger">@ErrorMessage</p>
+            }
+        </EditForm>
+    }
+    else
+    {
+        <p>Password set! You can now <NavLink href="/">log in</NavLink>.</p>
+    }
 }
 else
 {
@@ -37,6 +44,7 @@ else
 
     public string ErrorMessage { get; set; } = "";
     public bool IsValidToken { get; set; } = false;
+    public bool Success { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,6 +64,11 @@ else
             if (result.IsSuccess == false)
             {
                 ErrorMessage = "Something went wrong.";
+            }
+            else
+            {
+                Success = true;
+                StateHasChanged();
             }
         }
         else
