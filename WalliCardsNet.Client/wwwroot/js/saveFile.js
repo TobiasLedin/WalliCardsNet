@@ -1,5 +1,5 @@
 ﻿function saveAsFile(filename, bytesBase64) {
-    var link = document.createElement('a');
+    let link = document.createElement('a');
     link.download = filename;
     link.href = 'data:text/csv;base64,' + bytesBase64;
     document.body.appendChild(link);
