@@ -10,7 +10,7 @@
 
 
 <h3>JoinBusiness</h3>
-@if (Business != null && CardTemplate != null)
+@if (Business != null && CardTemplate != null && string.IsNullOrEmpty(SuccessMessage))
 {
     <p>Join @Business.Name</p>
     <EditForm Model="@JoinFormModel" OnValidSubmit="Submit"
@@ -22,7 +22,7 @@
                 <label>@field.Label</label>
                 @{var formField = FormData.FirstOrDefault(x => x.FieldName == field.FieldName);}
 
-                @if (formField != null)
+                @if (formField != null && DateValues != null && CheckboxValues != null)
                 {
                     @switch (field.FieldType)
                     {
@@ -30,7 +30,42 @@
                             <InputText @bind-Value="formField.FieldData" />
                             break;
                         case "email":
-                            <InputText @bind-Value="formField.FieldData" type="email"></InputText>
+                            <InputText @bind-Value="formField.FieldData" type="email" />
+                            break;
+                        case "number":
+                            <InputText @bind-Value="formField.FieldData"/>
+                            break;
+                        case "date":
+                            int dateIndex = CardTemplate.CardFields.IndexOf(field);
+                            if (dateIndex >= 0)
+                            {
+                                while (DateValues.Count <= dateIndex)
+                                {
+                                    DateValues.Add(DateTime.Now.Date);
+                                }
+                                <InputDate @bind-Value="DateValues[dateIndex]" />
+                            }
+                            else
+                            {
+                                <p>Error: Field not found in CardFields.</p>
+                            }
+                            break;
+                        case "checkbox":
+                            int checkboxIndex = CardTemplate.CardFields.IndexOf(field);
+                            if (checkboxIndex >= 0)
+                            {
+                                while (CheckboxValues.Count <= checkboxIndex)
+                                {
+                                    CheckboxValues.Add(false);
+                                }
+                                bool isChecked = formField.FieldData == "true";
+                                <InputCheckbox @bind-Value="CheckboxValues[checkboxIndex]" />
+                                formField.FieldData = CheckboxValues[checkboxIndex] ? "true" : "false";
+                            }
+                            else
+                            {
+                                <p>Error: Field not found in CardFields.</p>
+                            }
                             break;
                         default:
                             <p>Unsupported field type: @field.FieldType</p>
@@ -39,17 +74,22 @@
                 }
                 else
                 {
-                <p>No data found for this field.</p>
+                    <p>No data found for this field.</p>
                 }
             </div>
         }
         <button type="submit">Join</button>
     </EditForm>
 }
-else
+@if (!string.IsNullOrEmpty(ErrorMessage))
 {
     <p>@ErrorMessage</p>
 }
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <p>@SuccessMessage</p>
+}
+
 
 @code {
     [Parameter]
@@ -59,9 +99,12 @@ else
     public List<JoinFormData> FormData { get; set; } = new List<JoinFormData>();
     public Dictionary<string, string> CssOptions { get; set; } = new Dictionary<string, string>();
     public CardDesign CardTemplate {get; set;} = new CardDesign();
-    public string SuccessMessage { get; set; }
+    public string SuccessMessage { get; set; } = "";
     public string ErrorMessage { get; set; }
     public bool Fetching = false;
+
+    public List<bool> CheckboxValues { get; set; } = new List<bool>();
+    public List<DateTime> DateValues { get; set; } = new List<DateTime>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,11 +139,46 @@ else
     public async Task Submit()
     {
         JoinFormModel.BusinessToken = Token;
+        ErrorMessage = "";
+        bool hasError = false;
+        for (int i = 0; i < CardTemplate.CardFields.Count; i++)
+        {
+            var field = CardTemplate.CardFields[i];
+            var formField = FormData.FirstOrDefault(x => x.FieldName == field.FieldName);
+
+            if (field.FieldType == "date" && formField != null)
+            {
+                formField.FieldData = DateValues[i].ToString("yyyy-MM-dd"); 
+            }
+            if (field.FieldType == "number" && formField != null)
+            {
+                if (!decimal.TryParse(formField.FieldData, out _))
+                {
+                    ErrorMessage = $"{formField.FieldName} must be a number.";
+                    formField.FieldData = string.Empty;
+                    hasError = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasError)
+        {
+            return;
+        }
+
         var customerDetails = FormData.ToDictionary(f => f.FieldName, f => (object)f.FieldData);
         JoinFormModel.FormDataJson = JsonSerializer.Serialize(customerDetails);
+
+        foreach (var entry in customerDetails)
+        {
+            Console.WriteLine($"Key: {entry.Key} Value: {entry.Value}");
+        }
+        Console.WriteLine($"FormDataJson: {JoinFormModel.FormDataJson}");
         var response = await WalliCardsApiService.PostAsync<JoinFormModel>("customer/join", JoinFormModel);
         if (response.IsSuccess)
         {
+            SuccessMessage = $"Welcome to {Business.Name}!";
             Console.WriteLine("success");
         }
         else
@@ -113,5 +191,4 @@ else
     {
         return string.Join(";", CssOptions.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
     }
-
 }
