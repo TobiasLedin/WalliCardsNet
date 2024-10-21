@@ -14,7 +14,13 @@
         {
             <div>
                 <InputText @bind-Value="field.FieldName" placeholder="Field name"/>
-                <InputText @bind-Value="field.FieldType" placeholder="Field type"/>
+                <InputSelect @bind-Value="field.FieldType">
+                    <option value="text">Text</option>
+                    <option value="email">Email</option>
+                    <option value="number">Number</option>
+                    <option value="date">Date</option>
+                    <option value="checkbox">Checkbox</option>
+                </InputSelect>
                 <InputText @bind-Value="field.Label" placeholder="Label" />
                 <label>Required field</label>
                 <InputCheckbox @bind-Value="field.IsRequired"/>
@@ -54,12 +60,37 @@
             }
             @switch (field.FieldType)
             {
-
                 case "text":
                     <InputText @bind-Value="exampleText" />
                     break;
                 case "email":
-                    <InputText @bind-Value="exampleText" />
+                    <InputText @bind-Value="exampleText" type="email" />
+                    break;
+                case "number":
+                    <InputText @bind-Value="exampleText" type="number" />
+                    break;
+                case "date":
+                    {
+                        DateTime parsedDate;
+                        if (DateTime.TryParse(exampleText, out parsedDate))
+                        {
+                            <InputDate @bind-Value="parsedDate" />
+                            exampleText = parsedDate.ToString("yyyy-MM-dd");
+                        }
+                        else
+                        {
+                            DateTime currentDate = DateTime.Now;
+                            <InputDate @bind-Value="currentDate" />
+                            exampleText = currentDate.ToString("yyyy-MM-dd");
+                        }
+                    }
+                    break;
+                case "checkbox":
+                    {
+                        bool isChecked = exampleText == "true";
+                        <InputCheckbox @bind-Value="isChecked" />
+                        exampleText = isChecked ? "true" : "false";
+                    }
                     break;
                 default:
                     <p>Unsupported field type: @field.FieldType</p>
