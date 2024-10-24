@@ -5,6 +5,7 @@
 
 # User-specific files
 *.env
+AppConfiguration.cs
 /WalliCardsNet.API/Migrations/
 *.rsuser
 *.suo
