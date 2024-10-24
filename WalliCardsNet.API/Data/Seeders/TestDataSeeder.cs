@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System.Security.Cryptography;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary.Business;
 
 namespace WalliCardsNet.API.Data.Seeders
 {
@@ -25,7 +26,7 @@ namespace WalliCardsNet.API.Data.Seeders
                                         .Substring(0, 10)
                 };
 
-                business.ColumnPreset = ["Email", "Name", "Phone"];
+                business.ColumnPreset = new ColumnPreset { VisibleColumns = ["Name", "Email"], HiddenColumns = ["Phone", "Address"] };
 
                 await appDbContext.Businesses.AddAsync(business);
                 await appDbContext.SaveChangesAsync();

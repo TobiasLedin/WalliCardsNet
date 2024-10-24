@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary.Business;
+using WalliCardsNet.ClassLibrary.Card;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
@@ -69,6 +72,27 @@ namespace WalliCardsNet.API.Data.Repositories
                 return result;
             }
             return null;
+        }
+
+        public async Task AddCardDesignFieldsToColumnPresetAsync(string designJson, Guid businessId)
+        {
+            var business = await GetByIdAsync(businessId);
+            var columnPreset = JsonSerializer.Deserialize<ColumnPreset>(business.ColumnPresetJson) ?? new ColumnPreset();
+            var design = JsonSerializer.Deserialize<CardDesign>(designJson);
+
+            if (design != null)
+            {
+                foreach (var field in design.CardFields)
+                {
+                    if (!columnPreset.VisibleColumns.Contains(field.FieldName) && !columnPreset.HiddenColumns.Contains(field.FieldName))
+                    {
+                        columnPreset.HiddenColumns.Add(field.FieldName);
+                    }
+                }
+            }
+
+            business.ColumnPresetJson = JsonSerializer.Serialize(columnPreset);
+            await UpdateAsync(business);
         }
 
         public async Task RemoveAsync(Guid id)

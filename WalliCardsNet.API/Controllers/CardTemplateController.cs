@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary.Business;
 using WalliCardsNet.ClassLibrary.Card;
 using WalliCardsNet.ClassLibrary.Customer;
 
@@ -78,6 +80,7 @@ namespace WalliCardsNet.API.Controllers
                     DesignJson = cardRequestDTO.DesignJson
                 };
                 await _cardTemplateRepo.AddAsync(cardTemplate);
+                await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(cardTemplate.DesignJson, business.Id);
                 return Created($"api/CardTemplate/{cardTemplate.Id}", cardTemplate);
             }
             catch (Exception ex)

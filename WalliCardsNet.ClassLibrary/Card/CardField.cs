@@ -1,4 +1,4 @@
-﻿namespace WalliCardsNet.Client.Models
+﻿namespace WalliCardsNet.ClassLibrary.Card
 {
     public class CardField
     {

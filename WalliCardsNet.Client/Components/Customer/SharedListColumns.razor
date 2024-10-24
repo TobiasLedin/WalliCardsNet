@@ -1,0 +1,105 @@
+﻿@using BlazorBootstrap
+
+@if (ColumnPreset != null)
+{
+    @if (IsCollapsed)
+    {
+        <Icon Name="IconName.Gear" Size="IconSize.x2" @onclick="ToggleEditMenu" />
+    }
+    else
+    {
+        <Icon Name="IconName.GearFill" Size="IconSize.x2" @onclick="ToggleEditMenu" />
+        <div class="row">
+            <div class="col">
+                <h4>Visible Columns</h4>
+                <div class="draggable">
+                    <SortableList TItem="string"
+                                  Group="Columns"
+                                  Name="Visible"
+                                  Data="ColumnPreset.VisibleColumns"
+                                  Context="item"
+                                  OnUpdate="OnVisibleColumnListUpdate"
+                                  OnRemove="OnVisibleColumnListRemove">
+                        <ItemTemplate>
+                            @item
+                        </ItemTemplate>
+                    </SortableList>
+                </div>
+            </div>
+            <div class="col">
+                <h4>Hidden Columns</h4>
+                <div class="draggable">
+                    <SortableList TItem="string"
+                                  Group="Columns"
+                                  Name="Hidden"
+                                  Data="ColumnPreset.HiddenColumns"
+                                  Context="item"
+                                  OnUpdate="OnHiddenColumnListUpdate"
+                                  OnRemove="OnHiddenColumnListRemove">
+                        <ItemTemplate>
+                            @item
+                        </ItemTemplate>
+                    </SortableList>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public ColumnPreset ColumnPreset { get; set; }
+
+    [Parameter]
+    public EventCallback<ColumnPreset> OnColumnsUpdated { get; set; }
+
+
+    public bool IsCollapsed { get; set; } = true;
+
+    private async Task OnVisibleColumnListUpdate(SortableListEventArgs args)
+    {
+        var itemToMove = ColumnPreset.VisibleColumns[args.OldIndex];
+        ColumnPreset.VisibleColumns.RemoveAt(args.OldIndex);
+        if (args.NewIndex < ColumnPreset.VisibleColumns.Count)
+            ColumnPreset.VisibleColumns.Insert(args.NewIndex, itemToMove);
+        else
+            ColumnPreset.VisibleColumns.Add(itemToMove);
+
+        await OnColumnsUpdated.InvokeAsync(ColumnPreset);
+    }
+
+    private async Task OnHiddenColumnListUpdate(SortableListEventArgs args)
+    {
+        var itemToMove = ColumnPreset.HiddenColumns[args.OldIndex];
+        ColumnPreset.HiddenColumns.RemoveAt(args.OldIndex);
+        if (args.NewIndex < ColumnPreset.HiddenColumns.Count)
+            ColumnPreset.HiddenColumns.Insert(args.NewIndex, itemToMove);
+        else
+            ColumnPreset.HiddenColumns.Add(itemToMove);
+
+        await OnColumnsUpdated.InvokeAsync(ColumnPreset);
+    }
+
+    private async Task OnVisibleColumnListRemove(SortableListEventArgs args)
+    {
+        var item = ColumnPreset.VisibleColumns[args.OldIndex];
+        ColumnPreset.HiddenColumns.Insert(args.NewIndex, item);
+        ColumnPreset.VisibleColumns.RemoveAt(args.OldIndex);
+
+        await OnColumnsUpdated.InvokeAsync(ColumnPreset);
+    }
+
+    private async Task OnHiddenColumnListRemove(SortableListEventArgs args)
+    {
+        var item = ColumnPreset.HiddenColumns[args.OldIndex];
+        ColumnPreset.VisibleColumns.Insert(args.NewIndex, item);
+        ColumnPreset.HiddenColumns.RemoveAt(args.OldIndex);
+
+        await OnColumnsUpdated.InvokeAsync(ColumnPreset);
+    }
+
+    private void ToggleEditMenu()
+    {
+        IsCollapsed = !IsCollapsed;
+    }
+}
