@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
@@ -17,23 +19,23 @@ namespace WalliCardsNet.API.Services
 
     // Author: Tobias
     // Service to manage all login/authentication and account creation related tasks.
-    public class APIAuthService : IAuthService
+    public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IBusiness _businessRepository;
         private readonly IGoogleService _googleService;
-        private readonly IConfiguration _config;
+        private readonly ITokenService _tokenService;
 
-        public APIAuthService(
+        public AuthService(
             UserManager<ApplicationUser> userManager,
             IBusiness businessRepository,
             IGoogleService googleService,
-            IConfiguration config)
+            ITokenService tokenService)
         {
             _userManager = userManager;
             _businessRepository = businessRepository;
             _googleService = googleService;
-            _config = config;
+            _tokenService = tokenService;
         }
 
         // Create new ApplicationUser account.
@@ -86,112 +88,68 @@ namespace WalliCardsNet.API.Services
 
         // Client login method.
         // Checks if user account exists, whether the account has been locked out and verifies the password.
-        public async Task<LoginResponseDTO> LoginAsync(string email, string password)
+        public async Task<AuthResult> AuthenticateUserAsync(string email, string password)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-
-            if (user != null)
+            try
             {
-                var lockoutActive = await _userManager.IsLockedOutAsync(user);
+                var user = await _userManager.FindByEmailAsync(email);
 
-                if (lockoutActive)
+                if (user != null)
                 {
-                    var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+                    var lockoutActive = await _userManager.IsLockedOutAsync(user);
 
-                    return new LoginResponseDTO(false, null, $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}");
+                    if (lockoutActive)
+                    {
+                        var lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+
+                        return new AuthResult { Success = false, Details = $"Maximum allowed login attempts exceeded. Lockout enabled until {lockoutEnd:g}" };
+                    }
+
+                    var passwordIsValid = await _userManager.CheckPasswordAsync(user, password);
+
+                    if (passwordIsValid)
+                    {
+                        var business = await _businessRepository.GetByIdAsync(user.BusinessId);
+
+                        return new AuthResult { Success = true, User = user, Business = business, Details = "Login successful!" };
+                    }
+
+                    await _userManager.AccessFailedAsync(user);
                 }
 
-                var passwordIsValid = await _userManager.CheckPasswordAsync(user, password);
-
-                if (passwordIsValid)
-                {
-                    var token = await GenerateTokenAsync(user);
-
-                    return new LoginResponseDTO(true, token, null);
-                }
-
-                await _userManager.AccessFailedAsync(user);
+                return new AuthResult { Success = false, Details = "Email/Password incorrect" };
+            }
+            catch (Exception ex)
+            {
+                return new AuthResult { Success = false, Details = ex.Message };
             }
 
-            return new LoginResponseDTO(false, null, "Email/Password incorrect");
         }
 
-        public async Task<LoginResponseDTO> LoginWithGoogleAsync(string code)
+        public async Task<AuthResult> LoginWithGoogleAsync(string code)
         {
             var tokenData = await _googleService.ExchangeCodeForTokensAsync(code, "https://localhost:7102/auth/google/login/");
             var idToken = tokenData["id_token"]?.ToString();
             if (idToken == null)
             {
-                return new LoginResponseDTO(false, null, "Failed to retrieve ID token from Google.");
+                return new AuthResult { Success = false, Details = "Failed to retrieve ID token from Google." };
             }
             var (googleUserId, googleEmail) = _googleService.DecodeIdToken(idToken);
 
             var user = await _userManager.FindByEmailAsync(googleEmail);
             if (user == null)
             {
-                return new LoginResponseDTO(false, null, "No user found with this Google email.");
+                return new AuthResult { Success = false, Details = "No user found with this Google email." };
             }
 
-            var token = await GenerateTokenAsync(user);
-            return new LoginResponseDTO(true, token, null);
-        }
-
-        //TODO: Extract to separate helper classes?
-        #region Support methods
-
-        // JWT generator
-        private async Task<string> GenerateTokenAsync(ApplicationUser user)
-        {
-            var privateKey = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT-PRIVATE-KEY")
-                                ?? throw new ArgumentNullException("JWT-PRIVATE-KEY is not set"));
-
-            var jwtIssuer = _config["JwtSettings:Issuer"];
-            var jwtAudience = _config["JwtSettings:Audience"];
-            var jwtExpire = _config.GetValue<double>("JwtSettings:ExpireMinutes");
-            var jwtCredentials = new SigningCredentials(new SymmetricSecurityKey(privateKey), SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: jwtIssuer,
-                audience: jwtAudience,
-                claims: await GenerateClaimsAsync(user),
-                expires: DateTime.UtcNow.AddMinutes(jwtExpire),
-                signingCredentials: jwtCredentials
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        // ClaimsIdentity generator
-        private async Task<List<Claim>> GenerateClaimsAsync(ApplicationUser user)
-        {
             var business = await _businessRepository.GetByIdAsync(user.BusinessId);
-            var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-                new Claim("security-stamp", user.SecurityStamp!),
-                new Claim("business-id", user.BusinessId.ToString()!),
-                new Claim("business-token", business.UrlToken )
-            };
 
-            var logins = await _userManager.GetLoginsAsync(user);
-            var googleLogin = logins.FirstOrDefault(login => login.LoginProvider == "Google");
-            if (googleLogin != null)
-            {
-                claims.Add(new Claim("google-id", googleLogin.ProviderKey));
-            }
+            var claims =  await _tokenService.GenerateClaimsAsync(user, business);
+            var accessToken = _tokenService.GenerateAccessToken(claims);
+            var refreshToken = await _tokenService.GenerateRefreshTokenAsync(Guid.Parse(user.Id));
 
-            var roles = await _userManager.GetRolesAsync(user);
-
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            return claims;
+            return new AuthResult { Success = true, AccessToken = accessToken, RefreshToken = refreshToken, Details = "Login successful!" };
         }
-        #endregion
 
         #region Validators
 

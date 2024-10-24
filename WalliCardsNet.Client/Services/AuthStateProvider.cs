@@ -18,7 +18,7 @@ namespace WalliCardsNet.Client.Services
         {
             var anonymousUser = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
 
-            var accessToken = await _localStorage.GetItemAsync<string>("access-token");
+            var accessToken = await _localStorage.GetItemAsync<string>("accessToken");
             if (string.IsNullOrEmpty(accessToken))
             {
                 return anonymousUser;
@@ -34,7 +34,7 @@ namespace WalliCardsNet.Client.Services
             catch (Exception)
             {
                 Console.WriteLine("Not able to read JWT");
-                await _localStorage.RemoveItemAsync("access-token");
+                await _localStorage.RemoveItemAsync("accessToken");
 
                 return anonymousUser;
             }
@@ -54,7 +54,7 @@ namespace WalliCardsNet.Client.Services
 
         public async Task LogoutAsync()
         {
-            await _localStorage.RemoveItemAsync("access-token");
+            await _localStorage.RemoveItemAsync("accessToken");
 
             var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
 

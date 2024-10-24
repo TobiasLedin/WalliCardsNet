@@ -15,6 +15,7 @@ using WalliCardsNet.API.Data.Seeders;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.API.Constants;
 using Stripe;
 using System.Threading.Channels;
 
@@ -53,9 +54,12 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<ICardTemplate, CardTemplateRepository>();
             builder.Services.AddTransient<ICustomer, CustomerRepository>();
             builder.Services.AddTransient<IDevice, DeviceRepository>();
-            builder.Services.AddTransient<IFormData, FormDataRepository>();
+            builder.Services.AddTransient<IRefreshToken, RefreshTokenRepository>();
             builder.Services.AddTransient<IActivationToken, ActivationTokenRepository>();
             builder.Services.AddTransient<IApplicationUser, ApplicationUserRepository>();
+
+            // Token service
+            builder.Services.AddTransient<ITokenService, Services.TokenService>();
 
             //Custom Google Service
             builder.Services.AddTransient<IGoogleService, GoogleService>();
@@ -63,10 +67,7 @@ namespace WalliCardsNet.API
             // Mail service
             builder.Services.AddTransient<IMailService, MailService>();
 
-            // FormData service
-            builder.Services.AddTransient<FormDataService>();
-
-            // Webhook events
+            // Webhook event processing
             builder.Services.AddHostedService<EventProcessingService>();
             // In-memory storage of webhook events to manage potential idempotency issues.
             builder.Services.AddSingleton<ProcessedEventStorage>();
@@ -96,7 +97,7 @@ namespace WalliCardsNet.API
 
                 // User settings
                 options.User.RequireUniqueEmail = true;
-                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+ ";
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzåäöABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ0123456789-._@+ ";
 
                 // SignIn settings
                 options.SignIn.RequireConfirmedAccount = false;
@@ -121,10 +122,13 @@ namespace WalliCardsNet.API
                 };
             });
 
-            builder.Services.AddAuthorization();
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Roles.ManagerOrEmployee, policy => policy.RequireRole(Roles.Manager, Roles.Employee));
+            });
 
             // Custom Authentication service
-            builder.Services.AddScoped<IAuthService, APIAuthService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
 
 
             //CORS
@@ -132,9 +136,10 @@ namespace WalliCardsNet.API
             {
                 options.AddDefaultPolicy(builder =>
                 {
-                    builder.WithOrigins("https://02qgplv0-7102.euw.devtunnels.ms", "https://localhost:7102") //TODO: städa upp.
+                    builder.WithOrigins("https://localhost:7102")
                            .AllowAnyHeader()
-                           .AllowAnyMethod();
+                           .AllowAnyMethod()
+                           .AllowCredentials();
                 });
             });
 

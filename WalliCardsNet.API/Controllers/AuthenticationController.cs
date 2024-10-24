@@ -1,8 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text.Json;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary.Login;
@@ -13,13 +10,17 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
+        private readonly IConfiguration _config;
         private readonly IAuthService _authService;
+        private readonly ITokenService _tokenService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IGoogleService _googleService;
 
-        public AuthenticationController(IAuthService authService, UserManager<ApplicationUser> userManager, IGoogleService googleService)
+        public AuthenticationController(IConfiguration config, IAuthService authService, ITokenService tokenService, UserManager<ApplicationUser> userManager, IGoogleService googleService)
         {
+            _config = config;
             _authService = authService;
+            _tokenService = tokenService;
             _userManager = userManager;
             _googleService = googleService;
         }
@@ -27,17 +28,90 @@ namespace WalliCardsNet.API.Controllers
         [HttpPost]
         [Route("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Login(LoginRequestDTO login)
+        public async Task<IActionResult> LoginAsync([FromBody] LoginRequest login)
         {
-            var result = await _authService.LoginAsync(login.Email, login.Password);
-
-            if (result.Success)
+            if (!ModelState.IsValid)
             {
-                return Ok(result);
+                return BadRequest();
             }
 
-            return Unauthorized(result.Details);
+            var authResult = await _authService.AuthenticateUserAsync(login.Email, login.Password);
+
+            if (authResult.Success)
+            {
+                var claims = await _tokenService.GenerateClaimsAsync(authResult.User!, authResult.Business!);
+                var accessToken = _tokenService.GenerateAccessToken(claims);
+                var refreshToken = await _tokenService.GenerateRefreshTokenAsync(Guid.Parse(authResult.User!.Id));
+
+                if (accessToken == null || refreshToken == null)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+
+                Response.Cookies.Append("refreshToken", refreshToken, GetAuthCookieOptions());
+
+                return Ok(new LoginResponse(accessToken, authResult.Details));
+            }
+
+            return Unauthorized(new LoginResponse(null, authResult.Details));
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> LogoutUserAsync()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            if (!string.IsNullOrWhiteSpace(refreshToken))
+            {
+                await _tokenService.DeleteRefreshTokenAsync(refreshToken);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshAuthTokensAsync([FromBody] string accessToken)
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            if (!string.IsNullOrEmpty(refreshToken) && !string.IsNullOrEmpty(accessToken))
+            {
+                var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
+                var isValid = await _tokenService.RefreshTokenValidationAsync(refreshToken);
+
+                if (principal == null || !isValid)
+                {
+                    return BadRequest("Invalid token");
+                }
+
+                try // test
+                {
+                    var userIdClaim = principal.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").ToString();
+
+                    Guid userId = Guid.Parse(userIdClaim.Split(':').Last().Trim());
+
+                    var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
+                    var newRefreshToken = await _tokenService.GenerateRefreshTokenAsync(userId);
+                    await _tokenService.DeleteRefreshTokenAsync(refreshToken);
+
+                    Response.Cookies.Append("refreshToken", newRefreshToken, GetAuthCookieOptions());
+
+                    return Ok(new LoginResponse(newAccessToken, "Successfully renewed tokens"));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: {0}", ex);
+                }
+                
+
+                
+
+                
+            }
+
+            return Unauthorized(new LoginResponse(null, "Failed to renewed tokens"));
         }
 
         [HttpPost("link/google")]
@@ -73,14 +147,14 @@ namespace WalliCardsNet.API.Controllers
         {
             try
             {
-                var loginResponse = await _authService.LoginWithGoogleAsync(code);
+                var loginResult = await _authService.LoginWithGoogleAsync(code);
 
-                if (!loginResponse.Success)
+                if (!loginResult.Success)
                 {
-                    return Unauthorized(loginResponse.Details);
+                    return Unauthorized(new LoginResponse(null, loginResult.Details));
                 }
 
-                return Ok(loginResponse);
+                return Ok(new LoginResponse(loginResult.AccessToken, loginResult.Details));
             }
             catch (Exception ex)
             {
@@ -88,30 +162,19 @@ namespace WalliCardsNet.API.Controllers
             }
         }
 
-        // TEST ENDPOINT FOR CREATING USERS
-        [HttpPost]
-        [Route("register-employee")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> RegisterEmployee(string userName, string email, string password)
+        private CookieOptions GetAuthCookieOptions()
         {
-            var businessIdClaim = User.FindFirst("business-id");
-            if (businessIdClaim == null)
+            var expiry = _config.GetValue<double>("JwtSettings:RefreshTokenExpireHours");
+
+            var cookieOptions = new CookieOptions()
             {
-                return Unauthorized();
-            }
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddHours(expiry)
+            };
 
-            Guid businessId = Guid.Parse(businessIdClaim.Value);
-            var result = await _authService.CreateUserAccountAsync(businessId, Constants.Roles.Employee, userName, email);
-
-            if (result.Success)
-            {
-                return Created();
-            }
-
-            return BadRequest(result.Details);
-
+            return cookieOptions;
         }
-
     }
 }
