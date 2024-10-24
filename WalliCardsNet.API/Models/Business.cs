@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using WalliCardsNet.ClassLibrary.Business;
 
 namespace WalliCardsNet.API.Models
 {
@@ -21,13 +22,13 @@ namespace WalliCardsNet.API.Models
 
         [NotMapped]
         [JsonIgnore]
-        public string[] ColumnPreset
+        public ColumnPreset ColumnPreset
         {
-            get => JsonSerializer.Deserialize<string[]>(ColumnPresetJson) ?? Array.Empty<string>();
+            get => JsonSerializer.Deserialize<ColumnPreset>(ColumnPresetJson) ?? new ColumnPreset();
             set => ColumnPresetJson = JsonSerializer.Serialize(value);
         }
-        // EF Core storage propertyy
-        public string ColumnPresetJson { get; set; } = "[]";
+        // EF Core storage property
+        public string ColumnPresetJson { get; set; } = "{}";
 
     }
 

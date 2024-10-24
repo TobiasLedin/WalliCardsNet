@@ -18,11 +18,12 @@
 
 @if (Isloading == false && DataLoadErrorMessage == null)
 {
+    <SharedListColumns ColumnPreset="ColumnPreset" OnColumnsUpdated="UpdateColumns"></SharedListColumns>
     <button class="btn btn-primary" @onclick="ExportCustomers">Export as CSV</button>
     @* Component to customize table appearance *@
-    <EditTable Columns="TableColumns" OnColumnsUpdated="UpdateColumns" />
+@*     <EditTable Columns="TableColumns" OnColumnsUpdated="UpdateColumns" /> *@
 
-    if (TableColumns != null)
+    if (ColumnPreset != null)
     {
         @* Customer details table *@
         <QuickGrid Items="FilteredCustomers" Pagination="@pagination" Class="table">
@@ -34,7 +35,7 @@
             </TemplateColumn>
 
             @* Customer detail columns *@
-            @foreach (var column in TableColumns)
+            @foreach (var column in ColumnPreset.VisibleColumns)
             {
                 <PropertyColumn Title="@(column)"
                                 Property="@(c => c.CustomerDetails!.ContainsKey(column) ? c.CustomerDetails[column] : "-")"
@@ -56,60 +57,60 @@
         <Paginator State="@pagination" />
     }
 
-    @* Blazor Bootstrap modal start - Edit customer details *@
-    <Modal @ref="_modal" title="Customer details" IsVerticallyCentered="true">
-        <BodyTemplate>
+    @if (ColumnPreset != null)
+    {
+        @* Blazor Bootstrap modal start - Edit customer details *@
+        <Modal @ref="_modal" title="Customer details" IsVerticallyCentered="true">
+            <BodyTemplate>
 
-            <div>
-                @* List all available business columns and corresponding CustomerDetails value. *@
-                @foreach (var column in TableColumns)
-                {
-                    <label>@column</label>
-                    <InputText @bind-Value="@_editableCustomerDetails[column]" maxlength="30" />
-                    <br />
-                }
-                <br />
-
-                @* List all additional CustomerDetails stored, but not matching a business column *@
-                @if (_hasAdditionalData)
-                {
-                    <span>Additional stored data</span>
-                    <br />
-                    @foreach (var key in _editableCustomerDetails.Keys.ToList())
+                <div>
+                    @* List all available business columns and corresponding CustomerDetails value. *@
+                    @foreach (var column in ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns))
                     {
-                        if (!TableColumns.Contains(key))
+                        <label>@column</label>
+                        <InputText @bind-Value="@_editableCustomerDetails[column]" maxlength="30" />
+                        <br />
+                    }
+                    <br />
+
+                    @* List all additional CustomerDetails stored, but not matching a business column *@
+                    @if (_hasAdditionalData)
+                    {
+                        <span>Additional stored data</span>
+                        <br />
+                        @foreach (var key in _editableCustomerDetails.Keys.ToList())
                         {
-                            <label>@key</label>
-                            <InputText @bind-Value="_editableCustomerDetails[key]" maxlength="30" />
-                            <br />
+                            if (!ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns).Contains(key))
+                            {
+                                <label>@key</label>
+                                <InputText @bind-Value="_editableCustomerDetails[key]" maxlength="30" />
+                                <br />
+                            }
                         }
                     }
+                </div>
+
+            </BodyTemplate>
+            <FooterTemplate>
+                @if (DataStoreStatusMessage != null)
+                {
+                    @* Status message as returned from ApiService Put method *@
+                    <span>@DataStoreStatusMessage</span>
                 }
-            </div>
-
-        </BodyTemplate>
-        <FooterTemplate>
-            @if (DataStoreStatusMessage != null)
-            {
-                @* Status message as returned from ApiService Put method *@
-                <span>@DataStoreStatusMessage</span>
-            }
-            <button @onclick="OnHideModalClick">Close</button>
-            <button @onclick="SaveCustomerChanges">Save</button>
-        </FooterTemplate>
-    </Modal>
-    @* Blazor Bootstrap modal end *@
-
+                <button @onclick="OnHideModalClick">Close</button>
+                <button @onclick="SaveCustomerChanges">Save</button>
+            </FooterTemplate>
+        </Modal>
+        @* Blazor Bootstrap modal end *@
+    }
 }
 else
 {
     @DataLoadErrorMessage
 }
 
-
 @code {
     private BusinessResponseDTO? _business;
-    public List<string> TableColumns { get; set; }
     public bool Isloading { get; set; } = true;
     public string? DataLoadErrorMessage { get; set; }
     public string? DataStoreStatusMessage { get; set; }
@@ -126,7 +127,9 @@ else
     private CustomerDTO? _editedCustomer;
     private bool _hasAdditionalData = false;
     private Dictionary<string, string> _editableCustomerDetails = new Dictionary<string, string>();
-    //
+
+    //New ColumnPreset implementation
+    private ColumnPreset ColumnPreset { get; set; } = new ColumnPreset();
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,7 +148,7 @@ else
 
                     await GetBusinessAsync(businessId); //TODO: Flytta kontroll av BusinessID till API / BusinessController (med hjälp av access token).
                     await GetCustomersAsync();
-                    UpdateColumnFilterKeys();
+                    // UpdateColumnFilterKeys();
 
                     StateHasChanged();
                 }
@@ -168,7 +171,7 @@ else
         _editableCustomerDetails = new Dictionary<string, string>(customer.CustomerDetails);
 
         // Ensure all TableColumns are present in _editableCustomerDetails
-        foreach (var column in TableColumns)
+        foreach (var column in ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns))
         {
             if (!_editableCustomerDetails.ContainsKey(column))
             {
@@ -176,7 +179,7 @@ else
             }
         }
 
-        _hasAdditionalData = customer.CustomerDetails.Keys.Any(key => !TableColumns.Contains(key));
+        _hasAdditionalData = customer.CustomerDetails.Keys.Any(key => !ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns).Contains(key));
 
         await _modal.ShowAsync();
     }
@@ -216,22 +219,17 @@ else
 
         StateHasChanged();
     }
-    //
 
-    private async Task UpdateColumns(List<string> updatedColumns)
+    private async Task UpdateColumns(ColumnPreset updatedColumnPreset)
     {
-        var columnsArray = updatedColumns.ToArray<string>();
-
         if (_business != null)
         {
-            var businessDTO = new BusinessRequestDTO(_business.Id, null, columnsArray);
+            var businessDTO = new BusinessRequestDTO(_business.Id, null, updatedColumnPreset);
             var response = await ApiService.PutAsync<BusinessRequestDTO>("Business", businessDTO);
 
             if (response.IsSuccess)
             {
-                TableColumns = updatedColumns;
-
-                UpdateColumnFilterKeys();
+                ColumnPreset = updatedColumnPreset;
             }
             else
             {
@@ -286,7 +284,7 @@ else
         if (businessResponse.IsSuccess)
         {
             _business = businessResponse.Data;
-            TableColumns = _business.ColumnPreset.ToList<string>();
+            ColumnPreset = _business.ColumnPreset;
         }
     }
 
@@ -303,19 +301,8 @@ else
 
     private IQueryable<CustomerDTO> GetFilteredCustomers()
     {
-        return Customers.Where(c => TableColumns.All(column =>
+        return Customers.Where(c => ColumnPreset.VisibleColumns.All(column =>
             string.IsNullOrWhiteSpace(_columnFilters.GetValueOrDefault(column)) ||
             c.CustomerDetails.GetValueOrDefault(column, "").Contains(_columnFilters[column], StringComparison.OrdinalIgnoreCase) == true));
-    }
-
-    private void UpdateColumnFilterKeys()
-    {
-        foreach (var column in TableColumns)
-        {
-            if (!_columnFilters.ContainsKey(column))
-            {
-                _columnFilters.Add(column, "");
-            }
-        }
     }
 }

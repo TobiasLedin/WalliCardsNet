@@ -10,6 +10,7 @@ namespace WalliCardsNet.API.Data.Interfaces
         public Task<List<Business>> GetAllAsync();
         public Task AddAsync(Business business);
         public Task UpdateAsync(Business business);
+        public Task AddCardDesignFieldsToColumnPresetAsync(string designJson, Guid businessId);
         public Task RemoveAsync(Guid id);
         public Task<bool> BusinessWithPspIdExists(string pspId);
     }

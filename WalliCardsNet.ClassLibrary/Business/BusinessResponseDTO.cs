@@ -7,6 +7,6 @@ using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.ClassLibrary.Business
 {
-    public record BusinessResponseDTO(Guid Id, string UrlToken, string Name, string[] ColumnPreset);
+    public record BusinessResponseDTO(Guid Id, string UrlToken, string Name, ColumnPreset ColumnPreset);
     
 }
