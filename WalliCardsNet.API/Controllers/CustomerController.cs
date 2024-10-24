@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
-using WalliCardsNet.ClassLibrary;
+using WalliCardsNet.API.Constants;
 using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.API.Controllers
@@ -23,7 +23,8 @@ namespace WalliCardsNet.API.Controllers
 
         
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
+        [Authorize(Policy = Roles.ManagerOrEmployee)]
+        public async Task<IActionResult> GetAllByBusinessAsync()
         {
             var businessIdClaim = User.FindFirst("business-id");
             if (businessIdClaim == null)
