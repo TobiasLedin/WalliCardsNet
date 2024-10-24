@@ -7,7 +7,6 @@ using WalliCardsNet.API.Models;
 namespace WalliCardsNet.API.Data
 {
     // EF setup to use int Id's for ApplicationUser and IdentityRole
-
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
@@ -20,11 +19,10 @@ namespace WalliCardsNet.API.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<CardTemplate> CardTemplates { get; set; }
         public DbSet<Device> Devices { get; set; }
-        public DbSet<FormData> FormData { get; set; }
         public DbSet<ActivationToken> ActivationTokens { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         // DB context configuration
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
@@ -32,7 +30,6 @@ namespace WalliCardsNet.API.Data
         }
 
         // DB Model configuration
-
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
