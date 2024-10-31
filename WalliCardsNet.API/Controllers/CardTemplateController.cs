@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.CodeDom;
 using System.Text.Json;
+using WalliCardsNet.API.Constants;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary.Business;
 using WalliCardsNet.ClassLibrary.Card;
 using WalliCardsNet.ClassLibrary.Customer;
@@ -14,10 +18,13 @@ namespace WalliCardsNet.API.Controllers
     {
         private readonly ICardTemplate _cardTemplateRepo;
         private readonly IBusiness _businessRepo;
-        public CardTemplateController(ICardTemplate cardTemplateRepo, IBusiness businessRepo)
+        private readonly IGoogleService _googleService;
+
+        public CardTemplateController(ICardTemplate cardTemplateRepo, IBusiness businessRepo, IGoogleService googleService)
         {
             _cardTemplateRepo = cardTemplateRepo;
             _businessRepo = businessRepo;
+            _googleService = googleService;
         }
 
         [HttpGet]
@@ -68,20 +75,44 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = Roles.ManagerOrEmployee)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> AddAsync(CardRequestDTO cardRequestDTO)
         {
+            //try
+            //{
+            //    var business = await _businessRepo.GetByTokenAsync(cardRequestDTO.BusinessToken);
+            //    var cardTemplate = new CardTemplate
+            //    {
+            //        Business = business,
+            //        DesignJson = cardRequestDTO.DesignJson
+            //    };
+            //    await _cardTemplateRepo.AddAsync(cardTemplate);
+            //    await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(cardTemplate.DesignJson, business.Id);
+            //    return Created($"api/CardTemplate/{cardTemplate.Id}", cardTemplate);
+            //}
+
+            //
+            // Test av Google Service calls
+            //
+            var businessIdClaim = User.FindFirst("business-id");
+            if (businessIdClaim == null)
+            {
+                return Unauthorized();
+            };
+
+            var businessId = businessIdClaim.Value;
+
             try
             {
-                var business = await _businessRepo.GetByTokenAsync(cardRequestDTO.BusinessToken);
-                var cardTemplate = new CardTemplate
-                {
-                    Business = business,
-                    DesignJson = cardRequestDTO.DesignJson
-                };
-                await _cardTemplateRepo.AddAsync(cardTemplate);
-                await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(cardTemplate.DesignJson, business.Id);
-                return Created($"api/CardTemplate/{cardTemplate.Id}", cardTemplate);
+                // Create GenericClass
+               var classId = await _googleService.CreateGenericClassAsync(businessId);
+
+                // Create GenericObject
+                var objectId = await _googleService.CreateGenericObjectAsync(businessId, Guid.NewGuid().ToString());
+
+
+                return Ok(cardRequestDTO); //TODO: Ändra retur => Created(object-ref, object)
             }
             catch (Exception ex)
             {
