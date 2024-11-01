@@ -8,7 +8,6 @@ namespace WalliCardsNet.API.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid BusinessId { get; set; }
-        public Business Business { get; set; }
         public List<Device> Devices { get; set; } = [];
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
 
