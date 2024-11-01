@@ -82,9 +82,6 @@ namespace WalliCardsNet.API.Controllers
                 await _cardTemplateRepo.AddAsync(cardTemplate);
                 await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(cardTemplate.DesignJson, business.Id);
 
-                var demoGeneric = new DemoGeneric();
-                demoGeneric.CreateClass($"{Environment.GetEnvironmentVariable("GOOGLE-ISSUER-ID")}", $"{cardTemplate.Id}");
-
                 return Created($"api/CardTemplate/{cardTemplate.Id}", cardTemplate);
             }
             catch (Exception ex)
