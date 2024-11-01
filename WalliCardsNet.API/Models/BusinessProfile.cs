@@ -12,9 +12,7 @@ namespace WalliCardsNet.API.Models
 
         public required string HexBackgroundColor { get; set; }
         public required string ImageUri { get; set; }
-        public required string Css { get; set; }
-
-        public List<(bool, string)> CollectionFormFields { get; set; } = []; // bool = Mandatory (true/false), string = Field description
+        public string DesignJson { get; set; } = "{}";
 
         [Required]
         public GooglePassTemplate? GoogleTemplate { get; set; }
