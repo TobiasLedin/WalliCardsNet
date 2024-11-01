@@ -16,9 +16,10 @@ namespace WalliCardsNet.API.Models
         public string SubscriptionType { get; set; } = "";
         public DateTime? SubscriptionEndDate { get; set; }
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
-        public List<CardTemplate> CardTemplates { get; set; } = [];
+        public List<BusinessProfile> Profiles { get; set; } = [];
+        public List<CardTemplate> CardTemplates { get; set; } = []; //TODO: Obsolete
         public List<Customer> Customers { get; set; } = [];
-        public List<ApplicationUser> ApplicationUsers { get; set; } = []; // Managers and Employees with access to client application.
+        public List<ApplicationUser> ApplicationUsers { get; set; } = [];
 
         [NotMapped]
         [JsonIgnore]
