@@ -105,14 +105,15 @@ namespace WalliCardsNet.API.Controllers
 
             try
             {
-                // Create GenericClass
-               var classId = await _googleService.CreateGenericClassAsync(businessId);
-
-                // Create GenericObject
-                var objectId = await _googleService.CreateGenericObjectAsync(businessId, Guid.NewGuid().ToString());
-
-
-                return Ok(cardRequestDTO); //TODO: Ändra retur => Created(object-ref, object)
+                var business = await _businessRepo.GetByTokenAsync(cardRequestDTO.BusinessToken);
+                var cardTemplate = new CardTemplate
+                {
+                    Business = business,
+                    DesignJson = cardRequestDTO.DesignJson
+                };
+                await _cardTemplateRepo.AddAsync(cardTemplate);
+                await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(cardTemplate.DesignJson, business.Id);
+                return Created($"api/CardTemplate/{cardTemplate.Id}", cardTemplate);
             }
             catch (Exception ex)
             {
