@@ -16,11 +16,13 @@ namespace WalliCardsNet.API.Data
 
         // DB sets
         public DbSet<Business> Businesses { get; set; }
+        public DbSet<BusinessProfile> Profiles { get; set; }
         public DbSet<Customer> Customers { get; set; }
-        public DbSet<CardTemplate> CardTemplates { get; set; }
+        public DbSet<CardTemplate> CardTemplates { get; set; } //TODO: Obsolete
         public DbSet<Device> Devices { get; set; }
         public DbSet<ActivationToken> ActivationTokens { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<GooglePassTemplate> GooglePassTemplates { get; set; }
 
         // DB context configuration
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
