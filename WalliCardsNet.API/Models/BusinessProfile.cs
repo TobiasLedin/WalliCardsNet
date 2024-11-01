@@ -13,6 +13,7 @@ namespace WalliCardsNet.API.Models
         public required string HexBackgroundColor { get; set; }
         public required string ImageUri { get; set; }
         public string DesignJson { get; set; } = "{}";
+        public bool IsActive { get; set; }
 
         [Required]
         public GooglePassTemplate? GoogleTemplate { get; set; }
