@@ -3,8 +3,8 @@
     public class Device
     {
         public Guid Id { get; set; }
-        public required Customer Customer { get; set; }
-        public DeviceType Type { get; set; }
+        public required Guid CustomerId { get; set; }
+        public required DeviceType Type { get; set; }
     }
 
     public enum DeviceType
