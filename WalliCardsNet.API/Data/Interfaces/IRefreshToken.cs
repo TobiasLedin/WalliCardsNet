@@ -1,6 +1,6 @@
 ﻿using WalliCardsNet.API.Models;
 
-namespace WalliCardsNet.API.Data.Repositories
+namespace WalliCardsNet.API.Data.Interfaces
 {
     public interface IRefreshToken
     {
