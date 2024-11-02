@@ -41,7 +41,7 @@ namespace WalliCardsNet.API.Data.Seeders
                         Email = "kalle.kula@mail.com",
                         NormalizedEmail = "KALLE.KULA@MAIL.COM",
                         EmailConfirmed = true,
-                        Business = business
+                        BusinessId = business.Id,
                     };
 
                     await userManager.CreateAsync(user, "Asdf1234!");

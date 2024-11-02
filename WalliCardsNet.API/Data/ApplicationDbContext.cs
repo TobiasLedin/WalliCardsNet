@@ -62,7 +62,13 @@ namespace WalliCardsNet.API.Data
             builder.Entity<Customer>()
                 .HasOne<Business>()
                 .WithMany(b => b.Customers)
-                .HasForeignKey(bp => bp.BusinessId)
+                .HasForeignKey(b => b.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ApplicationUser>()
+                .HasOne<Business>()
+                .WithMany(b => b.ApplicationUsers)
+                .HasForeignKey(au => au.BusinessId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

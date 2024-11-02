@@ -43,43 +43,37 @@ namespace WalliCardsNet.API.Services
         {
             if (role != null && userName != null && email != null)
             {
-                var business = await _businessRepository.GetByIdAsync(businessId);
-
-                if (business != null)
+                var user = new ApplicationUser
                 {
-                    var user = new ApplicationUser
-                    {
-                        Business = business,
-                        BusinessId = businessId,
-                        UserName = userName,
-                        NormalizedUserName = userName.ToUpper(),
-                        Email = email,
-                        NormalizedEmail = email!.ToUpper()
-                    };
+                    BusinessId = businessId,
+                    UserName = userName,
+                    NormalizedUserName = userName.ToUpper(),
+                    Email = email,
+                    NormalizedEmail = email!.ToUpper()
+                };
 
-                    var userNameValidation = await ValidateUserNameAsync(user);
+                var userNameValidation = await ValidateUserNameAsync(user);
 
-                    if (!userNameValidation.Succeeded)
+                if (!userNameValidation.Succeeded)
+                {
+                    return new RegisterResponseDTO(false, "Username validation failed", null);
+                }
+
+                try
+                {
+                    var createUserResult = await _userManager.CreateAsync(user);
+
+                    if (createUserResult.Succeeded)
                     {
-                        return new RegisterResponseDTO(false, "Username validation failed", null);
+                        await _userManager.SetEmailAsync(user, email);
+                        await _userManager.AddToRoleAsync(user, role);
+
+                        return new RegisterResponseDTO(true, null, user.Id);
                     }
-
-                    try
-                    {
-                        var createUserResult = await _userManager.CreateAsync(user);
-
-                        if (createUserResult.Succeeded)
-                        {
-                            await _userManager.SetEmailAsync(user, email);
-                            await _userManager.AddToRoleAsync(user, role);
-
-                            return new RegisterResponseDTO(true, null, user.Id);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        return new RegisterResponseDTO(false, "Failed to create and assign user properties", null);
-                    }
+                }
+                catch (Exception)
+                {
+                    return new RegisterResponseDTO(false, "Failed to create and assign user properties", null);
                 }
             }
 
@@ -123,7 +117,6 @@ namespace WalliCardsNet.API.Services
             {
                 return new AuthResult { Success = false, Details = ex.Message };
             }
-
         }
 
         public async Task<AuthResult> LoginWithGoogleAsync(string code)
@@ -144,7 +137,7 @@ namespace WalliCardsNet.API.Services
 
             var business = await _businessRepository.GetByIdAsync(user.BusinessId);
 
-            var claims =  await _tokenService.GenerateClaimsAsync(user, business);
+            var claims = await _tokenService.GenerateClaimsAsync(user, business);
             var accessToken = _tokenService.GenerateAccessToken(claims);
             var refreshToken = await _tokenService.GenerateRefreshTokenAsync(Guid.Parse(user.Id));
 
