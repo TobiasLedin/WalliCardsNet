@@ -52,7 +52,7 @@
         }
     }
 
-    public async Task SetCurrentView(string newView)
+    public void SetCurrentView(string newView)
     {
         CurrentView = newView;
         StateHasChanged();
@@ -60,6 +60,14 @@
 
     public async Task Create()
     {
+        if (BusinessProfile.GooglePassTemplate == null)
+        {
+            BusinessProfile.GooglePassTemplate = new GooglePassTemplateRequestDTO();
+        }
+        if (BusinessProfile.JoinFormTemplate == null)
+        {
+            BusinessProfile.JoinFormTemplate = new JoinFormTemplateRequestDTO();
+        }
         var response = await WalliCardsApiService.PostAsync<BusinessProfileRequestDTO>("businessprofile/create", BusinessProfile);
     }
 }

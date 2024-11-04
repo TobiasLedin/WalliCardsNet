@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WalliCardsNet.ClassLibrary.BusinessProfile
 {
-    public class JoinFormRequestDTO
+    public class JoinFormTemplateRequestDTO
     {
         public string FieldsJson { get; set; } = "{}";
         public string CSSOptionsJson { get; set; } = "{}";

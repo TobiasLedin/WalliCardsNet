@@ -9,6 +9,6 @@ namespace WalliCardsNet.ClassLibrary.BusinessProfile
     public class BusinessProfileRequestDTO
     {
         public GooglePassTemplateRequestDTO GooglePassTemplate { get; set; } = new GooglePassTemplateRequestDTO();
-        public JoinFormRequestDTO JoinFormTemplate { get; set; }
+        public JoinFormTemplateRequestDTO JoinFormTemplate { get; set; }
     }
 }
