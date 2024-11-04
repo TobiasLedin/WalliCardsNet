@@ -11,6 +11,7 @@ namespace WalliCardsNet.ClassLibrary.BusinessProfile
         public string LogoUrl { get; set; } = "";
         public string HeroImage { get; set; } = "";
         public string HexBackgroundColor { get; set; } = "#060000";
+        public List<List<string>> Fields { get; set; } = new List<List<string>>();
         public GooglePassTemplateRequestDTO GooglePassTemplate { get; set; } = new GooglePassTemplateRequestDTO();
     }
 }

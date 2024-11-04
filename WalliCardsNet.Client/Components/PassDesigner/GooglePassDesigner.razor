@@ -66,7 +66,6 @@
                 {
                     <button class="btn btn-primary" @onclick="AddRow">Add row</button>
                 }
-
                 @foreach (var row in fields.Rows)
                 {
                     <div>
@@ -75,15 +74,20 @@
                         {
                             <button class="btn btn-primary" @onclick="() => AddField(row)">Add field</button>
                         }
-
                         <div>
                             @foreach (var field in row.Fields)
                             {
-                                <InputText @bind-Value="field.Header" placeholder="Header value" />
+                                <InputText @bind-Value="field.Header" @onblur="ConvertToListOfLists" placeholder="Header value" />
                             }
                         </div>
                     </div>
                 }
+                @if (!AreFieldsEqual())
+                {
+                    <p>Fields contain unsaved changes.</p>
+                    <button @onclick="ConvertToListOfLists">Save</button>
+                }
+
             </div>
         </div>
        
@@ -145,7 +149,12 @@
 
     public string Message { get; set; } = "";
 
-    private Fields fields = new Fields();
+    private Fields fields { get; set; } = new Fields();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ConvertToLocalStructure();
+    }
 
     private void AddRow()
     {
@@ -176,5 +185,61 @@
     private class Field
     {
         public string Header { get; set; } = string.Empty;
+    }
+
+    private void ConvertToListOfLists()
+    {
+        BusinessProfile.Fields = fields.Rows
+            .Select(row => row.Fields.Select(field => field.Header).ToList())
+            .ToList();
+    }
+
+    private void ConvertToLocalStructure()
+    {
+        fields.Rows = new List<Row>();
+        foreach (var rowList in BusinessProfile.Fields)
+        {
+            var row = new Row(); 
+            foreach (var header in rowList)
+            {
+                var field = new Field { Header = header };
+                row.Fields.Add(field); 
+            }
+            fields.Rows.Add(row);
+        }
+    }
+
+    private bool AreFieldsEqual()
+    {
+        // First, check if the outer collections have the same number of rows
+        if (fields.Rows.Count != BusinessProfile.Fields.Count)
+        {
+            return false; // Different number of rows
+        }
+
+        // Now, check each row
+        for (int i = 0; i < fields.Rows.Count; i++)
+        {
+            var row = fields.Rows[i];
+            var businessProfileRow = BusinessProfile.Fields[i];
+
+            // Check if the number of fields matches
+            if (row.Fields.Count != businessProfileRow.Count)
+            {
+                return false; // Different number of fields in this row
+            }
+
+            // Check each field's header
+            for (int j = 0; j < row.Fields.Count; j++)
+            {
+                if (row.Fields[j].Header != businessProfileRow[j])
+                {
+                    return false; // Fields do not match
+                }
+            }
+        }
+
+        // All checks passed, the structures are equal
+        return true;
     }
 }
