@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using System.Reflection.Emit;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data
@@ -11,7 +12,7 @@ namespace WalliCardsNet.API.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-            
+
         }
 
         // DB sets
@@ -60,6 +61,18 @@ namespace WalliCardsNet.API.Data
             builder.Entity<Business>()
                 .Property(p => p.SubscriptionStatus)
                 .HasConversion<string>();
+
+            builder.Entity<BusinessProfile>()
+                .HasOne<Business>()
+                .WithMany(b => b.Profiles)
+                .HasForeignKey(bp => bp.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<BusinessProfile>()
+                .HasOne(bp => bp.GoogleTemplate)
+                .WithOne()
+                .HasForeignKey<GooglePassTemplate>(gpt => gpt.BusinessProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }
