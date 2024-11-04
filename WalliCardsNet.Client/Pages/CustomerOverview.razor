@@ -65,7 +65,7 @@
 
                 <div>
                     @* List all available business columns and corresponding CustomerDetails value. *@
-                    @foreach (var column in ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns))
+                    @foreach (var column in ColumnPreset.VisibleColumns)
                     {
                         <label>@column</label>
                         <InputText @bind-Value="@_editableCustomerDetails[column]" maxlength="30" />
@@ -80,10 +80,12 @@
                         <br />
                         @foreach (var key in _editableCustomerDetails.Keys.ToList())
                         {
-                            if (!ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns).Contains(key))
+                            @* if (!ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns).Contains(key)) *@
+                            if (!ColumnPreset.VisibleColumns.Contains(key))
                             {
                                 <label>@key</label>
                                 <InputText @bind-Value="_editableCustomerDetails[key]" maxlength="30" />
+                                <Icon Name="IconName.Trash" @onclick="() => DeleteCustomerDetail(key)" />
                                 <br />
                             }
                         }
@@ -171,7 +173,7 @@ else
         _editableCustomerDetails = new Dictionary<string, string>(customer.CustomerDetails);
 
         // Ensure all TableColumns are present in _editableCustomerDetails
-        foreach (var column in ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns))
+        foreach (var column in ColumnPreset.VisibleColumns)
         {
             if (!_editableCustomerDetails.ContainsKey(column))
             {
@@ -179,7 +181,7 @@ else
             }
         }
 
-        _hasAdditionalData = customer.CustomerDetails.Keys.Any(key => !ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns).Contains(key));
+        _hasAdditionalData = customer.CustomerDetails.Keys.Any(key => !ColumnPreset.VisibleColumns.Contains(key));
 
         await _modal.ShowAsync();
     }
@@ -195,20 +197,20 @@ else
     private async void SaveCustomerChanges()
     {
         // Look for keys with no stored value and delete these before saving the updated CustomerDetails dictionary.
-        var kvpToRemove = new List<string>();
+        // var kvpToRemove = new List<string>();
 
-        foreach (var kvp in _editableCustomerDetails)
-        {
-            if (string.IsNullOrWhiteSpace(kvp.Value))
-            {
-                kvpToRemove.Add(kvp.Key);
-            }
-        }
+        // foreach (var kvp in _editableCustomerDetails)
+        // {
+        //     if (string.IsNullOrWhiteSpace(kvp.Value))
+        //     {
+        //         kvpToRemove.Add(kvp.Key);
+        //     }
+        // }
 
-        foreach (var key in kvpToRemove)
-        {
-            _editableCustomerDetails.Remove(key);
-        }
+        // foreach (var key in kvpToRemove)
+        // {
+        //     _editableCustomerDetails.Remove(key);
+        // }
 
         _editedCustomer = _selectedCustomer with { CustomerDetails = new Dictionary<string, string>(_editableCustomerDetails) };
 
@@ -218,6 +220,13 @@ else
         await GetCustomersAsync();
 
         StateHasChanged();
+    }
+
+    private void DeleteCustomerDetail(string key)
+    {
+        _editableCustomerDetails.Remove(key);
+
+        _hasAdditionalData = _editableCustomerDetails.Keys.ToList().Except(ColumnPreset.VisibleColumns).Any();
     }
 
     private async Task UpdateColumns(ColumnPreset updatedColumnPreset)

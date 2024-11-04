@@ -59,6 +59,23 @@ namespace WalliCardsNet.API.Data
                 .Property(p => p.SubscriptionStatus)
                 .HasConversion<string>();
 
+            builder.Entity<Customer>()
+                .HasOne<Business>()
+                .WithMany(b => b.Customers)
+                .HasForeignKey(b => b.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ApplicationUser>()
+                .HasOne<Business>()
+                .WithMany(b => b.ApplicationUsers)
+                .HasForeignKey(au => au.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Device>()
+                .HasOne<Customer>()
+                .WithMany(b => b.Devices)
+                .HasForeignKey(au => au.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
