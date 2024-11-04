@@ -10,5 +10,9 @@
         public required string ObjectId { get; set; }
 
         // Addition required props...
+        public required string HexBackgroundColor { get; set; }
+        public required string LogoUri { get; set; }
+        public required string HeroImageUri { get; set; }
+        public required string FieldsJson { get; set; }
     }
 }

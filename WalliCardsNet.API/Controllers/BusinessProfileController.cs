@@ -7,20 +7,21 @@ using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary.Business;
+using WalliCardsNet.ClassLibrary.BusinessProfile;
 using WalliCardsNet.ClassLibrary.Card;
 using WalliCardsNet.ClassLibrary.Customer;
 
 namespace WalliCardsNet.API.Controllers
 {
-    [Route("api/cardtemplate")]
+    [Route("api/businessprofile")]
     [ApiController]
-    public class CardTemplateController : ControllerBase
+    public class BusinessProfileController : ControllerBase
     {
         private readonly ICardTemplate _cardTemplateRepo;
         private readonly IBusiness _businessRepo;
         private readonly IGoogleService _googleService;
 
-        public CardTemplateController(ICardTemplate cardTemplateRepo, IBusiness businessRepo, IGoogleService googleService)
+        public BusinessProfileController(ICardTemplate cardTemplateRepo, IBusiness businessRepo, IGoogleService googleService)
         {
             _cardTemplateRepo = cardTemplateRepo;
             _businessRepo = businessRepo;
@@ -113,12 +114,22 @@ namespace WalliCardsNet.API.Controllers
                 };
                 await _cardTemplateRepo.AddAsync(cardTemplate);
                 await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(cardTemplate.DesignJson, business.Id);
-                return Created($"api/CardTemplate/{cardTemplate.Id}", cardTemplate);
+                return Created($"api/businessprofile/{cardTemplate.Id}", cardTemplate);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpPost("create")]
+        [Authorize(Policy = Roles.ManagerOrEmployee)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<IActionResult> AddBusinessProfileAsync(BusinessProfileRequestDTO businessProfileRequest)
+        {
+
+
+            return Created();
         }
 
         [HttpPut]

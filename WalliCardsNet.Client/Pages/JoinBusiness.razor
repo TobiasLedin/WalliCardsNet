@@ -118,7 +118,7 @@
         {
             ErrorMessage = businessResponse.Message;
         }
-        var cardTemplateResponse = await WalliCardsApiService.GetByTokenAsync<CardResponseDTO>("cardtemplate", Token);
+        var cardTemplateResponse = await WalliCardsApiService.GetByTokenAsync<CardResponseDTO>("businessprofile", Token);
         if (cardTemplateResponse.IsSuccess)
         {
             CardTemplate = JsonSerializer.Deserialize<CardDesign>(cardTemplateResponse.Data.DesignJson);

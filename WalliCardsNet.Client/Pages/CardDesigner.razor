@@ -30,6 +30,7 @@
     {
         <h3>CardDesigner</h3>
     }
+    <button @onclick="Create">Create</button>
 }
 
 @code {
@@ -55,5 +56,10 @@
     {
         CurrentView = newView;
         StateHasChanged();
+    }
+
+    public async Task Create()
+    {
+        var response = await WalliCardsApiService.PostAsync<BusinessProfileRequestDTO>("businessprofile/create", BusinessProfile);
     }
 }
