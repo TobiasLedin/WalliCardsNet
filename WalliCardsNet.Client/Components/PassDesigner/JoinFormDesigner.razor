@@ -1,107 +1,114 @@
 ﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using WalliCardsNet.ClassLibrary.BusinessProfile
 @using WalliCardsNet.ClassLibrary.Card
 @using WalliCardsNet.Client.Models
 @using WalliCardsNet.Client.Components.PassDesigner
+@using WalliCardsNet.Client.Services
 @inject WalliCardsApiService WalliCardsApiService;
 
-<h3>CardDesigner</h3>
+@if (BusinessProfile != null)
+{
+    <h3>CardDesigner</h3>
 
-<EditForm Model="Card">
-    <div>
-        <button @onclick="CreateField">Create Field</button>
+    <EditForm Model="Card">
+        <div>
+            <button @onclick="CreateField">Create Field</button>
+            @foreach (var field in Fields)
+            {
+                <div>
+                    <InputText @bind-Value="field.FieldName" placeholder="Field name" />
+                    <InputSelect @bind-Value="field.FieldType">
+                        <option value="text">Text</option>
+                        <option value="email">Email</option>
+                        <option value="number">Number</option>
+                        <option value="date">Date</option>
+                        <option value="checkbox">Checkbox</option>
+                    </InputSelect>
+                    <InputText @bind-Value="field.Label" placeholder="Label" />
+                    <label>Required field</label>
+                    <InputCheckbox @bind-Value="field.IsRequired" />
+                    <button type="button" @onclick="() => DeleteField(field)">Delete Field</button>
+                </div>
+            }
+        </div>
+        <div>
+            <label>Background Color</label>
+            <input type="color" @bind="BusinessProfile.HexBackgroundColor" />
+        </div>
+        <div>
+            <label>Text Color</label>
+            <input type="color" @bind="TextColor" />
+        </div>
+
+    </EditForm>
+
+    <button @onclick="CreateCard">Create Card</button>
+
+    <h3>Preview</h3>
+    <div style="background-color:@BusinessProfile.HexBackgroundColor; color:@TextColor;">
         @foreach (var field in Fields)
         {
             <div>
-                <InputText @bind-Value="field.FieldName" placeholder="Field name"/>
-                <InputSelect @bind-Value="field.FieldType">
-                    <option value="text">Text</option>
-                    <option value="email">Email</option>
-                    <option value="number">Number</option>
-                    <option value="date">Date</option>
-                    <option value="checkbox">Checkbox</option>
-                </InputSelect>
-                <InputText @bind-Value="field.Label" placeholder="Label" />
-                <label>Required field</label>
-                <InputCheckbox @bind-Value="field.IsRequired"/>
-                <button type="button" @onclick="() => DeleteField(field)">Delete Field</button>
+                <label>
+                    @field.Label
+                </label>
+                @if (field.IsRequired == true)
+                {
+                    <label>*</label>
+                }
+                @{
+                    string exampleText = "";
+                }
+                @switch (field.FieldType)
+                {
+                    case "text":
+                        <InputText @bind-Value="exampleText" />
+                        break;
+                    case "email":
+                        <InputText @bind-Value="exampleText" type="email" />
+                        break;
+                    case "number":
+                        <InputText @bind-Value="exampleText" type="number" />
+                        break;
+                    case "date":
+                        {
+                            DateTime parsedDate;
+                            if (DateTime.TryParse(exampleText, out parsedDate))
+                            {
+                                <InputDate @bind-Value="parsedDate" />
+                                exampleText = parsedDate.ToString("yyyy-MM-dd");
+                            }
+                            else
+                            {
+                                DateTime currentDate = DateTime.Now;
+                                <InputDate @bind-Value="currentDate" />
+                                exampleText = currentDate.ToString("yyyy-MM-dd");
+                            }
+                        }
+                        break;
+                    case "checkbox":
+                        {
+                            bool isChecked = exampleText == "true";
+                            <InputCheckbox @bind-Value="isChecked" />
+                            exampleText = isChecked ? "true" : "false";
+                        }
+                        break;
+                    default:
+                        <p>Unsupported field type: @field.FieldType</p>
+                        break;
+                }
             </div>
         }
     </div>
-    <div>
-        <label>Background Color</label>
-        <input type="color" @bind="BackgroundColor" />
-    </div>
-    <div>
-        <label>Text Color</label>
-        <input type="color" @bind="TextColor" />
-    </div>
-   
-</EditForm>
-
-<button @onclick="CreateCard">Create Card</button>
-
-<h3>Preview</h3>
-<div style="background-color:@BackgroundColor; color:@TextColor;">
-    @foreach (var field in Fields)
-    {
-        <div>
-            <label>
-                @field.Label 
-            </label>
-            @if (field.IsRequired == true)
-            {
-                <label>*</label>
-            }
-            @{
-                string exampleText = "";
-            }
-            @switch (field.FieldType)
-            {
-                case "text":
-                    <InputText @bind-Value="exampleText" />
-                    break;
-                case "email":
-                    <InputText @bind-Value="exampleText" type="email" />
-                    break;
-                case "number":
-                    <InputText @bind-Value="exampleText" type="number" />
-                    break;
-                case "date":
-                    {
-                        DateTime parsedDate;
-                        if (DateTime.TryParse(exampleText, out parsedDate))
-                        {
-                            <InputDate @bind-Value="parsedDate" />
-                            exampleText = parsedDate.ToString("yyyy-MM-dd");
-                        }
-                        else
-                        {
-                            DateTime currentDate = DateTime.Now;
-                            <InputDate @bind-Value="currentDate" />
-                            exampleText = currentDate.ToString("yyyy-MM-dd");
-                        }
-                    }
-                    break;
-                case "checkbox":
-                    {
-                        bool isChecked = exampleText == "true";
-                        <InputCheckbox @bind-Value="isChecked" />
-                        exampleText = isChecked ? "true" : "false";
-                    }
-                    break;
-                default:
-                    <p>Unsupported field type: @field.FieldType</p>
-                    break;
-            }
-        </div>
-    }
-</div>
-
-
+}
 
 @code {
     [Parameter]
     public string Token { get; set; }
+
+    [Parameter]
+    public BusinessProfileRequestDTO BusinessProfile { get; set; }
 
     public string CurrentView { get; set; } = "";
 

@@ -1,6 +1,172 @@
-﻿<h3>GooglePassDesigner</h3>
+﻿@using WalliCardsNet.ClassLibrary.BusinessProfile
 
+<style>
+    .pass-preview {
+        width: 320px;
+        border-radius: 8px;
+        overflow: hidden;
+/*         background-color: var(--background-color, #ffffff); */
+        color: #ffffff;
+        font-family: "Roboto", Arial, sans-serif;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .pass-header {
+        padding: 16px;
+/*         background-color: var(--header-background, #4285f4); */
+        color: #ffffff;
+        font-size: 16px;
+        font-family: Roboto, Arial, sans-serif;
+        font-weight: 500;
+    }
+
+    .pass-content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        color: #ffffff;
+    }
+
+    .pass-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        color: #ffffff;
+        font-size: 11px;
+    }
+
+    .pass-row:last-child {
+        border-bottom: none;
+    }
+</style>
+
+@if(BusinessProfile != null)
+{
+    <div style="display:flex; flex-direction:row; gap: 1rem; margin-top: 1rem;">
+        <div>
+            <h4>Edit</h4>
+            <div>
+                <label>Background Color</label>
+                <input type="color" @bind="BusinessProfile.HexBackgroundColor" />
+            </div>
+            <div>
+                <label>Logo Url:</label>
+                <InputText @bind-Value="BusinessProfile.LogoUrl"></InputText>
+                <label>Preview</label>
+                <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+            </div>
+            <div>
+                <label>Hero Image Url:</label>
+                <InputText @bind-Value="BusinessProfile.HeroImage"></InputText>
+                <label>Preview</label>
+                <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
+            </div>
+            <div>
+                @if(Rows != null && Rows.Count < 3)
+                {
+                    <button class="btn btn-primary" @onclick="AddRow">Add row</button>
+
+                }
+                @if (Rows != null)
+                {
+                    int i = 1;
+                    @foreach(var row in Rows)
+                    {
+                        <div>
+                            <label>Row @i</label>
+                            @if (row.Count < 3)
+                            {
+                                <button class="btn btn-primary" @onclick="() => AddField(row)">Add field</button>
+
+                            }
+                            @{int j = 0;}
+                            <div>
+                            @foreach (var field in row)
+                            {
+                                <InputText @bind-Value="row[j]"></InputText>
+                                j++;
+                            }
+                            </div>
+                        </div>
+
+                        i++;
+                    }
+                }
+
+            </div>
+        </div>
+
+        <div>
+            <h4>Preview</h4>
+            <div class="pass-preview" style="background-color: @BusinessProfile.HexBackgroundColor">
+                <div class="pass-header" style="background-color: @BusinessProfile.HexBackgroundColor">
+                    @if (!string.IsNullOrEmpty(BusinessProfile.LogoUrl))
+                    {
+                        <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="@BusinessProfile.LogoUrl" />
+                    }
+                    @if (PreviewLogo && string.IsNullOrEmpty(BusinessProfile.LogoUrl))
+                    {
+                        <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" />
+                    }
+                    @BusinessName
+                </div>
+                <div class="pass-content">
+                    @foreach (var row in Rows)
+                    {
+                        <div class="pass-row">
+                            @foreach (var field in row)
+                            {
+                                <div style="display: flex; flex-direction: column;">
+                                <p style="font-weight:600;">@field</p>
+                                <p>Value</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                    <div class="hero-image">
+                        @if (!string.IsNullOrEmpty(BusinessProfile.HeroImage))
+                        {
+                            <img style="max-height:120px; width:100%; object-fit:cover" src="@BusinessProfile.HeroImage" />
+                        }
+                        @if (PreviewHeroImage && string.IsNullOrEmpty(BusinessProfile.HeroImage))
+                        {
+                            <img style="max-height:120px; width:100%;" src="https://images.unsplash.com/photo-1698191373970-228c25ee6fd0?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fDNkJTIwYWJzdHJhY3R8ZW58MHx8MHx8fDA%3D" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+}
 
 @code {
+    [Parameter]
+    public BusinessProfileRequestDTO BusinessProfile { get; set; }
 
+    [Parameter]
+    public string BusinessName { get; set; } = "";
+
+    public bool PreviewLogo { get; set; } = false;
+    public bool PreviewHeroImage { get; set; } = false;
+
+    public List<List<string>> Rows { get; set; } = new List<List<string>>();
+
+    public string Message { get; set; } = "";
+
+    public void AddRow()
+    {
+        if (Rows.Count < 3)
+        {
+            Rows.Add(new List<string>());
+        }
+    }
+
+    public void AddField(List<string> row)
+    {
+        if (row.Count < 3)
+        {
+            row.Add("New field");
+        }
+    }
 }

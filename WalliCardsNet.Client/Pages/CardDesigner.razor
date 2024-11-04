@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Authorization
+@using WalliCardsNet.ClassLibrary.BusinessProfile
 @using WalliCardsNet.ClassLibrary.Card
 @using WalliCardsNet.Client.Models
 @using WalliCardsNet.Client.Components.PassDesigner
@@ -6,32 +7,49 @@
 @attribute [Authorize]
 @inject WalliCardsApiService WalliCardsApiService;
 
-<div class="col">
-    <button class="btn btn-primary" @onclick='() => SetCurrentView("google")'>Google Pass Designer</button>
-    <button class="btn btn-primary" @onclick='() => SetCurrentView("join")'>Join Form Designer</button>
-</div>
-@if (CurrentView == "google")
+
+@if(Business != null)
 {
-    <GooglePassDesigner></GooglePassDesigner>
+    <div class="col">
+        <button class="btn btn-primary" @onclick='() => SetCurrentView("google")'>Google Pass Designer</button>
+        <button class="btn btn-primary" @onclick='() => SetCurrentView("join")'>Join Form Designer</button>
+    </div>
+    @if (CurrentView == "google")
+    {
+        <GooglePassDesigner BusinessProfile="@BusinessProfile"
+                            BusinessName="@Business.Name"></GooglePassDesigner>
+    }
+
+    @if (CurrentView == "join")
+    {
+        <JoinFormDesigner Token="@Token"
+                          BusinessProfile="@BusinessProfile"></JoinFormDesigner>
+    }
+
+    else if (CurrentView == "old")
+    {
+        <h3>CardDesigner</h3>
+    }
 }
-
-@if (CurrentView == "join")
-{
-    <JoinFormDesigner Token="@Token"></JoinFormDesigner>
-}
-
-else if (CurrentView == "old")
-{
-    <h3>CardDesigner</h3>
-} 
-
 
 @code {
     [Parameter]
     public string Token { get; set; }
 
-    public string CurrentView { get; set; } = "";
+    public string CurrentView { get; set; } = "google";
 
+    public BusinessDTO Business { get; set; } = new BusinessDTO();
+    public BusinessProfileRequestDTO BusinessProfile { get; set; } = new BusinessProfileRequestDTO();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await WalliCardsApiService.GetByTokenAsync<BusinessDTO>("business", Token);
+        if (response.IsSuccess)
+        {
+            Business = response.Data;
+            StateHasChanged();
+        }
+    }
 
     public async Task SetCurrentView(string newView)
     {
