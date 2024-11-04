@@ -62,40 +62,31 @@
                 <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
             </div>
             <div>
-                @if(Rows != null && Rows.Count < 3)
+                @if (fields.Rows.Count < 3)
                 {
                     <button class="btn btn-primary" @onclick="AddRow">Add row</button>
-
                 }
-                @if (Rows != null)
+
+                @foreach (var row in fields.Rows)
                 {
-                    int i = 1;
-                    @foreach(var row in Rows)
-                    {
+                    <div>
+                        <label>Row</label>
+                        @if (row.Fields.Count < 3)
+                        {
+                            <button class="btn btn-primary" @onclick="() => AddField(row)">Add field</button>
+                        }
+
                         <div>
-                            <label>Row @i</label>
-                            @if (row.Count < 3)
+                            @foreach (var field in row.Fields)
                             {
-                                <button class="btn btn-primary" @onclick="() => AddField(row)">Add field</button>
-
+                                <InputText @bind-Value="field.Header" placeholder="Header value" />
                             }
-                            @{int j = 0;}
-                            <div>
-                            @foreach (var field in row)
-                            {
-                                <InputText @bind-Value="row[j]"></InputText>
-                                j++;
-                            }
-                            </div>
                         </div>
-
-                        i++;
-                    }
+                    </div>
                 }
-
             </div>
         </div>
-
+       
         <div>
             <h4>Preview</h4>
             <div class="pass-preview" style="background-color: @BusinessProfile.HexBackgroundColor">
@@ -111,13 +102,13 @@
                     @BusinessName
                 </div>
                 <div class="pass-content">
-                    @foreach (var row in Rows)
+                    @foreach (var row in fields.Rows)
                     {
                         <div class="pass-row">
-                            @foreach (var field in row)
+                            @foreach (var field in row.Fields)
                             {
                                 <div style="display: flex; flex-direction: column;">
-                                <p style="font-weight:600;">@field</p>
+                                <p style="font-weight:600;">@field.Header</p>
                                 <p>Value</p>
                                 </div>
                             }
@@ -154,19 +145,36 @@
 
     public string Message { get; set; } = "";
 
-    public void AddRow()
+    private Fields fields = new Fields();
+
+    private void AddRow()
     {
-        if (Rows.Count < 3)
+        if (fields.Rows.Count < 3)
         {
-            Rows.Add(new List<string>());
+            fields.Rows.Add(new Row());
         }
     }
 
-    public void AddField(List<string> row)
+    private void AddField(Row row)
     {
-        if (row.Count < 3)
+        if (row.Fields.Count < 3)
         {
-            row.Add("New field");
+            row.Fields.Add(new Field());
         }
+    }
+
+    private class Fields
+    {
+        public List<Row> Rows { get; set; } = new List<Row>();
+    }
+
+    private class Row
+    {
+        public List<Field> Fields { get; set; } = new List<Field>();
+    }
+
+    private class Field
+    {
+        public string Header { get; set; } = string.Empty;
     }
 }
