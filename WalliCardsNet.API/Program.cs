@@ -57,6 +57,7 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<IRefreshToken, RefreshTokenRepository>();
             builder.Services.AddTransient<IActivationToken, ActivationTokenRepository>();
             builder.Services.AddTransient<IApplicationUser, ApplicationUserRepository>();
+            builder.Services.AddTransient<IBusinessProfile, BusinessProfileRepository>();
 
             // Token service
             builder.Services.AddTransient<ITokenService, Services.TokenService>();
