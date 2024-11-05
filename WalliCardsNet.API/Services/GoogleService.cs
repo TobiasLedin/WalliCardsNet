@@ -88,7 +88,7 @@ namespace WalliCardsNet.API.Services
             });
         }
 
-        public async Task<string> CreateGenericClassAsync(string classSuffix)
+        public async Task<string> CreateGenericClassAsync(GooglePassTemplate template, string classSuffix)
         {
             // Authenticate and initialize WalletService
             if (_walletService == null)
@@ -146,7 +146,7 @@ namespace WalliCardsNet.API.Services
             return classId;
         }
 
-        public async Task<string> CreateGenericObjectAsync(GooglePassTemplateDTO dto, string classSuffix, string objectSuffix) // ClassSuffix: BusinessId, ObjectSuffix: CustomerId
+        public async Task<string> CreateGenericObjectAsync(GooglePassTemplate template, Customer customer, string classSuffix, string objectSuffix) // ClassSuffix: BusinessId?, ObjectSuffix: CustomerId?
         {
             // Authenticate and initialize WalletService
             if (_walletService == null)
@@ -161,7 +161,7 @@ namespace WalliCardsNet.API.Services
 
             // Check for exising GenericClasses with supplied issuerId and classSuffix
             using (Stream responseStream = await _walletService!.Genericobject
-                .Get($"{_issuerId}.{objectSuffix}")
+                .Get(objectId)
                 .ExecuteAsStreamAsync())
 
             using (StreamReader responseReader = new StreamReader(responseStream))
@@ -184,7 +184,7 @@ namespace WalliCardsNet.API.Services
             }
 
             using (Stream responseStream = await _walletService.Genericobject
-                .Insert( new GooglePassBuilder().CreateObjectFromDTO(dto)) // Calls PassBuilder to create GenericObject from GooglePassTemplateDTO.
+                .Insert( new GooglePassBuilder().BuildObjectFromTemplate(template, customer))
                 .ExecuteAsStreamAsync())
 
             using (StreamReader responseReader = new StreamReader(responseStream))

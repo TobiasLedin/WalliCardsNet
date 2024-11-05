@@ -9,7 +9,7 @@ namespace WalliCardsNet.API.Services
         (string googleUserId, string googleEmail) DecodeIdToken(string idToken);
         Task<bool> LinkGoogleAccountAsync(ApplicationUser user, string googleUserId);
 
-        Task<string> CreateGenericClassAsync(string classSuffix);
-        Task<string> CreateGenericObjectAsync(GooglePassTemplateDTO dto, string classSuffix, string objectSuffix);
+        Task<string> CreateGenericClassAsync(GooglePassTemplate template, string classSuffix);
+        Task<string> CreateGenericObjectAsync(GooglePassTemplate template, Customer customer, string classSuffix, string objectSuffix);
     }
 }
