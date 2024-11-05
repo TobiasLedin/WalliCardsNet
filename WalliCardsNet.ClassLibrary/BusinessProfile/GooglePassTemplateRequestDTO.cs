@@ -11,6 +11,6 @@ namespace WalliCardsNet.ClassLibrary.BusinessProfile
         public string LogoUrl { get; set; } = "";
         public string HeroImage { get; set; } = "";
         public string HexBackgroundColor { get; set; } = "#060000";
-        public string FieldsJson { get; set; } = "{}";
+        public string FieldsJson { get; set; } = "";
     }
 }
