@@ -6,6 +6,8 @@ using Google.Apis.Services;
 using Google.Apis.Walletobjects.v1;
 using Google.Apis.Walletobjects.v1.Data;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.API.Builders;
+using WalliCardsNet.ClassLibrary.BusinessProfile;
 
 namespace WalliCardsNet.API.Services
 {
@@ -144,7 +146,7 @@ namespace WalliCardsNet.API.Services
             return classId;
         }
 
-        public async Task<string> CreateGenericObjectAsync(string classSuffix, string objectSuffix) // ObjectSuffix => CustomerId
+        public async Task<string> CreateGenericObjectAsync(GooglePassTemplateDTO dto, string classSuffix, string objectSuffix) // ClassSuffix: BusinessId, ObjectSuffix: CustomerId
         {
             // Authenticate and initialize WalletService
             if (_walletService == null)
@@ -181,118 +183,8 @@ namespace WalliCardsNet.API.Services
                 }
             }
 
-            // Create new GenericObject
-            var newObject = new GenericObject
-            {
-                Id = objectId,
-                ClassId = classId,
-                State = "ACTIVE",
-
-                HeroImage = new Image
-                {
-                    SourceUri = new ImageUri
-                    {
-                        Uri = "https://farm4.staticflickr.com/3723/11177041115_6e6a3b6f49_o.jpg"
-                    },
-                    ContentDescription = new LocalizedString
-                    {
-                        DefaultValue = new TranslatedString
-                        {
-                            Language = "en-US",
-                            Value = "Hero image description"
-                        }
-                    }
-                },
-                TextModulesData = new List<TextModuleData>
-                {
-                    new TextModuleData
-                    {
-                        Header = "Text module header",
-                        Body = "Text module body",
-                        Id = "TEXT_MODULE_ID"
-                    }
-                },
-                LinksModuleData = new LinksModuleData
-                {
-                    Uris = new List<Google.Apis.Walletobjects.v1.Data.Uri>
-                    {
-                        new Google.Apis.Walletobjects.v1.Data.Uri
-                        {
-                            UriValue = "http://maps.google.com/",
-                            Description = "Link module URI description",
-                            Id = "LINK_MODULE_URI_ID"
-                        },
-                        new Google.Apis.Walletobjects.v1.Data.Uri
-                        {
-                            UriValue = "tel:6505555555",
-                            Description = "Link module tel description",
-                            Id = "LINK_MODULE_TEL_ID"
-                        }
-                    }
-                },
-                ImageModulesData = new List<ImageModuleData>
-                {
-                    new ImageModuleData
-                    {
-                        MainImage = new Image
-                        {
-                            SourceUri = new ImageUri
-                            {
-                                Uri = "http://farm4.staticflickr.com/3738/12440799783_3dc3c20606_b.jpg"
-                            },
-                            ContentDescription = new LocalizedString
-                            {
-                                DefaultValue = new TranslatedString
-                                {
-                                    Language = "en-US",
-                                    Value = "Image module description"
-                                }
-                            }
-                        },
-                        Id = "IMAGE_MODULE_ID"
-                    }
-                },
-                Barcode = new Barcode
-                {
-                    Type = "QR_CODE",
-                    Value = "QR code"
-                },
-                CardTitle = new LocalizedString
-                {
-                    DefaultValue = new TranslatedString
-                    {
-                        Language = "en-US",
-                        Value = "Generic card title"
-                    }
-                },
-                Header = new LocalizedString
-                {
-                    DefaultValue = new TranslatedString
-                    {
-                        Language = "en-US",
-                        Value = "Generic header"
-                    }
-                },
-                HexBackgroundColor = "#4285f4",
-                Logo = new Image
-                {
-                    SourceUri = new ImageUri
-                    {
-                        Uri = "https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg"
-                    },
-                    ContentDescription = new LocalizedString
-                    {
-                        DefaultValue = new TranslatedString
-                        {
-                            Language = "en-US",
-                            Value = "Generic card logo"
-                        }
-                    }
-                }
-            };
-
             using (Stream responseStream = await _walletService.Genericobject
-                .Insert(newObject)
+                .Insert( new GooglePassBuilder().CreateObjectFromDTO(dto)) // Calls PassBuilder to create GenericObject from GooglePassTemplateDTO.
                 .ExecuteAsStreamAsync())
 
             using (StreamReader responseReader = new StreamReader(responseStream))
