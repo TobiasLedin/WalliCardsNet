@@ -1,4 +1,5 @@
 ﻿using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary.BusinessProfile;
 
 namespace WalliCardsNet.API.Services
 {
@@ -9,6 +10,6 @@ namespace WalliCardsNet.API.Services
         Task<bool> LinkGoogleAccountAsync(ApplicationUser user, string googleUserId);
 
         Task<string> CreateGenericClassAsync(string classSuffix);
-        Task<string> CreateGenericObjectAsync(string classSuffix, string objectSuffix);
+        Task<string> CreateGenericObjectAsync(GooglePassTemplateDTO dto, string classSuffix, string objectSuffix);
     }
 }
