@@ -1,6 +1,7 @@
-﻿using WalliCardsNet.ClassLibrary.BusinessProfile;
+﻿
 using Google.Apis.Walletobjects.v1.Data;
-using static WalliCardsNet.ClassLibrary.BusinessProfile.GooglePassTemplateDTO;
+using System.Text.Json;
+using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Builders
 {
@@ -15,12 +16,14 @@ namespace WalliCardsNet.API.Builders
             _genericObject = new GenericObject();
         }
 
-        public GooglePassBuilder WithBasicInfo(string objectId, string classId, string state, string cardTitle, string header, string hexBackgroundColor)
+        #region GenericObject related code
+
+        public GooglePassBuilder ObjectWithBasicInfo(string objectId, string classId, string cardTitle, string header, string hexBackgroundColor)
         {
             _genericObject.GenericType = "GENERIC_OTHER";
             _genericObject.Id = objectId;
             _genericObject.ClassId = classId;
-            _genericObject.State = state;
+            //_genericObject.State = state;
             _genericObject.HexBackgroundColor = hexBackgroundColor;
             _genericObject.CardTitle = CreateLocalizedString(cardTitle);
             _genericObject.Header = CreateLocalizedString(header);
@@ -28,9 +31,9 @@ namespace WalliCardsNet.API.Builders
             return this;
         }
 
-        public GooglePassBuilder WithImageInfo(string? logoUri, string? logoDescription, string? wideLogoUri, string? wideLogoDescription, string? heroUri, string? heroDescription)
+        public GooglePassBuilder WithImageInfo(string? logoUri, string? wideLogoUri, string? heroUri)
         {
-            if (logoUri != null && logoDescription != null && wideLogoUri == null)
+            if (logoUri != null && wideLogoUri == null)
             {
                 _genericObject.Logo = new Image
                 {
@@ -38,11 +41,11 @@ namespace WalliCardsNet.API.Builders
                     {
                         Uri = logoUri,
                     },
-                    ContentDescription = CreateLocalizedString(logoDescription),
+                    ContentDescription = CreateLocalizedString("LOGO_IMAGE_DESCRIPTION"),
                 };
             }
 
-            if (wideLogoUri != null && wideLogoDescription != null)
+            if (wideLogoUri != null)
             {
                 _genericObject.WideLogo = new Image
                 {
@@ -50,11 +53,11 @@ namespace WalliCardsNet.API.Builders
                     {
                         Uri = wideLogoUri,
                     },
-                    ContentDescription = CreateLocalizedString(wideLogoDescription),
+                    ContentDescription = CreateLocalizedString("WIDELOGO_IMAGE_DESCRIPTION"),
                 };
             }
 
-            if(heroUri != null && heroDescription != null)
+            if(heroUri != null)
             {
                 _genericObject.HeroImage = new Image
                 {
@@ -62,106 +65,194 @@ namespace WalliCardsNet.API.Builders
                     {
                         Uri = heroUri
                     },
-                    ContentDescription = CreateLocalizedString(heroDescription),
+                    ContentDescription = CreateLocalizedString("HERO_IMAGE_DESCRIPTION"),
                 };
             }
             return this;
         }
 
-        public GooglePassBuilder WithTextModulesData(List<TextModuleDTO> textModules)
+        public GooglePassBuilder WithTextModulesData(string? fieldsJson, Dictionary<string, string>? customerDetails)
         {
-            if(textModules.Count > 0)
+            if(!string.IsNullOrEmpty(fieldsJson) && customerDetails != null)
             {
-                _genericObject.TextModulesData = textModules.Select(tm => new TextModuleData
+                var fields = new List<string>();
+                var rows = JsonSerializer.Deserialize<List<List<string>>>(fieldsJson);
+
+                foreach(var row in rows!)
                 {
-                    Header = tm.Header,
-                    Body = tm.Body,
-                    Id = tm.Id
-                }).ToList();
-            }
-            return this;
-        }
-
-        public GooglePassBuilder WithLinksModuleData(List<LinksModuleDTO> links)
-        {
-            if(links.Count > 0)
-            {
-                _genericObject.LinksModuleData = new LinksModuleData
-                {
-                    Uris = links.Select(link => new Google.Apis.Walletobjects.v1.Data.Uri
+                    foreach(var field in row)
                     {
-                        UriValue = link.Uri,
-                        Description = link.Description,
-                        Id = link.Id
-                    }).ToList()
-                };
-            }
-
-            return this;
-        }
-
-        public GooglePassBuilder WithImageModulesData(List<ImageModuleDTO> images)
-        {
-            if(images.Count > 0)
-            {
-                _genericObject.ImageModulesData = images.Select(img => new ImageModuleData 
-                {
-                    MainImage = new Image
-                    {
-                        SourceUri = new ImageUri 
-                        { 
-                            Uri = img.Uri 
-                        },
-                        ContentDescription = CreateLocalizedString(img.Description),
-                    },
-                    Id = img.Id
-                }).ToList();
-            }
-
-            return this;
-        }
-
-        public GooglePassBuilder WithMessages(List<MessageDTO> messages)
-        {
-            _genericObject.Messages = messages.Select(msg => new Message
-            {
-                Id = msg.Id,
-                Kind = "walletobjects#walletObjectMessage",
-                Header = msg.Header,
-                Body = msg.Body,
-                DisplayInterval = new TimeInterval
-                {
-                    Kind = "walletobjects#timeInterval",
-                    Start = new Google.Apis.Walletobjects.v1.Data.DateTime
-                    {
-                        Date = msg.Start.ToString("yyyy-MM-ddTHH:mm:ss.ff'Z'"),
-                    },
-                    End = new Google.Apis.Walletobjects.v1.Data.DateTime
-                    {
-                        Date = msg.End.ToString("yyyy-MM-ddTHH:mm:ss.ff'Z'"),
+                        fields.Add(field);
                     }
-                },
-                MessageType = msg.MessageType,
-                LocalizedHeader = CreateLocalizedString(msg.Header),
-                LocalizedBody = CreateLocalizedString(msg.Body),
+                }
 
-            }).ToList();
+                _genericObject.TextModulesData = fields.Select(f => new TextModuleData
+                {
+                    Header = f.ToUpper(),
+                    Body = customerDetails.TryGetValue(f, out string? value) ? value : "No data",
+                    Id = f.ToLower()
+                }).ToList();
+            }
             return this;
         }
 
-        //public GooglePassBuilder ClassCreation()
+        //public GooglePassBuilder WithLinksModuleData(List<LinksModule> links)
         //{
-        //    _genericClass.Id = "issuerId + businessId";             // TODO: Fixa
-        //    _genericClass.ClassTemplateInfo = new ClassTemplateInfo
+        //    if(links.Count > 0)
         //    {
-        //       new CardTemplateOverride
-        //       {
-        //           new CardRowTemplateInfos
-        //           {
+        //        _genericObject.LinksModuleData = new LinksModuleData
+        //        {
+        //            Uris = links.Select(link => new Google.Apis.Walletobjects.v1.Data.Uri
+        //            {
+        //                UriValue = link.Uri,
+        //                Description = link.Description,
+        //                Id = link.Id
+        //            }).ToList()
+        //        };
+        //    }
 
-        //           }
-        //       }
-        //    };
+        //    return this;
+        //}
+
+        //public GooglePassBuilder WithImageModulesData(List<ImageModule> images)
+        //{
+        //    if(images.Count > 0)
+        //    {
+        //        _genericObject.ImageModulesData = images.Select(img => new ImageModuleData 
+        //        {
+        //            MainImage = new Image
+        //            {
+        //                SourceUri = new ImageUri 
+        //                { 
+        //                    Uri = img.Uri 
+        //                },
+        //                ContentDescription = CreateLocalizedString(img.Description),
+        //            },
+        //            Id = img.Id
+        //        }).ToList();
+        //    }
+
+        //    return this;
+        //}
+
+        public GenericObject BuildObject()
+        {
+            return _genericObject;
+        }
+        public GenericObject BuildObjectFromTemplate(GooglePassTemplate template, Customer customer)
+        {
+            var builder = new GooglePassBuilder();
+
+            return builder
+                .ObjectWithBasicInfo(template.ObjectId, template.ClassId, template.CardTitle, template.Header, template.HexBackgroundColor)
+                .WithImageInfo(template.LogoUri, template.WideLogoUri, template.HeroImageUri)
+                .WithTextModulesData(template.FieldsJson, customer.CustomerDetails)
+                //.WithLinksModuleData(template.LinksModuleData)
+                //.WithImageModulesData(template.ImageNodulesData)
+                //.WithMessages(template.Messages)
+                .BuildObject();
+        }
+
+        #endregion
+
+        #region Generic Class related code
+
+        public GooglePassBuilder ClassWithBasicInfo(GooglePassTemplate template)
+        {
+            _genericClass.Id = "issuerId + businessId";
+            _genericClass.CallbackOptions = new CallbackOptions
+            {
+                Url = "https://1nfpss3f-7204.euw.devtunnels.ms/api/google-callback" // TODO: Dev-tunnel adress reference
+            };
+
+            return this;
+        }
+
+        public GooglePassBuilder WithLayoutDetails(string fieldJson)
+        {
+            try
+            {
+                var rows = JsonSerializer.Deserialize<List<List<string>>>(fieldJson);
+
+                if (rows == null || !rows.Any())
+                {
+                    throw new ArgumentException("Invalid or empty field configuration");
+                }
+
+                var cardRowTemplateInfos = new List<CardRowTemplateInfo>();
+
+                var firstRowFields = rows[0];
+                var firstRowTemplateInfo = CreateCardRowTemplateInfo(firstRowFields);
+                cardRowTemplateInfos.Add(firstRowTemplateInfo);
+
+                if (rows.Count > 1)
+                {
+                    var secondRowFields = rows[1];
+                    var secondRowTemplateInfo = CreateCardRowTemplateInfo(secondRowFields);
+                    cardRowTemplateInfos.Add(secondRowTemplateInfo);
+                }
+
+                _genericClass.ClassTemplateInfo = new ClassTemplateInfo
+                {
+                    CardTemplateOverride = new CardTemplateOverride
+                    {
+                        CardRowTemplateInfos = cardRowTemplateInfos
+                    }
+                };
+
+                return this;
+            }
+            catch (JsonException ex)
+            {
+                throw new ArgumentException("Failed to parse JSON", ex);
+            }
+        }
+
+        public GenericClass BuildClass()
+        {
+            return _genericClass;
+        }
+
+        public GenericClass BuildClassFromTemplate(GooglePassTemplate template)
+        {
+            var builder = new GooglePassBuilder();
+
+            return builder
+                .ClassWithBasicInfo(template)
+                .WithLayoutDetails(template.FieldsJson)
+                //.WithMessages(template.Messages)
+                .BuildClass();
+        }
+
+        #endregion
+
+        #region Support methods and classes
+
+        //public GooglePassBuilder WithMessages(List<PassMessage> messages)
+        //{
+        //    _genericObject.Messages = messages.Select(msg => new Message
+        //    {
+        //        Id = msg.Id,
+        //        Kind = "walletobjects#walletObjectMessage",
+        //        Header = msg.Header,
+        //        Body = msg.Body,
+        //        DisplayInterval = new TimeInterval
+        //        {
+        //            Kind = "walletobjects#timeInterval",
+        //            Start = new Google.Apis.Walletobjects.v1.Data.DateTime
+        //            {
+        //                Date = msg.Start.ToString("yyyy-MM-ddTHH:mm:ss.ff'Z'"),
+        //            },
+        //            End = new Google.Apis.Walletobjects.v1.Data.DateTime
+        //            {
+        //                Date = msg.End.ToString("yyyy-MM-ddTHH:mm:ss.ff'Z'"),
+        //            }
+        //        },
+        //        MessageType = msg.MessageType,
+        //        LocalizedHeader = CreateLocalizedString(msg.Header),
+        //        LocalizedBody = CreateLocalizedString(msg.Body),
+
+        //    }).ToList();
         //    return this;
         //}
 
@@ -177,24 +268,119 @@ namespace WalliCardsNet.API.Builders
             };
         }
 
-        public GenericObject Build()
+        private CardRowTemplateInfo CreateCardRowTemplateInfo(List<string> fields)
         {
-            return _genericObject;
+            var cardRowTemplateInfo = new CardRowTemplateInfo();
+
+            switch (fields.Count)
+            {
+                case 0:
+                    return cardRowTemplateInfo;
+
+                case 1:
+                    cardRowTemplateInfo.OneItem = new CardRowOneItem
+                    {
+                        Item = new TemplateItem
+                        {
+                            FirstValue = new FieldSelector
+                            {
+                                Fields = new List<FieldReference>
+                                {
+                                    new FieldReference
+                                    {
+                                        FieldPath = $"object.textModulesData['{fields[0].ToLower()}']"
+                                    }
+                                }
+                            },
+                        }
+                    };
+                    break;
+
+                case 2:
+                    cardRowTemplateInfo.TwoItems = new CardRowTwoItems
+                    {
+                        StartItem = new TemplateItem
+                        {
+                            FirstValue = new FieldSelector
+                            {
+                                Fields = new List<FieldReference>
+                                {
+                                    new FieldReference
+                                    {
+                                        FieldPath = $"object.textModulesData['{fields[0].ToLower()}']"
+                                    }
+                                }
+                            }
+                        },
+                        EndItem = new TemplateItem
+                        {
+                            SecondValue = new FieldSelector
+                            {
+                                Fields = new List<FieldReference> 
+                                {
+                                    new FieldReference
+                                    {
+                                        FieldPath = $"object.textModulesData['{fields[1].ToLower()}']"
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    break;
+
+                case 3:
+                    cardRowTemplateInfo.ThreeItems = new CardRowThreeItems
+                    {
+                        StartItem = new TemplateItem
+                        {
+                            FirstValue = new FieldSelector
+                            {
+                                Fields = new List<FieldReference>
+                                { 
+                                    new FieldReference
+                                    {
+                                        FieldPath = $"object.textModulesData['{fields[0].ToLower()}']"
+                                    }
+                                }
+                            }
+                        },
+                        MiddleItem = new TemplateItem
+                        {
+                            FirstValue = new FieldSelector
+                            {
+                                Fields = new List<FieldReference>
+                                {
+                                    new FieldReference
+                                    {
+                                        FieldPath = $"object.textModulesData['{fields[1].ToLower()}']"
+                                    }
+                                }
+                            }
+                        },
+                        EndItem = new TemplateItem
+                        {
+                            FirstValue = new FieldSelector
+                            {
+                                Fields = new List<FieldReference> 
+                                {
+                                    new FieldReference
+                                    {
+                                        FieldPath = $"object.textModulesData['{fields[2].ToLower()}']"
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    break;
+
+                default:
+
+                    throw new ArgumentException($"Incorrect field amount per row (actual: {fields.Count}, max: 3)");
+            }
+
+            return cardRowTemplateInfo;
         }
 
-        public GenericObject CreateObjectFromDTO(GooglePassTemplateDTO dto)
-        {
-            var builder = new GooglePassBuilder();
-
-            return builder
-                .WithBasicInfo(dto.ObjectId, dto.ClassId, dto.State, dto.CardTitle, dto.Header, dto.HexBackgroundColor)
-                .WithImageInfo(dto.LogoImageUri, dto.LogoImageDescription, dto.WideLogoImageUri, dto.WideLogoImageDescription, dto.HeroImageUri, dto.HeroImageDescription)
-                .WithTextModulesData(dto.TextModulesData)
-                .WithLinksModuleData(dto.LinksModuleData)
-                .WithImageModulesData(dto.ImageNodulesData)
-                .WithMessages(dto.Messages)
-                .Build();
-        }
+        #endregion
     }
-
 }
