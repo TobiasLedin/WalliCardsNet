@@ -9,14 +9,14 @@ namespace WalliCardsNet.API.Models
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid BusinessId { get; set; }
-
-        public required string HexBackgroundColor { get; set; }
-        public required string ImageUri { get; set; }
         public string DesignJson { get; set; } = "{}";
         public bool IsActive { get; set; }
 
         [Required]
         public GooglePassTemplate? GoogleTemplate { get; set; }
+
+        [Required]
+        public JoinForm? JoinForm { get; set; }
 
         // Awaiting Apple Pass implementation
         //public ApplePassTemplate? ApplePassTemplate { get; set; }

@@ -34,7 +34,7 @@
         </div>
         <div>
             <label>Background Color</label>
-            <input type="color" @bind="BusinessProfile.HexBackgroundColor" />
+            <input type="color" @bind="BusinessProfile.GooglePassTemplate.HexBackgroundColor" />
         </div>
         <div>
             <label>Text Color</label>
@@ -46,7 +46,7 @@
     <button @onclick="CreateCard">Create Card</button>
 
     <h3>Preview</h3>
-    <div style="background-color:@BusinessProfile.HexBackgroundColor; color:@TextColor;">
+    <div style="background-color:@BusinessProfile.GooglePassTemplate.HexBackgroundColor; color:@TextColor;">
         @foreach (var field in Fields)
         {
             <div>
@@ -132,7 +132,7 @@
             }
         };
         Card.DesignJson = System.Text.Json.JsonSerializer.Serialize(cardDesign);
-        var response = await WalliCardsApiService.PostAsync<CardRequestDTO>("cardtemplate", Card);
+        var response = await WalliCardsApiService.PostAsync<CardRequestDTO>("businessprofile", Card);
         if (response.IsSuccess)
         {
             Console.WriteLine("Success");

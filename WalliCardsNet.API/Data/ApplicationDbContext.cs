@@ -24,6 +24,7 @@ namespace WalliCardsNet.API.Data
         public DbSet<ActivationToken> ActivationTokens { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<GooglePassTemplate> GooglePassTemplates { get; set; }
+        public DbSet<JoinForm> JoinForms { get; set; }
 
         // DB context configuration
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -72,6 +73,12 @@ namespace WalliCardsNet.API.Data
                 .HasOne(bp => bp.GoogleTemplate)
                 .WithOne()
                 .HasForeignKey<GooglePassTemplate>(gpt => gpt.BusinessProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<BusinessProfile>()
+                .HasOne(bp => bp.JoinForm)
+                .WithOne()
+                .HasForeignKey<JoinForm>(jf => jf.BusinessProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
 
         }

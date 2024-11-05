@@ -1,4 +1,5 @@
-﻿@using WalliCardsNet.ClassLibrary.BusinessProfile
+﻿@using System.Text.Json
+@using WalliCardsNet.ClassLibrary.BusinessProfile
 
 <style>
     .pass-preview {
@@ -47,17 +48,17 @@
             <h4>Edit</h4>
             <div>
                 <label>Background Color</label>
-                <input type="color" @bind="BusinessProfile.HexBackgroundColor" />
+                <input type="color" @bind="BusinessProfile.GooglePassTemplate.HexBackgroundColor" />
             </div>
             <div>
                 <label>Logo Url:</label>
-                <InputText @bind-Value="BusinessProfile.LogoUrl"></InputText>
+                <InputText @bind-Value="BusinessProfile.GooglePassTemplate.LogoUrl"></InputText>
                 <label>Preview</label>
                 <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
             </div>
             <div>
                 <label>Hero Image Url:</label>
-                <InputText @bind-Value="BusinessProfile.HeroImage"></InputText>
+                <InputText @bind-Value="BusinessProfile.GooglePassTemplate.HeroImage"></InputText>
                 <label>Preview</label>
                 <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
             </div>
@@ -93,13 +94,13 @@
        
         <div>
             <h4>Preview</h4>
-            <div class="pass-preview" style="background-color: @BusinessProfile.HexBackgroundColor">
-                <div class="pass-header" style="background-color: @BusinessProfile.HexBackgroundColor">
-                    @if (!string.IsNullOrEmpty(BusinessProfile.LogoUrl))
+            <div class="pass-preview" style="background-color: @BusinessProfile.GooglePassTemplate.HexBackgroundColor">
+                <div class="pass-header" style="background-color: @BusinessProfile.GooglePassTemplate.HexBackgroundColor">
+                    @if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.LogoUrl))
                     {
-                        <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="@BusinessProfile.LogoUrl" />
+                        <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="@BusinessProfile.GooglePassTemplate.LogoUrl" />
                     }
-                    @if (PreviewLogo && string.IsNullOrEmpty(BusinessProfile.LogoUrl))
+                    @if (PreviewLogo && string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.LogoUrl))
                     {
                         <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" />
                     }
@@ -119,11 +120,11 @@
                         </div>
                     }
                     <div class="hero-image">
-                        @if (!string.IsNullOrEmpty(BusinessProfile.HeroImage))
+                        @if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.HeroImage))
                         {
-                            <img style="max-height:120px; width:100%; object-fit:cover" src="@BusinessProfile.HeroImage" />
+                            <img style="max-height:120px; width:100%; object-fit:cover" src="@BusinessProfile.GooglePassTemplate.HeroImage" />
                         }
-                        @if (PreviewHeroImage && string.IsNullOrEmpty(BusinessProfile.HeroImage))
+                        @if (PreviewHeroImage && string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.HeroImage))
                         {
                             <img style="max-height:120px; width:100%;" src="https://images.unsplash.com/photo-1698191373970-228c25ee6fd0?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fDNkJTIwYWJzdHJhY3R8ZW58MHx8MHx8fDA%3D" />
                         }
@@ -189,48 +190,39 @@
 
     private void ConvertToListOfLists()
     {
-        BusinessProfile.Fields = fields.Rows
+        BusinessProfile.GooglePassTemplate.FieldsJson = JsonSerializer.Serialize(fields.Rows
             .Select(row => row.Fields.Select(field => field.Header).ToList())
-            .ToList();
+            .ToList());
     }
 
     private void ConvertToLocalStructure()
     {
         fields.Rows = new List<Row>();
-        foreach (var rowList in BusinessProfile.Fields)
+        if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.FieldsJson))
         {
-            var row = new Row(); 
-            foreach (var header in rowList)
-            {
-                var field = new Field { Header = header };
-                row.Fields.Add(field); 
-            }
-            fields.Rows.Add(row);
+                var fieldRows = JsonSerializer.Deserialize<List<List<string>>>(BusinessProfile.GooglePassTemplate.FieldsJson);
+                foreach (var rowList in fieldRows)
+                {
+                    var row = new Row();
+                    foreach (var header in rowList)
+                    {
+                        var field = new Field { Header = header };
+                        row.Fields.Add(field);
+                    }
+                    fields.Rows.Add(row);
+                }
+        }
+        else
+        {
+            fields.Rows.Add(new Row { Fields = new List<Field> { new Field() } });
         }
     }
 
     private bool AreFieldsEqual()
     {
-        if (fields.Rows.Count != BusinessProfile.Fields.Count)
-        {
-            return false;
-        }
-        for (int i = 0; i < fields.Rows.Count; i++)
-        {
-            var row = fields.Rows[i];
-            var businessProfileRow = BusinessProfile.Fields[i];
-            if (row.Fields.Count != businessProfileRow.Count)
-            {
-                return false;
-            }
-            for (int j = 0; j < row.Fields.Count; j++)
-            {
-                if (row.Fields[j].Header != businessProfileRow[j])
-                {
-                    return false;
-                }
-            }
-        }
-        return true;
+        var serializedFields = JsonSerializer.Serialize(
+            fields.Rows.Select(row => row.Fields.Select(field => field.Header).ToList()).ToList()
+        );
+        return serializedFields == BusinessProfile.GooglePassTemplate.FieldsJson;
     }
 }
