@@ -185,6 +185,18 @@ namespace WalliCardsNet.API.Controllers
             }
         }
 
+        [HttpPut("set-active/{id}")]
+        public async Task<IActionResult> SetActiveBusinessProfile(Guid id)
+        {
+            var businessProfile = await _businessProfileRepo.GetByIdAsync(id);
+            if (businessProfile == null)
+            {
+                return NotFound();
+            }
+            await _businessProfileRepo.SetActiveAsync(id);
+            return Ok();
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> RemoveAsync(int id)
         {

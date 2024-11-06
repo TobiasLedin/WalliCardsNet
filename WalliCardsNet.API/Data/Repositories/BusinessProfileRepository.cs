@@ -35,9 +35,9 @@ namespace WalliCardsNet.API.Data.Repositories
             return null;
         }
 
-        public Task<BusinessProfile> GetByIdAsync(int id)
+        public async Task<BusinessProfile> GetByIdAsync(Guid id)
         {
-            throw new NotImplementedException("CardTemplate/GetByIdAsync method not yet implemented");
+            return await _applicationDbContext.Profiles.FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<BusinessProfile> GetByBusinessIdAsync(Guid businessId)
@@ -58,9 +58,24 @@ namespace WalliCardsNet.API.Data.Repositories
             throw new NotImplementedException("CardTemplate/RemoveAsync method not yet implemented");
         }
 
-        public Task UpdateAsync(CardTemplate cardTemplate)
+        public Task UpdateAsync(BusinessProfile businessProfile)
         {
             throw new NotImplementedException("CardTemplate/UpdateAsync method not yet implemented");
+        }
+
+        public async Task SetActiveAsync(Guid id)
+        {
+            var businessProfile = await _applicationDbContext.Profiles.FirstOrDefaultAsync(x => x.Id == id);
+            var currentActiveProfile = await _applicationDbContext.Profiles.FirstOrDefaultAsync (x =>  x.IsActive == true);
+            if (currentActiveProfile != null && currentActiveProfile != businessProfile)
+            {
+                currentActiveProfile.IsActive = false;
+            }
+            if (businessProfile != null && !businessProfile.IsActive)
+            {
+                businessProfile.IsActive = true;
+            }
+            await _applicationDbContext.SaveChangesAsync();
         }
     }
 }

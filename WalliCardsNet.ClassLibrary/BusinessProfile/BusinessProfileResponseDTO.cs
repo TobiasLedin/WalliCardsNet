@@ -10,7 +10,7 @@ namespace WalliCardsNet.ClassLibrary.BusinessProfile
     {
         public Guid Id { get; set; }
         public bool IsActive { get; set; }
-
+        public DateTime DateCreated { get; set; }
         public GooglePassTemplateResponseDTO GooglePassTemplate { get; set; } = new GooglePassTemplateResponseDTO();
         public JoinFormTemplateResponseDTO JoinForm { get; set; } = new JoinFormTemplateResponseDTO();
     }

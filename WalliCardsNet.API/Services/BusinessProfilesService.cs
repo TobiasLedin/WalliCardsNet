@@ -13,7 +13,10 @@ namespace WalliCardsNet.API.Services
                 var businessProfileResponseDTO = new BusinessProfileResponseDTO();
                 var googlePassRequestDTO = new GooglePassTemplateResponseDTO
                 {
+                    CardTitle = businessProfile.GoogleTemplate.CardTitle,
+                    Header = businessProfile.GoogleTemplate.Header,
                     LogoUrl = businessProfile.GoogleTemplate.LogoUri,
+                    WideLogoUrl = businessProfile.GoogleTemplate.WideLogoUri,
                     HeroImage = businessProfile.GoogleTemplate.HeroImageUri,
                     HexBackgroundColor = businessProfile.GoogleTemplate.HexBackgroundColor,
                     FieldsJson = businessProfile.GoogleTemplate.FieldsJson
@@ -25,6 +28,7 @@ namespace WalliCardsNet.API.Services
                 };
                 businessProfileResponseDTO.Id = businessProfile.Id;
                 businessProfileResponseDTO.IsActive = businessProfile.IsActive;
+                businessProfileResponseDTO.DateCreated = businessProfile.DateCreated;
                 businessProfileResponseDTO.GooglePassTemplate = googlePassRequestDTO;
                 businessProfileResponseDTO.JoinForm = joinFormRequestDTO;
                 return businessProfileResponseDTO;
@@ -59,6 +63,9 @@ namespace WalliCardsNet.API.Services
                 var googlePass = new GooglePassTemplate
                 {
                     BusinessProfileId = businessProfile.Id,
+                    CardTitle = businessProfileRequestDTO.GooglePassTemplate.CardTitle,
+                    Header = businessProfileRequestDTO.GooglePassTemplate.Header,
+                    WideLogoUri = businessProfileRequestDTO.GooglePassTemplate.WideLogoUrl,
                     HexBackgroundColor = businessProfileRequestDTO.GooglePassTemplate.HexBackgroundColor,
                     LogoUri = businessProfileRequestDTO.GooglePassTemplate.LogoUrl,
                     HeroImageUri = businessProfileRequestDTO.GooglePassTemplate.HeroImage,
@@ -87,6 +94,54 @@ namespace WalliCardsNet.API.Services
                 foreach (var businessProfileRequestDTO in businessProfileRequestDTOs)
                 {
                     var businessProfile = MapRequestDTOtoBusinessProfile(businessProfileRequestDTO, businessId);
+                    businessProfiles.Add(businessProfile);
+                }
+                return businessProfiles;
+            }
+            return null;
+        }
+
+        public BusinessProfileRequestDTO MapResponseDTOToRequestDTO(BusinessProfileResponseDTO businessProfileResponseDTO)
+        {
+            if (businessProfileResponseDTO != null)
+            {
+                var businessProfile = new BusinessProfileRequestDTO
+                {
+                    Id = businessProfileResponseDTO.Id,
+                };
+
+                var googlePass = new GooglePassTemplateRequestDTO
+                {
+                    CardTitle = businessProfileResponseDTO.GooglePassTemplate.CardTitle,
+                    Header = businessProfileResponseDTO.GooglePassTemplate.Header,
+                    HexBackgroundColor = businessProfileResponseDTO.GooglePassTemplate.HexBackgroundColor,
+                    LogoUrl = businessProfileResponseDTO.GooglePassTemplate.LogoUrl,
+                    WideLogoUrl = businessProfileResponseDTO.GooglePassTemplate.WideLogoUrl,
+                    HeroImage = businessProfileResponseDTO.GooglePassTemplate.HeroImage,
+                    FieldsJson = businessProfileResponseDTO.GooglePassTemplate.FieldsJson
+                };
+
+                var joinForm = new JoinFormTemplateRequestDTO
+                {
+                    FieldsJson = businessProfileResponseDTO.JoinForm.FieldsJson,
+                    CSSOptionsJson = businessProfileResponseDTO.JoinForm.CSSOptionsJson
+                };
+
+                businessProfile.GooglePassTemplate = googlePass;
+                businessProfile.JoinFormTemplate = joinForm;
+                return businessProfile;
+            }
+            return null;
+        }
+
+        public List<BusinessProfileRequestDTO> MapResponseDTOListToRequestDTOList(List<BusinessProfileResponseDTO> businessProfileResponseDTOs)
+        {
+            if (businessProfileResponseDTOs != null && businessProfileResponseDTOs.Count > 0)
+            {
+                var businessProfiles = new List<BusinessProfileRequestDTO>();
+                foreach (var businessProfileResponseDTO in businessProfileResponseDTOs)
+                {
+                    var businessProfile = MapResponseDTOToRequestDTO(businessProfileResponseDTO);
                     businessProfiles.Add(businessProfile);
                 }
                 return businessProfiles;

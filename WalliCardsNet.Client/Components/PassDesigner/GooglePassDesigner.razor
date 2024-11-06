@@ -47,8 +47,8 @@
         <div>
             <h4>Edit</h4>
             <div>
-                <label>Background Color</label>
-                <input type="color" @bind="BusinessProfile.GooglePassTemplate.HexBackgroundColor" />
+                <label>Card Title</label>
+                <InputText @bind-Value="BusinessProfile.GooglePassTemplate.CardTitle"></InputText>
             </div>
             <div>
                 <label>Logo Url:</label>
@@ -61,6 +61,10 @@
                 <InputText @bind-Value="BusinessProfile.GooglePassTemplate.HeroImage"></InputText>
                 <label>Preview</label>
                 <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
+            </div>
+            <div>
+                <label>Background Color</label>
+                <input type="color" @bind="BusinessProfile.GooglePassTemplate.HexBackgroundColor" />
             </div>
             <div>
                 @if (fields.Rows.Count < 3)
@@ -104,7 +108,7 @@
                     {
                         <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" />
                     }
-                    @BusinessName
+                    @BusinessProfile.GooglePassTemplate.CardTitle
                 </div>
                 <div class="pass-content">
                     @foreach (var row in fields.Rows)
@@ -154,7 +158,17 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // ConvertToLocalStructure();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
         ConvertToLocalStructure();
+        if (string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.CardTitle))
+        {
+            BusinessProfile.GooglePassTemplate.CardTitle = BusinessName;
+        }
+        StateHasChanged();
     }
 
     private void AddRow()
@@ -200,6 +214,7 @@
         if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.FieldsJson))
         {
                 var fieldRows = JsonSerializer.Deserialize<List<List<string>>>(BusinessProfile.GooglePassTemplate.FieldsJson);
+                fields = new Fields();
                 foreach (var rowList in fieldRows)
                 {
                     var row = new Row();

@@ -4,10 +4,10 @@
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid BusinessProfileId { get; set; }
-        public string GoogleId { get; set; }
-        public string IssuerId { get; set; }
-        public string ClassId { get; set; }
-        public string ObjectId { get; set; }
+        public string? GoogleId { get; set; }
+        public string? IssuerId { get; set; }
+        public string? ClassId { get; set; }
+        public string? ObjectId { get; set; }
 
         // Addition required props...
         public string CardTitle { get; set; } // Added

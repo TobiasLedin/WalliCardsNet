@@ -12,7 +12,10 @@ namespace WalliCardsNet.ClassLibrary.Services
                 var businessProfileResponseDTO = new BusinessProfileResponseDTO();
                 var googlePassRequestDTO = new GooglePassTemplateResponseDTO
                 {
+                    CardTitle = businessProfile.GoogleTemplate.CardTitle,
+                    Header = businessProfile.GoogleTemplate.Header,
                     LogoUrl = businessProfile.GoogleTemplate.LogoUri,
+                    WideLogoUrl = businessProfile.GoogleTemplate.WideLogoUri,
                     HeroImage = businessProfile.GoogleTemplate.HeroImageUri,
                     HexBackgroundColor = businessProfile.GoogleTemplate.HexBackgroundColor,
                     FieldsJson = businessProfile.GoogleTemplate.FieldsJson
@@ -24,6 +27,7 @@ namespace WalliCardsNet.ClassLibrary.Services
                 };
                 businessProfileResponseDTO.Id = businessProfile.Id;
                 businessProfileResponseDTO.IsActive = businessProfile.IsActive;
+                businessProfileResponseDTO.DateCreated = businessProfile.DateCreated;
                 businessProfileResponseDTO.GooglePassTemplate = googlePassRequestDTO;
                 businessProfileResponseDTO.JoinForm = joinFormRequestDTO;
                 return businessProfileResponseDTO;
@@ -58,6 +62,9 @@ namespace WalliCardsNet.ClassLibrary.Services
                 var googlePass = new GooglePassTemplate
                 {
                     BusinessProfileId = businessProfile.Id,
+                    CardTitle = businessProfileRequestDTO.GooglePassTemplate.CardTitle,
+                    Header = businessProfileRequestDTO.GooglePassTemplate.Header,
+                    WideLogoUri = businessProfileRequestDTO.GooglePassTemplate.WideLogoUrl,
                     HexBackgroundColor = businessProfileRequestDTO.GooglePassTemplate.HexBackgroundColor,
                     LogoUri = businessProfileRequestDTO.GooglePassTemplate.LogoUrl,
                     HeroImageUri = businessProfileRequestDTO.GooglePassTemplate.HeroImage,
@@ -104,8 +111,11 @@ namespace WalliCardsNet.ClassLibrary.Services
 
                 var googlePass = new GooglePassTemplateRequestDTO
                 {
+                    CardTitle = businessProfileResponseDTO.GooglePassTemplate.CardTitle,
+                    Header = businessProfileResponseDTO.GooglePassTemplate.Header,
                     HexBackgroundColor = businessProfileResponseDTO.GooglePassTemplate.HexBackgroundColor,
                     LogoUrl = businessProfileResponseDTO.GooglePassTemplate.LogoUrl,
+                    WideLogoUrl = businessProfileResponseDTO.GooglePassTemplate.WideLogoUrl,
                     HeroImage = businessProfileResponseDTO.GooglePassTemplate.HeroImage,
                     FieldsJson = businessProfileResponseDTO.GooglePassTemplate.FieldsJson
                 };

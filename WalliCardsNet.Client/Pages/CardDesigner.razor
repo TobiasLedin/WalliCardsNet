@@ -14,16 +14,28 @@
 {
     @if (BusinessProfiles != null && BusinessProfiles.Count > 0)
     {
-        <InputSelect @onchange="OnBusinessProfileChange" TValue="Guid" @bind-Value="SelectedBusinessProfileId">
-            @{
-                int i = 1;
-            }
-            @foreach (var profile in BusinessProfiles)
-            {
-                <option value="@profile.Id">Profile @i @(profile.IsActive ? "(Active)" : "")</option>
-                i++;
-            }
-        </InputSelect>
+        <div style="border-bottom: 1px solid black; margin-bottom: 1rem; padding-bottom: 0.4rem;">
+            <div>
+                <p>Select existing profile to edit</p>
+                <InputSelect @bind-Value="SelectedBusinessProfileId" @bind-Value:after="OnBusinessProfileChange">
+                    @{
+                        int i = 1;
+                    }
+                    @foreach (var profile in BusinessProfiles)
+                    {
+                        <option value="@profile.Id">Profile @i @(profile.IsActive ? "(Active)" : "")</option> 
+                        i++;
+                    }
+                </InputSelect>
+                @if (SelectedBusinessProfile.IsActive == false)
+                {
+                    <button @onclick="SetActiveProfile" class="btn btn-primary">Set as active profile</button>
+                }
+            </div>
+            <button @onclick="NewProfile" class="btn btn-primary">New profile</button>
+        </div>
+
+
     }
     <div class="col">
         <button class="btn btn-primary" @onclick='() => SetCurrentView("google")'>Google Pass Designer</button>
@@ -77,17 +89,7 @@
         {
             Business = response.Data;
         }
-        var businessProfilesResponse = await WalliCardsApiService.GetAllAsync<List<BusinessProfileResponseDTO>>("businessprofile/all");
-        if (businessProfilesResponse.IsSuccess)
-        {
-            BusinessProfiles = businessProfilesResponse.Data;
-            if (BusinessProfiles.Count > 0)
-            {
-                SelectedBusinessProfileId = BusinessProfiles.FirstOrDefault(x => x.IsActive)?.Id
-                                   ?? BusinessProfiles.First().Id;
-            }
-        }
-        StateHasChanged();
+        await FetchBusinessProfiles();
     }
 
     public void SetCurrentView(string newView)
@@ -113,15 +115,37 @@
         }
     }
 
-    private void OnBusinessProfileChange(ChangeEventArgs e)
+    private void OnBusinessProfileChange()
     {
-        Console.WriteLine("OnBusinessProfileChange");
-        if (Guid.TryParse(e.Value.ToString(), out var selectedId))
+        BusinessProfile = BusinessProfilesService.MapResponseDTOToRequestDTO(BusinessProfiles.FirstOrDefault(x => x.Id == SelectedBusinessProfileId));
+        StateHasChanged();
+    }
+
+    private void NewProfile()
+    {
+        BusinessProfile = new BusinessProfileRequestDTO();
+        StateHasChanged();
+    }
+
+    private async Task FetchBusinessProfiles()
+    {
+        var businessProfilesResponse = await WalliCardsApiService.GetAllAsync<List<BusinessProfileResponseDTO>>("businessprofile/all");
+        if (businessProfilesResponse.IsSuccess)
         {
-            SelectedBusinessProfileId = selectedId;
-            BusinessProfile = BusinessProfilesService.MapResponseDTOToRequestDTO(BusinessProfiles.FirstOrDefault(x => x.Id == SelectedBusinessProfileId));
-            Console.WriteLine($"Business Profile ID = {BusinessProfile.Id}");
-            StateHasChanged();
+            BusinessProfiles = businessProfilesResponse.Data.OrderBy(x => x.DateCreated).ToList();
+            if (BusinessProfiles.Count > 0)
+            {
+                SelectedBusinessProfileId = BusinessProfiles.FirstOrDefault(x => x.IsActive)?.Id
+                                   ?? BusinessProfiles.FirstOrDefault().Id;
+                BusinessProfile = BusinessProfilesService.MapResponseDTOToRequestDTO(BusinessProfiles.FirstOrDefault(x => x.Id == SelectedBusinessProfileId));
+            }
         }
+        StateHasChanged();
+    }
+
+    public async Task SetActiveProfile()
+    {
+        var response = await WalliCardsApiService.PutAsync<Guid>($"businessprofile/set-active/{SelectedBusinessProfileId}", SelectedBusinessProfileId);
+        await FetchBusinessProfiles();
     }
 }
