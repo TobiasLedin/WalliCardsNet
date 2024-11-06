@@ -8,6 +8,10 @@ using Google.Apis.Walletobjects.v1.Data;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Builders;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
+using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace WalliCardsNet.API.Services
 {
@@ -66,13 +70,17 @@ namespace WalliCardsNet.API.Services
         }
         #endregion
 
-        #region Google Pass
+        #region GoogleWallet Pass
 
-        public void GoogleApiAuthentication()
+        /// <summary>
+        /// Authenticate with GoogleWallet API and instansiate WalletService.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <exception cref="NullReferenceException"></exception>
+        public void GoogleWalletApiAuthentication()
         {
-            _issuerId = Environment.GetEnvironmentVariable("GOOGLE-WALLET-ISSUER-ID") ?? throw new NullReferenceException();
-            var keyFilePath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS") ?? throw new NullReferenceException();
-            var fullPath = Path.GetFullPath(keyFilePath);
+            _issuerId = Environment.GetEnvironmentVariable("GOOGLE-WALLET-ISSUER-ID") ?? throw new NullReferenceException("Not able to load IssuerId");
+            var keyFilePath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS") ?? throw new NullReferenceException("Not able to load Google application credentials");
 
             var credentials = (ServiceAccountCredential)GoogleCredential
                 .FromFile(keyFilePath)
@@ -88,19 +96,297 @@ namespace WalliCardsNet.API.Services
             });
         }
 
-        public async Task<string> CreateGenericClassAsync(string classSuffix)
+        /// <summary>
+        /// Method corresponding to GenericClass GoogleWallet API INSERT call.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="template"></param>
+        /// <param name="classSuffix"></param>
+        /// <returns></returns>
+        public async Task<ActionResult<GenericClass>> CreateGenericClassAsync(GooglePassTemplate template, string classSuffix)
         {
-            // Authenticate and initialize WalletService
             if (_walletService == null)
             {
-                GoogleApiAuthentication();
+                GoogleWalletApiAuthentication();
             }
 
             string classId = $"{_issuerId}.{classSuffix}";
+            GenericClass? genericClass;
 
-            _logger.LogInformation(classId);
+            if (await ClassExists(classId))
+            {
+                return ActionResult<GenericClass>.FailureResult($"A GenericClass with id: {classId} already exists");
+            }
 
-            // Check for exising GenericClasses with supplied issuerId and classSuffix
+            try
+            {
+                using (Stream responseStream = await _walletService!.Genericclass
+                    .Insert(new GooglePassBuilder().BuildClassFromTemplate(template))
+                    .ExecuteAsStreamAsync())
+
+                using (StreamReader responseReader = new StreamReader(responseStream))
+                {
+                    string responseJson = await responseReader.ReadToEndAsync();
+                    using (JsonDocument jsonResponse = JsonDocument.Parse(responseJson))
+                    {
+                        genericClass = JsonSerializer.Deserialize<GenericClass>(responseJson, SerializerOptions());
+
+                        if (genericClass == null)
+                        {
+                            return ActionResult<GenericClass>.FailureResult("Failed to deserialize response");
+                        }
+
+                        _logger.LogInformation($"Class {classId} successfully created");
+
+                        return ActionResult<GenericClass>.SuccessResult(genericClass);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ActionResult<GenericClass>.FailureResult("An error occured", new List<string> { ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Method corresponding to GenericObject GoogleWallet API INSERT call.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="template"></param>
+        /// <param name="customer"></param>
+        /// <param name="objectSuffix"></param>
+        /// <returns></returns>
+        public async Task<ActionResult<GenericObject>> CreateGenericObjectAsync(GooglePassTemplate template, Customer customer, string objectSuffix) // ClassSuffix: BusinessId?, ObjectSuffix: CustomerId?
+        {
+            if (_walletService == null)
+            {
+                GoogleWalletApiAuthentication();
+            }
+
+            string objectId = $"{_issuerId}.{objectSuffix}";
+            GenericObject? genericObject;
+
+            if(await ObjectExists(objectId))
+            {
+                return ActionResult<GenericObject>.FailureResult($"A GenericObject with id: {objectId} already exists");
+            }
+
+            try
+            {
+                using (Stream responseStream = await _walletService!.Genericobject
+                    .Insert(new GooglePassBuilder().BuildObjectFromTemplate(template, customer))
+                    .ExecuteAsStreamAsync())
+
+                using (StreamReader responseReader = new StreamReader(responseStream))
+                {
+                    string responseJson = await responseReader.ReadToEndAsync();
+                    using (JsonDocument jsonResponse = JsonDocument.Parse(responseJson))
+                    {
+                        genericObject = JsonSerializer.Deserialize<GenericObject>(responseJson, SerializerOptions());
+
+                        if (genericObject == null)
+                        {
+                            return ActionResult<GenericObject>.FailureResult("Failed to deserialize response");
+                        }
+
+                        _logger.LogInformation($"Object {objectId} successfully created");
+
+                        return ActionResult<GenericObject>.SuccessResult(genericObject);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ActionResult<GenericObject>.FailureResult("An error occured", new List<string> { ex.Message } );
+            } 
+        }
+
+        /// <summary>
+        /// Method corresponding to GenericObject GoogleWallet API UPDATE call.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="template"></param>
+        /// <param name="customer"></param>
+        /// <param name="objectSuffix"></param>
+        /// <returns></returns>
+        public async Task<ActionResult<GenericObject>> UpdateGenericObjectAsync(GooglePassTemplate template, Customer customer, string objectSuffix)
+        {
+            if (_walletService == null)
+            {
+                GoogleWalletApiAuthentication();
+            }
+
+            string objectId = $"{_issuerId}.{objectSuffix}";
+            GenericObject? genericObject;
+
+            if (!await ObjectExists(objectId))
+            {
+                return ActionResult<GenericObject>.FailureResult($"No GenericObject with id: {objectId} exists");
+            }
+
+            try
+            {
+                using (Stream responseStream = await _walletService!.Genericobject
+                    .Update(new GooglePassBuilder().BuildObjectFromTemplate(template, customer), objectId)
+                    .ExecuteAsStreamAsync())
+
+                using (StreamReader responseReader = new StreamReader(responseStream))
+                {
+                    string responseJson = await responseReader.ReadToEndAsync();
+                    using (JsonDocument jsonResponse = JsonDocument.Parse(responseJson))
+                    {
+                        genericObject = JsonSerializer.Deserialize<GenericObject>(responseJson, SerializerOptions());
+
+                        if (genericObject == null)
+                        {
+                            return ActionResult<GenericObject>.FailureResult("Failed to deserialize response");
+                        }
+
+                        _logger.LogInformation($"Object {objectId} successfully updated");
+
+                        return ActionResult<GenericObject>.SuccessResult(genericObject);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ActionResult<GenericObject>.FailureResult("An error occured", new List<string> { ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Method corresponding to GenericClass GoogleWallet API UPDATE call.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="template"></param>
+        /// <param name="classSuffix"></param>
+        /// <returns></returns>
+        public async Task<ActionResult<GenericClass>> UpdateGenericClassAsync(GooglePassTemplate template, string classSuffix)
+        {
+            if (_walletService == null)
+            {
+                GoogleWalletApiAuthentication();
+            }
+
+            string objectId = $"{_issuerId}.{classSuffix}";
+            GenericClass? genericClass;
+
+            if (!await ObjectExists(objectId))
+            {
+                return ActionResult<GenericClass>.FailureResult($"No GenericObject with id: {objectId} exists");
+            }
+
+            try
+            {
+                using (Stream responseStream = await _walletService!.Genericclass
+                    .Update(new GooglePassBuilder().BuildClassFromTemplate(template), objectId)
+                    .ExecuteAsStreamAsync())
+
+                using (StreamReader responseReader = new StreamReader(responseStream))
+                {
+                    string responseJson = await responseReader.ReadToEndAsync();
+                    using (JsonDocument jsonResponse = JsonDocument.Parse(responseJson))
+                    {
+                        genericClass = JsonSerializer.Deserialize<GenericClass>(responseJson, SerializerOptions());
+
+                        if (genericClass == null)
+                        {
+                            return ActionResult<GenericClass>.FailureResult("Failed to deserialize response");
+                        }
+
+                        _logger.LogInformation($"Object {objectId} successfully updated");
+
+                        return ActionResult<GenericClass>.SuccessResult(genericClass);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ActionResult<GenericClass>.FailureResult("An error occured", new List<string> { ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Creates a signed JWT with reference to a GenericClass and GenericObject.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="genericClass"></param>
+        /// <param name="genericObject"></param>
+        /// <returns>String link to embedd in "Add to Google Wallet" button.</returns>
+        /// <exception cref="NullReferenceException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        public ActionResult<string> CreateSignedJWT(GenericClass genericClass, GenericObject genericObject)
+        {
+            var serviceAccountEmail = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_SERVICE_ACCOUNT_EMAIL") ?? throw new NullReferenceException("Not able to load Google Cloud service account email");
+            var keyFilePath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS") ?? throw new NullReferenceException("Not able to load Google application credentials");
+            var devTunnel = Environment.GetEnvironmentVariable("DEV_TUNNEL_ADRESS") ?? throw new NullReferenceException("Not able to load Dev-tunnel adress");
+
+            try
+            {
+                using var classJson = JsonDocument.Parse(JsonSerializer.Serialize(genericClass, SerializerOptions()));
+                using var objectJson = JsonDocument.Parse(JsonSerializer.Serialize(genericObject, SerializerOptions()));
+
+                using var jwtPayload = JsonDocument.Parse(JsonSerializer.Serialize(new
+                {
+                    iss = serviceAccountEmail,
+                    aud = "google",
+                    typ = "savetowallet",
+                    iat = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    origins = new List<string>
+                {
+                    devTunnel
+                },
+                    payload = JsonDocument.Parse(JsonSerializer.Serialize(new
+                    {
+                        loyaltyClasses = new List<JsonDocument>
+                    {
+                        classJson
+                    },
+                        loyaltyObjects = new List<JsonDocument>
+                    {
+                        objectJson
+                    }
+                    }))
+                }));
+
+                JwtPayload claims = JwtPayload.Deserialize(jwtPayload.ToString());
+
+                string key = File.ReadAllText(keyFilePath);
+                var keyJson = JsonDocument.Parse(key);
+                string privateKey = keyJson.RootElement.GetProperty("private_key").GetString() ?? throw new InvalidOperationException("Private key not found in key file");
+
+                RSA rsa = RSA.Create();
+                rsa.ImportFromPem(privateKey.ToCharArray());
+                RsaSecurityKey rsaKey = new RsaSecurityKey(rsa);
+
+                SigningCredentials signingCredentials = new SigningCredentials(rsaKey, SecurityAlgorithms.RsaSha256);
+
+                JwtSecurityToken jwt = new JwtSecurityToken(new JwtHeader(signingCredentials), claims);
+
+                string token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+                _logger.LogInformation("Add to Google Wallet link generated");
+                _logger.LogInformation($"https://pay.google.com/gp/v/save/{token}");
+
+                return ActionResult<string>.SuccessResult($"https://pay.google.com/gp/v/save/{token}");
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return ActionResult<string>.FailureResult("Failed to generate JWT", new List<string> { ex.Message });
+            }
+        }
+
+        // Support methods
+
+        /// <summary>
+        /// Check if GenericClass with classId exists.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="classId"></param>
+        /// <returns>true if classId exists, false if not.</returns>
+        private async Task<bool> ClassExists(string classId)
+        {
             using (Stream responseStream = await _walletService!.Genericclass
                 .Get(classId)
                 .ExecuteAsStreamAsync())
@@ -113,55 +399,27 @@ namespace WalliCardsNet.API.Services
                     JsonElement rootElement = jsonResponse.RootElement;
                     if (!rootElement.TryGetProperty("error", out JsonElement errorElement))
                     {
-                        _logger.LogInformation($"Class {classId} already exists!");
-                        return classId;
+                        return true;
                     }
                     else if (errorElement.GetProperty("code").GetInt32() != 404)
                     {
-                        _logger.LogInformation(rootElement.ToString());
-                        return classId;
+                        return true;
                     }
                 }
             }
-
-            // Create new GenericClass
-            var newClass = new GenericClass
-            {
-                Id = classId
-            };
-
-            using (Stream responseStream = await _walletService.Genericclass
-                .Insert(newClass)
-                .ExecuteAsStreamAsync())
-
-            using (StreamReader responseReader = new StreamReader(responseStream))
-            {
-                string responseJson = await responseReader.ReadToEndAsync();
-                using (JsonDocument jsonResponse = JsonDocument.Parse(responseJson))
-                {
-                    _logger.LogInformation($"Class {classId} successfully created");
-                }
-            }
-
-            return classId;
+            return false;
         }
 
-        public async Task<string> CreateGenericObjectAsync(GooglePassTemplateDTO dto, string classSuffix, string objectSuffix) // ClassSuffix: BusinessId, ObjectSuffix: CustomerId
+        /// <summary>
+        /// Check if GenericObject with objectId exists.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="objectId"></param>
+        /// <returns>true if objectId exists, false if not.</returns>
+        private async Task<bool> ObjectExists(string objectId)
         {
-            // Authenticate and initialize WalletService
-            if (_walletService == null)
-            {
-                GoogleApiAuthentication();
-            }
-
-            string classId = $"{_issuerId}.{classSuffix}";
-            string objectId = $"{_issuerId}.{objectSuffix}";
-
-            _logger.LogInformation(classId, objectId);
-
-            // Check for exising GenericClasses with supplied issuerId and classSuffix
             using (Stream responseStream = await _walletService!.Genericobject
-                .Get($"{_issuerId}.{objectSuffix}")
+                .Get(objectId)
                 .ExecuteAsStreamAsync())
 
             using (StreamReader responseReader = new StreamReader(responseStream))
@@ -172,31 +430,30 @@ namespace WalliCardsNet.API.Services
                     JsonElement rootElement = jsonResponse.RootElement;
                     if (!rootElement.TryGetProperty("error", out JsonElement errorElement))
                     {
-                        _logger.LogInformation($"Object {objectId} already exists!");
-                        return objectId;
+                        return true;
                     }
                     else if (errorElement.GetProperty("code").GetInt32() != 404)
                     {
-                        _logger.LogInformation(rootElement.ToString());
-                        return objectId;
+                        return true;
                     }
                 }
             }
+            return false;
+        }
 
-            using (Stream responseStream = await _walletService.Genericobject
-                .Insert( new GooglePassBuilder().CreateObjectFromDTO(dto)) // Calls PassBuilder to create GenericObject from GooglePassTemplateDTO.
-                .ExecuteAsStreamAsync())
-
-            using (StreamReader responseReader = new StreamReader(responseStream))
+        /// <summary>
+        /// Set up JsonSerializer options.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <returns>JsonSerializerOptions</returns>
+        private JsonSerializerOptions SerializerOptions()
+        {
+            return new JsonSerializerOptions
             {
-                string responseJson = await responseReader.ReadToEndAsync();
-                using (JsonDocument jsonResponse = JsonDocument.Parse(responseJson))
-                {
-                    _logger.LogInformation($"Object {objectId} successfully created");
-                }
-            }
-
-            return objectId;
+                PropertyNameCaseInsensitive = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                AllowTrailingCommas = true
+            };
         }
 
         #endregion

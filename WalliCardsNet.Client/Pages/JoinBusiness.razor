@@ -1,4 +1,6 @@
 @page "/join/{token}"
+@layout EmptyLayout
+
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 @using WalliCardsNet.ClassLibrary
@@ -88,6 +90,11 @@
 @if (!string.IsNullOrEmpty(SuccessMessage))
 {
     <p>@SuccessMessage</p>
+    <br />
+    @* Add to Google Wallet button *@
+    <a href="@googleLink">
+    <img src="enUS_add_to_google_wallet_wallet-button.png"/>
+    </a>
 }
 
 
@@ -102,6 +109,7 @@
     public string SuccessMessage { get; set; } = "";
     public string ErrorMessage { get; set; }
     public bool Fetching = false;
+    private string? googleLink = "https://www.google.com";
 
     public List<bool> CheckboxValues { get; set; } = new List<bool>();
     public List<DateTime> DateValues { get; set; } = new List<DateTime>();
