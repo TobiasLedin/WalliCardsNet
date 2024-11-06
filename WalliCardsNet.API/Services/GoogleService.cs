@@ -75,6 +75,7 @@ namespace WalliCardsNet.API.Services
         /// <summary>
         /// Authenticate with GoogleWallet API and instansiate WalletService.
         /// </summary>
+        /// <remarks>Author: Tobias</remarks>
         /// <exception cref="NullReferenceException"></exception>
         public void GoogleWalletApiAuthentication()
         {
@@ -98,6 +99,7 @@ namespace WalliCardsNet.API.Services
         /// <summary>
         /// Method corresponding to GenericClass GoogleWallet API INSERT call.
         /// </summary>
+        /// <remarks>Author: Tobias</remarks>
         /// <param name="template"></param>
         /// <param name="classSuffix"></param>
         /// <returns></returns>
@@ -149,6 +151,7 @@ namespace WalliCardsNet.API.Services
         /// <summary>
         /// Method corresponding to GenericObject GoogleWallet API INSERT call.
         /// </summary>
+        /// <remarks>Author: Tobias</remarks>
         /// <param name="template"></param>
         /// <param name="customer"></param>
         /// <param name="objectSuffix"></param>
@@ -201,6 +204,7 @@ namespace WalliCardsNet.API.Services
         /// <summary>
         /// Method corresponding to GenericObject GoogleWallet API UPDATE call.
         /// </summary>
+        /// <remarks>Author: Tobias</remarks>
         /// <param name="template"></param>
         /// <param name="customer"></param>
         /// <param name="objectSuffix"></param>
@@ -253,6 +257,7 @@ namespace WalliCardsNet.API.Services
         /// <summary>
         /// Method corresponding to GenericClass GoogleWallet API UPDATE call.
         /// </summary>
+        /// <remarks>Author: Tobias</remarks>
         /// <param name="template"></param>
         /// <param name="classSuffix"></param>
         /// <returns></returns>
@@ -301,6 +306,15 @@ namespace WalliCardsNet.API.Services
             }
         }
 
+        /// <summary>
+        /// Creates a signed JWT with reference to a GenericClass and GenericObject.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="genericClass"></param>
+        /// <param name="genericObject"></param>
+        /// <returns>String link to embedd in "Add to Google Wallet" button.</returns>
+        /// <exception cref="NullReferenceException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         public ActionResult<string> CreateSignedJWT(GenericClass genericClass, GenericObject genericObject)
         {
             var serviceAccountEmail = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_SERVICE_ACCOUNT_EMAIL") ?? throw new NullReferenceException("Not able to load Google Cloud service account email");
@@ -364,6 +378,13 @@ namespace WalliCardsNet.API.Services
         }
 
         // Support methods
+
+        /// <summary>
+        /// Check if GenericClass with classId exists.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="classId"></param>
+        /// <returns>true if classId exists, false if not.</returns>
         private async Task<bool> ClassExists(string classId)
         {
             using (Stream responseStream = await _walletService!.Genericclass
@@ -389,6 +410,12 @@ namespace WalliCardsNet.API.Services
             return false;
         }
 
+        /// <summary>
+        /// Check if GenericObject with objectId exists.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <param name="objectId"></param>
+        /// <returns>true if objectId exists, false if not.</returns>
         private async Task<bool> ObjectExists(string objectId)
         {
             using (Stream responseStream = await _walletService!.Genericobject
@@ -414,6 +441,11 @@ namespace WalliCardsNet.API.Services
             return false;
         }
 
+        /// <summary>
+        /// Set up JsonSerializer options.
+        /// </summary>
+        /// <remarks>Author: Tobias</remarks>
+        /// <returns>JsonSerializerOptions</returns>
         private JsonSerializerOptions SerializerOptions()
         {
             return new JsonSerializerOptions
