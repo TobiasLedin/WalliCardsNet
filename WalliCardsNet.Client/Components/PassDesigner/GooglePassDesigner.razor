@@ -197,7 +197,6 @@
 
     private void ConvertToLocalStructure()
     {
-        fields.Rows = new List<Row>();
         if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.FieldsJson))
         {
                 var fieldRows = JsonSerializer.Deserialize<List<List<string>>>(BusinessProfile.GooglePassTemplate.FieldsJson);
@@ -211,10 +210,6 @@
                     }
                     fields.Rows.Add(row);
                 }
-        }
-        else
-        {
-            fields.Rows.Add(new Row { Fields = new List<Field> { new Field() } });
         }
     }
 

@@ -68,6 +68,9 @@ namespace WalliCardsNet.API
             // Mail service
             builder.Services.AddTransient<IMailService, MailService>();
 
+            //BusinessProfiles service
+            builder.Services.AddTransient<IBusinessProfilesService, BusinessProfilesService>();
+
             // Webhook event processing
             builder.Services.AddHostedService<EventProcessingService>();
             // In-memory storage of webhook events to manage potential idempotency issues.

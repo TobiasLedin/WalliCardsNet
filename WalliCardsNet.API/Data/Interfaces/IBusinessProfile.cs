@@ -6,7 +6,7 @@ namespace WalliCardsNet.API.Data.Interfaces
     {
         public Task AddAsync(BusinessProfile businessProfile);
 
-        public Task<List<BusinessProfile>> GetAllAsync();
+        public Task<List<BusinessProfile>> GetAllAsync(Guid businessId);
 
         public Task<BusinessProfile> GetByIdAsync(int id);
 

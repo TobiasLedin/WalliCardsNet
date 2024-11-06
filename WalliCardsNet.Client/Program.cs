@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Net;
 using WalliCardsNet.Client.Handlers;
 using WalliCardsNet.Client.Services;
+using WalliCardsNet.ClassLibrary.Services;
 
 namespace WalliCardsNet.Client
 {
@@ -28,6 +29,7 @@ namespace WalliCardsNet.Client
                 client.BaseAddress = new Uri("https://localhost:7204/api/auth/");
             }).AddHttpMessageHandler(() => new IncludeCredentialsHandler());
             
+            builder.Services.AddTransient<IBusinessProfilesService, BusinessProfilesService>();
 
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddBlazorBootstrap();

@@ -1,4 +1,4 @@
-﻿namespace WalliCardsNet.API.Models
+﻿namespace WalliCardsNet.ClassLibrary.BusinessProfile.Models
 {
     public class GooglePassTemplate
     {

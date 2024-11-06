@@ -17,15 +17,19 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class BusinessProfileController : ControllerBase
     {
+        private readonly IBusinessProfile _businessProfileRepo;
         private readonly ICardTemplate _cardTemplateRepo;
         private readonly IBusiness _businessRepo;
         private readonly IGoogleService _googleService;
+        private readonly IBusinessProfilesService _businessProfilesService;
 
-        public BusinessProfileController(ICardTemplate cardTemplateRepo, IBusiness businessRepo, IGoogleService googleService)
+        public BusinessProfileController(ICardTemplate cardTemplateRepo, IBusiness businessRepo, IGoogleService googleService, IBusinessProfile businessProfileRepo, IBusinessProfilesService businessProfilesService)
         {
             _cardTemplateRepo = cardTemplateRepo;
             _businessRepo = businessRepo;
             _googleService = googleService;
+            _businessProfileRepo = businessProfileRepo;
+            _businessProfilesService = businessProfilesService;
         }
 
         [HttpGet]
@@ -40,6 +44,25 @@ namespace WalliCardsNet.API.Controllers
             {
                 return Ok(new List<CardTemplate>());
             }
+        }
+
+        [HttpGet("all")]
+        [Authorize(Policy = Roles.ManagerOrEmployee)]
+        public async Task<IActionResult> GetAllForBusinessAsync()
+        {
+            var businessIdClaim = User.FindFirst("business-id");
+            if (businessIdClaim == null)
+            {
+                return Unauthorized();
+            };
+            var businessId = businessIdClaim.Value;
+            var businessProfiles = await _businessProfileRepo.GetAllAsync(new Guid(businessId));
+            if (businessProfiles != null)
+            {
+                var businessProfileDTOs = _businessProfilesService.MapBusinessProfileListToResponseDTO(businessProfiles);
+                return Ok(businessProfileDTOs);
+            }
+            return NotFound();
         }
 
         [HttpGet("{id:guid}")]
@@ -127,9 +150,20 @@ namespace WalliCardsNet.API.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> AddBusinessProfileAsync(BusinessProfileRequestDTO businessProfileRequest)
         {
+            var businessIdClaim = User.FindFirst("business-id");
+            if (businessIdClaim == null)
+            {
+                return Unauthorized();
+            };
 
-
-            return Created();
+            var businessId = new Guid(businessIdClaim.Value);
+            if (businessProfileRequest != null)
+            {
+                var businessProfile = _businessProfilesService.MapRequestDTOtoBusinessProfile(businessProfileRequest, businessId);
+                await _businessProfileRepo.AddAsync(businessProfile);
+                return Created($"api/businessprofile/{businessProfile.Id}", businessProfile);
+            }
+            return BadRequest();
         }
 
         [HttpPut]

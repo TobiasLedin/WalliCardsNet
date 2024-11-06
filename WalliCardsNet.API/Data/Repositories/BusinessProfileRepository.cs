@@ -21,9 +21,18 @@ namespace WalliCardsNet.API.Data.Repositories
             }
         }
 
-        public Task<List<BusinessProfile>> GetAllAsync()
+        public async Task<List<BusinessProfile>> GetAllAsync(Guid businessId)
         {
-            throw new NotImplementedException("CardTemplate/GetAllAsync method not yet implemented");
+            var result = await _applicationDbContext.Profiles
+                .Where(x => x.BusinessId == businessId)
+                .Include(x => x.GoogleTemplate)
+                .Include(x => x.JoinForm)
+                .ToListAsync();
+            if (result != null && result.Count > 0)
+            {
+                return result;
+            }
+            return null;
         }
 
         public Task<BusinessProfile> GetByIdAsync(int id)

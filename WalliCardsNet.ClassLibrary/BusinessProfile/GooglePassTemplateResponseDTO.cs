@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WalliCardsNet.ClassLibrary.BusinessProfile
 {
-    public class GooglePassTemplateRequestDTO
+    public class GooglePassTemplateResponseDTO
     {
         public string LogoUrl { get; set; } = "";
         public string HeroImage { get; set; } = "";

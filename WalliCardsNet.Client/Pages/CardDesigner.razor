@@ -1,36 +1,57 @@
 ﻿@using Microsoft.AspNetCore.Authorization
 @using WalliCardsNet.ClassLibrary.BusinessProfile
 @using WalliCardsNet.ClassLibrary.Card
+@using WalliCardsNet.ClassLibrary.Services
 @using WalliCardsNet.Client.Models
 @using WalliCardsNet.Client.Components.PassDesigner
 @page "/card/{token}"
 @attribute [Authorize]
 @inject WalliCardsApiService WalliCardsApiService;
+@inject IBusinessProfilesService BusinessProfilesService;
 
 
 @if(Business != null)
 {
+    @if (BusinessProfiles != null && BusinessProfiles.Count > 0)
+    {
+        <InputSelect @onchange="OnBusinessProfileChange" TValue="Guid" @bind-Value="SelectedBusinessProfileId">
+            @{
+                int i = 1;
+            }
+            @foreach (var profile in BusinessProfiles)
+            {
+                <option value="@profile.Id">Profile @i @(profile.IsActive ? "(Active)" : "")</option>
+                i++;
+            }
+        </InputSelect>
+    }
     <div class="col">
         <button class="btn btn-primary" @onclick='() => SetCurrentView("google")'>Google Pass Designer</button>
         <button class="btn btn-primary" @onclick='() => SetCurrentView("join")'>Join Form Designer</button>
     </div>
-    @if (CurrentView == "google")
+    @if (CurrentView == "google" && string.IsNullOrEmpty(Message))
     {
         <GooglePassDesigner BusinessProfile="@BusinessProfile"
                             BusinessName="@Business.Name"></GooglePassDesigner>
+        <button @onclick="Create">Create</button>
     }
 
-    @if (CurrentView == "join")
+    @if (CurrentView == "join" && string.IsNullOrEmpty(Message))
     {
         <JoinFormDesigner Token="@Token"
                           BusinessProfile="@BusinessProfile"></JoinFormDesigner>
+        <button @onclick="Create">Create</button>
     }
 
     else if (CurrentView == "old")
     {
         <h3>CardDesigner</h3>
     }
-    <button @onclick="Create">Create</button>
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p>@Message</p>
+    }
 }
 
 @code {
@@ -41,6 +62,13 @@
 
     public BusinessDTO Business { get; set; } = new BusinessDTO();
     public BusinessProfileRequestDTO BusinessProfile { get; set; } = new BusinessProfileRequestDTO();
+    public List<BusinessProfileResponseDTO> BusinessProfiles { get; set; } = new List<BusinessProfileResponseDTO>();
+
+    public Guid SelectedBusinessProfileId { get; set; }
+    public BusinessProfileResponseDTO SelectedBusinessProfile => BusinessProfiles.FirstOrDefault(profile => profile.Id == SelectedBusinessProfileId);
+
+
+    public string Message { get; set; } = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,8 +76,18 @@
         if (response.IsSuccess)
         {
             Business = response.Data;
-            StateHasChanged();
         }
+        var businessProfilesResponse = await WalliCardsApiService.GetAllAsync<List<BusinessProfileResponseDTO>>("businessprofile/all");
+        if (businessProfilesResponse.IsSuccess)
+        {
+            BusinessProfiles = businessProfilesResponse.Data;
+            if (BusinessProfiles.Count > 0)
+            {
+                SelectedBusinessProfileId = BusinessProfiles.FirstOrDefault(x => x.IsActive)?.Id
+                                   ?? BusinessProfiles.First().Id;
+            }
+        }
+        StateHasChanged();
     }
 
     public void SetCurrentView(string newView)
@@ -69,5 +107,21 @@
             BusinessProfile.JoinFormTemplate = new JoinFormTemplateRequestDTO();
         }
         var response = await WalliCardsApiService.PostAsync<BusinessProfileRequestDTO>("businessprofile/create", BusinessProfile);
+        if (response.IsSuccess)
+        {
+            Message = string.IsNullOrEmpty(response.Message) ? "Successfully added business profile." : response.Message;
+        }
+    }
+
+    private void OnBusinessProfileChange(ChangeEventArgs e)
+    {
+        Console.WriteLine("OnBusinessProfileChange");
+        if (Guid.TryParse(e.Value.ToString(), out var selectedId))
+        {
+            SelectedBusinessProfileId = selectedId;
+            BusinessProfile = BusinessProfilesService.MapResponseDTOToRequestDTO(BusinessProfiles.FirstOrDefault(x => x.Id == SelectedBusinessProfileId));
+            Console.WriteLine($"Business Profile ID = {BusinessProfile.Id}");
+            StateHasChanged();
+        }
     }
 }
