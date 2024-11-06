@@ -9,6 +9,9 @@ using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Builders;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace WalliCardsNet.API.Services
 {
@@ -75,9 +78,8 @@ namespace WalliCardsNet.API.Services
         /// <exception cref="NullReferenceException"></exception>
         public void GoogleWalletApiAuthentication()
         {
-            _issuerId = Environment.GetEnvironmentVariable("GOOGLE-WALLET-ISSUER-ID") ?? throw new NullReferenceException();
-            var keyFilePath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS") ?? throw new NullReferenceException();
-            var fullPath = Path.GetFullPath(keyFilePath);
+            _issuerId = Environment.GetEnvironmentVariable("GOOGLE-WALLET-ISSUER-ID") ?? throw new NullReferenceException("Not able to load IssuerId");
+            var keyFilePath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS") ?? throw new NullReferenceException("Not able to load Google application credentials");
 
             var credentials = (ServiceAccountCredential)GoogleCredential
                 .FromFile(keyFilePath)
@@ -94,7 +96,7 @@ namespace WalliCardsNet.API.Services
         }
 
         /// <summary>
-        /// Method corresponding to GenericClass INSERT call.
+        /// Method corresponding to GenericClass GoogleWallet API INSERT call.
         /// </summary>
         /// <param name="template"></param>
         /// <param name="classSuffix"></param>
@@ -145,7 +147,7 @@ namespace WalliCardsNet.API.Services
         }
 
         /// <summary>
-        /// Method corresponding to GenericObject INSERT call.
+        /// Method corresponding to GenericObject GoogleWallet API INSERT call.
         /// </summary>
         /// <param name="template"></param>
         /// <param name="customer"></param>
@@ -197,7 +199,7 @@ namespace WalliCardsNet.API.Services
         }
 
         /// <summary>
-        /// Method corresponding to GenericObject UPDATE call.
+        /// Method corresponding to GenericObject GoogleWallet API UPDATE call.
         /// </summary>
         /// <param name="template"></param>
         /// <param name="customer"></param>
@@ -249,7 +251,7 @@ namespace WalliCardsNet.API.Services
         }
 
         /// <summary>
-        /// Method corresponding to GenericClass UPDATE call.
+        /// Method corresponding to GenericClass GoogleWallet API UPDATE call.
         /// </summary>
         /// <param name="template"></param>
         /// <param name="classSuffix"></param>
@@ -299,6 +301,67 @@ namespace WalliCardsNet.API.Services
             }
         }
 
+        public ActionResult<string> CreateSignedJWT(GenericClass genericClass, GenericObject genericObject)
+        {
+            var serviceAccountEmail = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_SERVICE_ACCOUNT_EMAIL") ?? throw new NullReferenceException("Not able to load Google Cloud service account email");
+            var keyFilePath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS") ?? throw new NullReferenceException("Not able to load Google application credentials");
+            var devTunnel = Environment.GetEnvironmentVariable("DEV_TUNNEL_ADRESS") ?? throw new NullReferenceException("Not able to load Dev-tunnel adress");
+
+            try
+            {
+                using var classJson = JsonDocument.Parse(JsonSerializer.Serialize(genericClass, SerializerOptions()));
+                using var objectJson = JsonDocument.Parse(JsonSerializer.Serialize(genericObject, SerializerOptions()));
+
+                using var jwtPayload = JsonDocument.Parse(JsonSerializer.Serialize(new
+                {
+                    iss = serviceAccountEmail,
+                    aud = "google",
+                    typ = "savetowallet",
+                    iat = (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    origins = new List<string>
+                {
+                    devTunnel
+                },
+                    payload = JsonDocument.Parse(JsonSerializer.Serialize(new
+                    {
+                        loyaltyClasses = new List<JsonDocument>
+                    {
+                        classJson
+                    },
+                        loyaltyObjects = new List<JsonDocument>
+                    {
+                        objectJson
+                    }
+                    }))
+                }));
+
+                JwtPayload claims = JwtPayload.Deserialize(jwtPayload.ToString());
+
+                string key = File.ReadAllText(keyFilePath);
+                var keyJson = JsonDocument.Parse(key);
+                string privateKey = keyJson.RootElement.GetProperty("private_key").GetString() ?? throw new InvalidOperationException("Private key not found in key file");
+
+                RSA rsa = RSA.Create();
+                rsa.ImportFromPem(privateKey.ToCharArray());
+                RsaSecurityKey rsaKey = new RsaSecurityKey(rsa);
+
+                SigningCredentials signingCredentials = new SigningCredentials(rsaKey, SecurityAlgorithms.RsaSha256);
+
+                JwtSecurityToken jwt = new JwtSecurityToken(new JwtHeader(signingCredentials), claims);
+
+                string token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+                _logger.LogInformation("Add to Google Wallet link generated");
+                _logger.LogInformation($"https://pay.google.com/gp/v/save/{token}");
+
+                return ActionResult<string>.SuccessResult($"https://pay.google.com/gp/v/save/{token}");
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return ActionResult<string>.FailureResult("Failed to generate JWT", new List<string> { ex.Message });
+            }
+        }
 
         // Support methods
         private async Task<bool> ClassExists(string classId)
@@ -315,12 +378,10 @@ namespace WalliCardsNet.API.Services
                     JsonElement rootElement = jsonResponse.RootElement;
                     if (!rootElement.TryGetProperty("error", out JsonElement errorElement))
                     {
-                        _logger.LogInformation($"Class {classId} already exists!");
                         return true;
                     }
                     else if (errorElement.GetProperty("code").GetInt32() != 404)
                     {
-                        _logger.LogError(rootElement.ToString());
                         return true;
                     }
                 }
@@ -342,12 +403,10 @@ namespace WalliCardsNet.API.Services
                     JsonElement rootElement = jsonResponse.RootElement;
                     if (!rootElement.TryGetProperty("error", out JsonElement errorElement))
                     {
-                        _logger.LogInformation($"Object {objectId} already exists!");
                         return true;
                     }
                     else if (errorElement.GetProperty("code").GetInt32() != 404)
                     {
-                        _logger.LogError(rootElement.ToString());
                         return true;
                     }
                 }
