@@ -26,8 +26,12 @@
                         <option value="@profile.Id">Profile @i @(profile.IsActive ? "(Active)" : "")</option> 
                         i++;
                     }
+                    @if (SelectedBusinessProfileId == Guid.Empty)
+                    {
+                    <option value="@Guid.Empty">New profile</option>
+                    }
                 </InputSelect>
-                @if (SelectedBusinessProfile.IsActive == false)
+                @if (SelectedBusinessProfileId != Guid.Empty && !SelectedBusinessProfile.IsActive)
                 {
                     <button @onclick="SetActiveProfile" class="btn btn-primary">Set as active profile</button>
                 }
@@ -45,14 +49,28 @@
     {
         <GooglePassDesigner BusinessProfile="@BusinessProfile"
                             BusinessName="@Business.Name"></GooglePassDesigner>
-        <button @onclick="Create">Create</button>
+        @if (SelectedBusinessProfileId == Guid.Empty)
+        {
+            <button @onclick="Create">Create</button>
+        }
+        else
+        {
+            <button @onclick="Update">Update</button>
+        }
     }
 
     @if (CurrentView == "join" && string.IsNullOrEmpty(Message))
     {
         <JoinFormDesigner Token="@Token"
                           BusinessProfile="@BusinessProfile"></JoinFormDesigner>
-        <button @onclick="Create">Create</button>
+        @if (SelectedBusinessProfileId == Guid.Empty)
+        {
+            <button @onclick="Create">Create</button>
+        }
+        else
+        {
+            <button @onclick="Update">Update</button>
+        }
     }
 
     else if (CurrentView == "old")
@@ -78,7 +96,6 @@
 
     public Guid SelectedBusinessProfileId { get; set; }
     public BusinessProfileResponseDTO SelectedBusinessProfile => BusinessProfiles.FirstOrDefault(profile => profile.Id == SelectedBusinessProfileId);
-
 
     public string Message { get; set; } = "";
 
@@ -115,6 +132,15 @@
         }
     }
 
+    public async Task Update()
+    {
+        var response = await WalliCardsApiService.PutAsync<BusinessProfileRequestDTO>("businessprofile", BusinessProfile);
+        if (response.IsSuccess)
+        {
+            Message = string.IsNullOrEmpty(response.Message) ? "Successfully added business profile." : response.Message;
+        }
+    }
+
     private void OnBusinessProfileChange()
     {
         BusinessProfile = BusinessProfilesService.MapResponseDTOToRequestDTO(BusinessProfiles.FirstOrDefault(x => x.Id == SelectedBusinessProfileId));
@@ -124,6 +150,7 @@
     private void NewProfile()
     {
         BusinessProfile = new BusinessProfileRequestDTO();
+        SelectedBusinessProfileId = Guid.Empty;
         StateHasChanged();
     }
 

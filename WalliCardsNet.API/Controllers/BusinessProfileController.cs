@@ -167,22 +167,21 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAsync(CardTemplate cardTemplate)
+        public async Task<IActionResult> UpdateAsync(BusinessProfileRequestDTO businessProfileRequest)
         {
-            if (!ModelState.IsValid)
+            var businessIdClaim = User.FindFirst("business-id");
+            if (businessIdClaim == null)
             {
-                return BadRequest(ModelState);
-            }
+                return Unauthorized();
+            };
 
-            try
+            var businessId = new Guid(businessIdClaim.Value);
+            if (businessProfileRequest != null)
             {
-                await _cardTemplateRepo.UpdateAsync(cardTemplate);
-                return Ok();
+                await _businessProfileRepo.UpdateAsync(businessProfileRequest, businessId);
+                return Ok(businessProfileRequest);
             }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return BadRequest();
         }
 
         [HttpPut("set-active/{id}")]

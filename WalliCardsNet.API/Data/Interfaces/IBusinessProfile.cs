@@ -1,4 +1,5 @@
 ﻿using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary.BusinessProfile;
 
 namespace WalliCardsNet.API.Data.Interfaces
 {
@@ -13,7 +14,7 @@ namespace WalliCardsNet.API.Data.Interfaces
         public Task<BusinessProfile> GetByBusinessIdAsync(Guid businessId);
         public Task RemoveAsync(int id);
 
-        public Task UpdateAsync(BusinessProfile businessProfile);
+        public Task UpdateAsync(BusinessProfileRequestDTO businessProfile, Guid businessId);
         public Task SetActiveAsync(Guid id);
     }
 }

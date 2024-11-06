@@ -1,16 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.API.Services;
+using WalliCardsNet.ClassLibrary.BusinessProfile;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
     public class BusinessProfileRepository : IBusinessProfile
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IBusinessProfilesService _businessProfilesService;
 
-        public BusinessProfileRepository(ApplicationDbContext applicationDbContext)
+        public BusinessProfileRepository(ApplicationDbContext applicationDbContext, IBusinessProfilesService businessProfilesService)
         {
             _applicationDbContext = applicationDbContext;
+            _businessProfilesService = businessProfilesService;
         }
         public async Task AddAsync(BusinessProfile businessProfile)
         {
@@ -58,9 +62,35 @@ namespace WalliCardsNet.API.Data.Repositories
             throw new NotImplementedException("CardTemplate/RemoveAsync method not yet implemented");
         }
 
-        public Task UpdateAsync(BusinessProfile businessProfile)
+        public async Task UpdateAsync(BusinessProfileRequestDTO businessProfile, Guid businessId)
         {
-            throw new NotImplementedException("CardTemplate/UpdateAsync method not yet implemented");
+            var existingProfile = await _applicationDbContext.Profiles
+                .Include (x => x.GoogleTemplate)
+                .Include (x => x.JoinForm)
+                .FirstOrDefaultAsync(x => x.Id == businessProfile.Id);
+
+            if (existingProfile != null)
+            {
+                if (existingProfile.GoogleTemplate != null)
+                {
+                    existingProfile.GoogleTemplate.CardTitle = businessProfile.GooglePassTemplate.CardTitle;
+                    existingProfile.GoogleTemplate.Header = businessProfile.GooglePassTemplate.Header;
+                    existingProfile.GoogleTemplate.WideLogoUri = businessProfile.GooglePassTemplate.WideLogoUrl;
+                    existingProfile.GoogleTemplate.HexBackgroundColor = businessProfile.GooglePassTemplate.HexBackgroundColor;
+                    existingProfile.GoogleTemplate.LogoUri = businessProfile.GooglePassTemplate.LogoUrl;
+                    existingProfile.GoogleTemplate.HeroImageUri = businessProfile.GooglePassTemplate.HeroImage;
+                    existingProfile.GoogleTemplate.FieldsJson = businessProfile.GooglePassTemplate.FieldsJson;
+                }
+
+                if (existingProfile.JoinForm != null)
+                {
+                    existingProfile.JoinForm.FieldsJson = businessProfile.JoinFormTemplate.FieldsJson;
+                    existingProfile.JoinForm.CSSOptionsJson = businessProfile.JoinFormTemplate.CSSOptionsJson;
+                }
+
+                _applicationDbContext.Profiles.Update(existingProfile);
+                await _applicationDbContext.SaveChangesAsync();
+            }
         }
 
         public async Task SetActiveAsync(Guid id)
