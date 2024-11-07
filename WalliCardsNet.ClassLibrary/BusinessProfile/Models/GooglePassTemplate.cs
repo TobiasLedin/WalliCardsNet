@@ -1,21 +1,21 @@
-﻿namespace WalliCardsNet.ClassLibrary.BusinessProfile.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WalliCardsNet.ClassLibrary.BusinessProfile.Models
 {
     public class GooglePassTemplate
     {
+        [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid BusinessProfileId { get; set; }
-        public string GoogleId { get; set; }
-        public string IssuerId { get; set; }
-        public string ClassId { get; set; }
-        public string ObjectId { get; set; }
+        public string? FieldsJson { get; set; } // Used by Generic class + Generic object
 
-        // Addition required props...
-        public string CardTitle { get; set; } // Added
-        public string Header { get; set; } // Added
-        public string HexBackgroundColor { get; set; }
+
+        // Generic object required props
+        public string CardTitle { get; set; } = "Your cardtitle";
+        public string Header { get; set; } = "Your header";
+        public string? HexBackgroundColor { get; set; }
         public string? LogoUri { get; set; }
-        public string? WideLogoUri { get; set; } // Set optional
+        public string? WideLogoUri { get; set; }
         public string? HeroImageUri { get; set; }
-        public string FieldsJson { get; set; }
     }
 }
