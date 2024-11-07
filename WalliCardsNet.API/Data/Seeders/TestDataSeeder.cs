@@ -55,7 +55,6 @@ namespace WalliCardsNet.API.Data.Seeders
                     new Customer()
                     {
                         BusinessId = business.Id,
-                        Business = business,
                         CustomerDetails = new Dictionary<string, string>
                         {
                             { "Email", "john@mail.com" },
@@ -66,7 +65,6 @@ namespace WalliCardsNet.API.Data.Seeders
                     new Customer()
                     {
                         BusinessId = business.Id,
-                        Business = business,
                         CustomerDetails = new Dictionary<string, string>
                         {
                             { "Email", "sven@mail.com" },
@@ -77,7 +75,6 @@ namespace WalliCardsNet.API.Data.Seeders
                     new Customer()
                     {
                         BusinessId = business.Id,
-                        Business = business,
                         CustomerDetails = new Dictionary<string, string>
                         {
                             { "Email", "lars@mail.com" },
