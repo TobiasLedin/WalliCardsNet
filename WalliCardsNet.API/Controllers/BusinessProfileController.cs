@@ -184,6 +184,7 @@ namespace WalliCardsNet.API.Controllers
             return BadRequest();
         }
 
+        // TODO: Authorization => Manager only?
         [HttpPut("set-active/{id}")]
         public async Task<IActionResult> SetActiveBusinessProfile(Guid id)
         {
@@ -192,6 +193,9 @@ namespace WalliCardsNet.API.Controllers
             {
                 return NotFound();
             }
+
+            // Trigger GenericClass creation/update (GoogleWallet API) + trigger update of related GenericObjects
+
             await _businessProfileRepo.SetActiveAsync(id);
             return Ok();
         }
