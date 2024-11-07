@@ -1,4 +1,4 @@
-﻿
+﻿using WalliCardsNet.ClassLibrary.BusinessProfile.Models;
 using Google.Apis.Walletobjects.v1.Data;
 using System.Text.Json;
 using WalliCardsNet.API.Models;

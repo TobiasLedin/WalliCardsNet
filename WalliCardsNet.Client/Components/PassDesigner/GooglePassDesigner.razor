@@ -1,5 +1,6 @@
 ﻿@using System.Text.Json
 @using WalliCardsNet.ClassLibrary.BusinessProfile
+@using BlazorBootstrap
 
 <style>
     .pass-preview {
@@ -59,24 +60,37 @@
             </div>
             <div>
                 <div>
-                    <button @onclick='() => SetLogoType("small")' class="btn btn-primary">Small logo</button>
-                    <button @onclick='() => SetLogoType("wide")' class="btn btn-primary">Wide logo</button>
+@*                     <button @onclick='() => SetLogoType("small")' class="btn btn-primary">Small logo</button>
+                    <button @onclick='() => SetLogoType("wide")' class="btn btn-primary">Wide logo</button> *@
+                    <div>
+                        <Switch @bind-Value="UseWideLogo" @bind-Value:after="() => SetLogoType(UseWideLogo)"></Switch>
+                        @if (UseWideLogo)
+                        {
+                            <p>Wide Logo</p>
+                        }
+                        else
+                        {
+                            <p>Small Logo</p>
+                        }
+                    </div>
                 </div>
                 <div>
-                    @if (LogoType == "small")
+                    @if (!UseWideLogo)
                     {
                         <label>Logo Url:</label>
                         <InputText @bind-Value="BusinessProfile.GooglePassTemplate.LogoUrl"></InputText>
                         <label>Preview</label>
                         <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
                     }
-                    @if (LogoType == "wide")
+                    @if (UseWideLogo)
                     {
                         <label>Wide Logo Url:</label>
                         <InputText @bind-Value="BusinessProfile.GooglePassTemplate.WideLogoUrl"></InputText>
                         <label>Preview</label>
                         <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>    
                     }
+                    <div>
+                    </div>
                 </div>
 
             </div>
@@ -124,7 +138,7 @@
             <h4>Preview</h4>
             <div class="pass-preview" style="background-color: @BusinessProfile.GooglePassTemplate.HexBackgroundColor">
                 <div class="pass-header" style="background-color: @BusinessProfile.GooglePassTemplate.HexBackgroundColor">
-                    @if (LogoType == "small")
+                    @if (!UseWideLogo)
                     {
                         @if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.LogoUrl))
                         {
@@ -136,11 +150,11 @@
                         }
                         @BusinessProfile.GooglePassTemplate.CardTitle
                     }
-                    @if (LogoType == "wide")
+                    @if (UseWideLogo)
                     {
-                        @if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.LogoUrl))
+                        @if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.WideLogoUrl))
                         {
-                            <img style="max-height:80px; width:100%; object-fit:cover" src="@BusinessProfile.GooglePassTemplate.HeroImage" />
+                            <img style="max-height:80px; width:100%; object-fit:cover" src="@BusinessProfile.GooglePassTemplate.WideLogoUrl" />
                         }
                         @if (PreviewLogo && string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.WideLogoUrl))
                         {
@@ -199,6 +213,8 @@
     public string Message { get; set; } = "";
 
 
+    //Swtich test
+    public bool UseWideLogo { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -280,12 +296,35 @@
         return serializedFields == BusinessProfile.GooglePassTemplate.FieldsJson;
     }
 
-    private void SetLogoType(string logoType)
+    // private void SetLogoType(string logoType)
+    // {
+    //     LogoType = logoType;
+    //     switch (logoType)
+    //     {
+    //         case "small":
+    //             if (!string.IsNullOrEmpty(LastCardTitle))
+    //             {
+    //                 BusinessProfile.GooglePassTemplate.CardTitle = LastCardTitle;
+    //                 LastCardTitle = "";
+    //             }
+    //             break;
+
+    //         case "wide":
+    //             LastCardTitle = BusinessProfile.GooglePassTemplate.CardTitle;
+    //             BusinessProfile.GooglePassTemplate.CardTitle = ""; 
+    //             break;
+
+    //         default:
+    //             break;
+    //     }
+    //     StateHasChanged();
+    // }
+
+    private void SetLogoType(bool UseWideLogo)
     {
-        LogoType = logoType;
-        switch (logoType)
+        switch (UseWideLogo)
         {
-            case "small":
+            case false:
                 if (!string.IsNullOrEmpty(LastCardTitle))
                 {
                     BusinessProfile.GooglePassTemplate.CardTitle = LastCardTitle;
@@ -293,9 +332,9 @@
                 }
                 break;
 
-            case "wide":
+            case true:
                 LastCardTitle = BusinessProfile.GooglePassTemplate.CardTitle;
-                BusinessProfile.GooglePassTemplate.CardTitle = ""; 
+                BusinessProfile.GooglePassTemplate.CardTitle = "";
                 break;
 
             default:
