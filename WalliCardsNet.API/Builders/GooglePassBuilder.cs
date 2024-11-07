@@ -9,14 +9,88 @@ namespace WalliCardsNet.API.Builders
     {
         private readonly GenericClass _genericClass;
         private readonly GenericObject _genericObject;
+        private readonly string _issuerId;
 
         public GooglePassBuilder()
         {
             _genericClass = new GenericClass();
             _genericObject = new GenericObject();
+            _issuerId = Environment.GetEnvironmentVariable("GOOGLE-WALLET-ISSUER-ID") ?? throw new NullReferenceException("Not able to load IssuerId");
+
         }
 
-        #region GenericObject related code
+        #region Generic Class related methods
+
+        public GooglePassBuilder ClassWithBasicInfo(Guid businessProfileId)
+        {
+            _genericClass.Id = $"{_issuerId}.{businessProfileId}";
+            _genericClass.CallbackOptions = new CallbackOptions
+            {
+                Url = "https://1nfpss3f-7204.euw.devtunnels.ms/api/google-callback" // TODO: Dev-tunnel adress reference
+            };
+
+            return this;
+        }
+
+        public GooglePassBuilder WithLayoutDetails(string fieldJson)
+        {
+            try
+            {
+                var rows = JsonSerializer.Deserialize<List<List<string>>>(fieldJson);
+
+                if (rows == null || !rows.Any())
+                {
+                    throw new ArgumentException("Invalid or empty field configuration");
+                }
+
+                var cardRowTemplateInfos = new List<CardRowTemplateInfo>();
+
+                var firstRowFields = rows[0];
+                var firstRowTemplateInfo = CreateCardRowTemplateInfo(firstRowFields);
+                cardRowTemplateInfos.Add(firstRowTemplateInfo);
+
+                if (rows.Count > 1)
+                {
+                    var secondRowFields = rows[1];
+                    var secondRowTemplateInfo = CreateCardRowTemplateInfo(secondRowFields);
+                    cardRowTemplateInfos.Add(secondRowTemplateInfo);
+                }
+
+                _genericClass.ClassTemplateInfo = new ClassTemplateInfo
+                {
+                    CardTemplateOverride = new CardTemplateOverride
+                    {
+                        CardRowTemplateInfos = cardRowTemplateInfos
+                    }
+                };
+
+                return this;
+            }
+            catch (JsonException ex)
+            {
+                throw new ArgumentException("Failed to parse JSON", ex);
+            }
+        }
+
+        public GenericClass BuildClass()
+        {
+            return _genericClass;
+        }
+
+        public GenericClass BuildClassFromTemplate(BusinessProfile profile)
+        {
+            var builder = new GooglePassBuilder();
+
+            return builder
+                .ClassWithBasicInfo(profile.Id)
+                .WithLayoutDetails(profile.GoogleTemplate.FieldsJson)
+                //.WithMessages(template.Messages)
+                .BuildClass();
+        }
+
+        #endregion
+
+        #region Generic Object related methods
 
         public GooglePassBuilder ObjectWithBasicInfo(string objectId, string classId, string cardTitle, string header, string hexBackgroundColor)
         {
@@ -155,76 +229,7 @@ namespace WalliCardsNet.API.Builders
 
         #endregion
 
-        #region Generic Class related code
-
-        public GooglePassBuilder ClassWithBasicInfo(GooglePassTemplate template)
-        {
-            _genericClass.Id = "issuerId + businessId";
-            _genericClass.CallbackOptions = new CallbackOptions
-            {
-                Url = "https://1nfpss3f-7204.euw.devtunnels.ms/api/google-callback" // TODO: Dev-tunnel adress reference
-            };
-
-            return this;
-        }
-
-        public GooglePassBuilder WithLayoutDetails(string fieldJson)
-        {
-            try
-            {
-                var rows = JsonSerializer.Deserialize<List<List<string>>>(fieldJson);
-
-                if (rows == null || !rows.Any())
-                {
-                    throw new ArgumentException("Invalid or empty field configuration");
-                }
-
-                var cardRowTemplateInfos = new List<CardRowTemplateInfo>();
-
-                var firstRowFields = rows[0];
-                var firstRowTemplateInfo = CreateCardRowTemplateInfo(firstRowFields);
-                cardRowTemplateInfos.Add(firstRowTemplateInfo);
-
-                if (rows.Count > 1)
-                {
-                    var secondRowFields = rows[1];
-                    var secondRowTemplateInfo = CreateCardRowTemplateInfo(secondRowFields);
-                    cardRowTemplateInfos.Add(secondRowTemplateInfo);
-                }
-
-                _genericClass.ClassTemplateInfo = new ClassTemplateInfo
-                {
-                    CardTemplateOverride = new CardTemplateOverride
-                    {
-                        CardRowTemplateInfos = cardRowTemplateInfos
-                    }
-                };
-
-                return this;
-            }
-            catch (JsonException ex)
-            {
-                throw new ArgumentException("Failed to parse JSON", ex);
-            }
-        }
-
-        public GenericClass BuildClass()
-        {
-            return _genericClass;
-        }
-
-        public GenericClass BuildClassFromTemplate(GooglePassTemplate template)
-        {
-            var builder = new GooglePassBuilder();
-
-            return builder
-                .ClassWithBasicInfo(template)
-                .WithLayoutDetails(template.FieldsJson)
-                //.WithMessages(template.Messages)
-                .BuildClass();
-        }
-
-        #endregion
+        
 
         #region Support methods and classes
 
