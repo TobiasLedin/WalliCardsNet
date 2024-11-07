@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using Stripe;
-using System.Reflection.Emit;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data
 {
-    // EF setup to use int Id's for ApplicationUser and IdentityRole
+    
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
@@ -21,11 +18,12 @@ namespace WalliCardsNet.API.Data
         public DbSet<BusinessProfile> Profiles { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<CardTemplate> CardTemplates { get; set; } //TODO: Obsolete
-        public DbSet<Device> Devices { get; set; }
         public DbSet<ActivationToken> ActivationTokens { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
-        public DbSet<GooglePassTemplate> GooglePassTemplates { get; set; }
         public DbSet<JoinForm> JoinForms { get; set; }
+        public DbSet<GooglePassTemplate> GooglePassTemplates { get; set; }
+        public DbSet<GooglePass> GooglePasses { get; set; }
+
 
         // DB context configuration
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -64,6 +62,7 @@ namespace WalliCardsNet.API.Data
                 .Property(p => p.SubscriptionStatus)
                 .HasConversion<string>();
 
+            // Model relationsships
             builder.Entity<Business>()
                 .HasMany(b => b.Customers)
                 .WithOne()

@@ -3,19 +3,26 @@ using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
-    public class DeviceRepository : IDevice
+    public class GooglePassRepository : IGooglePass
     {
-        public Task AddAsync(Device device)
+        private readonly ApplicationDbContext _applicationDbContext;
+
+        public GooglePassRepository(ApplicationDbContext applicationDbContext)
+        {
+            _applicationDbContext = applicationDbContext;
+        }
+
+        public Task AddAsync(GooglePass pass)
         {
             throw new NotImplementedException("Device/AddAsync method not yet implemented");
         }
 
-        public async Task<List<Device>> GetAllAsync()
+        public async Task<List<GooglePass>> GetAllAsync()
         {
             throw new NotImplementedException("Device/GetAllAsync method not yet implemented");
         }
 
-        public Task<Device> GetByIdAsync(int id)
+        public Task<GooglePass> GetByIdAsync(int objectId)
         {
             throw new NotImplementedException("Device/GetByIdAsync method not yet implemented");
         }
@@ -25,7 +32,7 @@ namespace WalliCardsNet.API.Data.Repositories
             throw new NotImplementedException("Device/RemoveAsync method not yet implemented");
         }
 
-        public Task UpdateAsync(Device device)
+        public Task UpdateAsync(GooglePass pass)
         {
             throw new NotImplementedException("Device/UpdateAsync method not yet implemented");
         }

@@ -4,12 +4,12 @@ using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Controllers
 {
-    [Route("api/device")]
+    [Route("api/googlepass")]
     [ApiController]
-    public class DeviceController : ControllerBase
+    public class GooglePassController : ControllerBase
     {
-        private readonly IDevice _deviceRepo;
-        public DeviceController(IDevice deviceRepo)
+        private readonly IGooglePass _deviceRepo;
+        public GooglePassController(IGooglePass deviceRepo)
         {
             _deviceRepo = deviceRepo;
         }
@@ -24,7 +24,7 @@ namespace WalliCardsNet.API.Controllers
             }
             else
             {
-                return Ok(new List<Device>());
+                return Ok(new List<GooglePass>());
             }
         }
 
@@ -44,7 +44,7 @@ namespace WalliCardsNet.API.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAsync(Device device)
+        public async Task<IActionResult> AddAsync(GooglePass device)
         {
             if (!ModelState.IsValid)
             {
@@ -63,7 +63,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAsync(Device device)
+        public async Task<IActionResult> UpdateAsync(GooglePass device)
         {
             if (!ModelState.IsValid)
             {
