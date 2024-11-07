@@ -75,7 +75,7 @@ namespace WalliCardsNet.API.Controllers
                 var customer = new Customer
                 {
                     BusinessId = customerData.BusinessId,
-                    CustomerDetails = customerData.CustomerDetails
+                    CustomerDetails = customerData.CustomerDetails ?? new Dictionary<string, string>()
                 };
                 await _customerRepo.AddAsync(customer);
                 return Created($"api/Customer/{customer.Id}", new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
@@ -92,7 +92,7 @@ namespace WalliCardsNet.API.Controllers
         {
             try
             {
-                var business = await _businessRepo.GetByTokenAsync(joinFormModel.BusinessToken);
+                var business = await _businessRepo.GetByTokenAsync(joinFormModel.BusinessToken); //TODO: Not used. Needed?
                 var customer = new Customer
                 {
                     BusinessId = business.Id,
