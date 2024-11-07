@@ -19,16 +19,10 @@ namespace WalliCardsNet.API.Data.Repositories
         {
             if (customer != null)
             {
-                var business = await _applicationDbContext.Businesses.FindAsync(customer.BusinessId);
-                if (business != null)
-                {
-                    customer.Business = business;
+                customer.CustomerDetailsJson = await EncryptionHelper.EncryptAsync(JsonSerializer.Serialize(customer.CustomerDetails));
 
-                    customer.CustomerDetailsJson = await EncryptionHelper.EncryptAsync(JsonSerializer.Serialize(customer.CustomerDetails));
-
-                    await _applicationDbContext.Customers.AddAsync(customer);
-                    await _applicationDbContext.SaveChangesAsync();
-                }
+                await _applicationDbContext.Customers.AddAsync(customer);
+                await _applicationDbContext.SaveChangesAsync();
             }
         }
 
@@ -50,7 +44,7 @@ namespace WalliCardsNet.API.Data.Repositories
             return new List<Customer>();
         }
 
-        public async Task<Customer> GetByIdAsync(Guid id)
+        public async Task<Customer?> GetByIdAsync(Guid id)
         {
             var customer = await _applicationDbContext.Customers.FindAsync(id);
             if (customer != null)
