@@ -2,6 +2,7 @@
 using Google.Apis.Walletobjects.v1.Data;
 using System.Text.Json;
 using WalliCardsNet.API.Models;
+using System.Reflection.Metadata.Ecma335;
 
 namespace WalliCardsNet.API.Builders
 {
@@ -92,16 +93,20 @@ namespace WalliCardsNet.API.Builders
 
         #region Generic Object related methods
 
-        public GooglePassBuilder ObjectWithBasicInfo(string objectId, string classId, string cardTitle, string header, string hexBackgroundColor)
+        public GooglePassBuilder ObjectWithBasicInfo(Guid businessProfileId, Guid customerId, string? hexBackgroundColor, string cardTitle, string header)
         {
             _genericObject.GenericType = "GENERIC_OTHER";
-            _genericObject.Id = objectId;
-            _genericObject.ClassId = classId;
-            //_genericObject.State = state;
-            _genericObject.HexBackgroundColor = hexBackgroundColor;
+            _genericObject.Id = $"{_issuerId}.{customerId}";
+            _genericObject.ClassId = $"{_issuerId}.{businessProfileId}";
+
             _genericObject.CardTitle = CreateLocalizedString(cardTitle);
             _genericObject.Header = CreateLocalizedString(header);
-            
+
+            if (hexBackgroundColor != null)
+            {
+                _genericObject.HexBackgroundColor = hexBackgroundColor;
+            }
+
             return this;
         }
 
@@ -213,14 +218,14 @@ namespace WalliCardsNet.API.Builders
         {
             return _genericObject;
         }
-        public GenericObject BuildObjectFromTemplate(GooglePassTemplate template, Customer customer)
+        public GenericObject BuildObjectFromTemplate(BusinessProfile profile, Customer customer)
         {
             var builder = new GooglePassBuilder();
 
             return builder
-                .ObjectWithBasicInfo(template.ObjectId, template.ClassId, template.CardTitle, template.Header, template.HexBackgroundColor)
-                .WithImageInfo(template.LogoUri, template.WideLogoUri, template.HeroImageUri)
-                .WithTextModulesData(template.FieldsJson, customer.CustomerDetails)
+                .ObjectWithBasicInfo(profile.Id, customer.Id, profile.GoogleTemplate!.HexBackgroundColor, profile.GoogleTemplate!.CardTitle, profile.GoogleTemplate!.Header)
+                .WithImageInfo(profile.GoogleTemplate.LogoUri, profile.GoogleTemplate.WideLogoUri, profile.GoogleTemplate.HeroImageUri)
+                .WithTextModulesData(profile.GoogleTemplate.FieldsJson, customer.CustomerDetails)
                 //.WithLinksModuleData(template.LinksModuleData)
                 //.WithImageModulesData(template.ImageNodulesData)
                 //.WithMessages(template.Messages)
