@@ -104,14 +104,14 @@ namespace WalliCardsNet.API.Services
         /// <param name="template"></param>
         /// <param name="classSuffix"></param>
         /// <returns></returns>
-        public async Task<ActionResult<GenericClass>> CreateGenericClassAsync(GooglePassTemplate template, string classSuffix)
+        public async Task<ActionResult<GenericClass>> CreateGenericClassAsync(BusinessProfile profile)
         {
             if (_walletService == null)
             {
                 GoogleWalletApiAuthentication();
             }
 
-            string classId = $"{_issuerId}.{classSuffix}";
+            string classId = $"{_issuerId}.{profile.Id}";
             GenericClass? genericClass;
 
             if (await ClassExists(classId))
@@ -122,7 +122,7 @@ namespace WalliCardsNet.API.Services
             try
             {
                 using (Stream responseStream = await _walletService!.Genericclass
-                    .Insert(new GooglePassBuilder().BuildClassFromTemplate(template))
+                    .Insert(new GooglePassBuilder().BuildClassFromTemplate(profile))
                     .ExecuteAsStreamAsync())
 
                 using (StreamReader responseReader = new StreamReader(responseStream))
@@ -157,14 +157,14 @@ namespace WalliCardsNet.API.Services
         /// <param name="customer"></param>
         /// <param name="objectSuffix"></param>
         /// <returns></returns>
-        public async Task<ActionResult<GenericObject>> CreateGenericObjectAsync(GooglePassTemplate template, Customer customer, string objectSuffix) // ClassSuffix: BusinessId?, ObjectSuffix: CustomerId?
+        public async Task<ActionResult<GenericObject>> CreateGenericObjectAsync(BusinessProfile profile, Customer customer)
         {
             if (_walletService == null)
             {
                 GoogleWalletApiAuthentication();
             }
 
-            string objectId = $"{_issuerId}.{objectSuffix}";
+            string objectId = $"{_issuerId}.{customer.Id}";
             GenericObject? genericObject;
 
             if(await ObjectExists(objectId))
@@ -175,7 +175,7 @@ namespace WalliCardsNet.API.Services
             try
             {
                 using (Stream responseStream = await _walletService!.Genericobject
-                    .Insert(new GooglePassBuilder().BuildObjectFromTemplate(template, customer))
+                    .Insert(new GooglePassBuilder().BuildObjectFromTemplate(profile, customer))
                     .ExecuteAsStreamAsync())
 
                 using (StreamReader responseReader = new StreamReader(responseStream))
@@ -210,14 +210,14 @@ namespace WalliCardsNet.API.Services
         /// <param name="customer"></param>
         /// <param name="objectSuffix"></param>
         /// <returns></returns>
-        public async Task<ActionResult<GenericObject>> UpdateGenericObjectAsync(GooglePassTemplate template, Customer customer, string objectSuffix)
+        public async Task<ActionResult<GenericObject>> UpdateGenericObjectAsync(BusinessProfile profile, Customer customer)
         {
             if (_walletService == null)
             {
                 GoogleWalletApiAuthentication();
             }
 
-            string objectId = $"{_issuerId}.{objectSuffix}";
+            string objectId = $"{_issuerId}.{customer.Id}";
             GenericObject? genericObject;
 
             if (!await ObjectExists(objectId))
@@ -228,7 +228,7 @@ namespace WalliCardsNet.API.Services
             try
             {
                 using (Stream responseStream = await _walletService!.Genericobject
-                    .Update(new GooglePassBuilder().BuildObjectFromTemplate(template, customer), objectId)
+                    .Update(new GooglePassBuilder().BuildObjectFromTemplate(profile, customer), objectId)
                     .ExecuteAsStreamAsync())
 
                 using (StreamReader responseReader = new StreamReader(responseStream))
@@ -262,25 +262,25 @@ namespace WalliCardsNet.API.Services
         /// <param name="template"></param>
         /// <param name="classSuffix"></param>
         /// <returns></returns>
-        public async Task<ActionResult<GenericClass>> UpdateGenericClassAsync(GooglePassTemplate template, string classSuffix)
+        public async Task<ActionResult<GenericClass>> UpdateGenericClassAsync(BusinessProfile profile)
         {
             if (_walletService == null)
             {
                 GoogleWalletApiAuthentication();
             }
 
-            string objectId = $"{_issuerId}.{classSuffix}";
+            string classId = $"{_issuerId}.{profile.Id}";
             GenericClass? genericClass;
 
-            if (!await ObjectExists(objectId))
+            if (!await ClassExists(classId))
             {
-                return ActionResult<GenericClass>.FailureResult($"No GenericObject with id: {objectId} exists");
+                return ActionResult<GenericClass>.FailureResult($"No GenericClass with id: {classId} exists");
             }
 
             try
             {
                 using (Stream responseStream = await _walletService!.Genericclass
-                    .Update(new GooglePassBuilder().BuildClassFromTemplate(template), objectId)
+                    .Update(new GooglePassBuilder().BuildClassFromTemplate(profile), classId)
                     .ExecuteAsStreamAsync())
 
                 using (StreamReader responseReader = new StreamReader(responseStream))
@@ -295,7 +295,7 @@ namespace WalliCardsNet.API.Services
                             return ActionResult<GenericClass>.FailureResult("Failed to deserialize response");
                         }
 
-                        _logger.LogInformation($"Object {objectId} successfully updated");
+                        _logger.LogInformation($"Object {classId} successfully updated");
 
                         return ActionResult<GenericClass>.SuccessResult(genericClass);
                     }

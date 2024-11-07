@@ -11,9 +11,9 @@ namespace WalliCardsNet.API.Services
         (string googleUserId, string googleEmail) DecodeIdToken(string idToken);
         Task<bool> LinkGoogleAccountAsync(ApplicationUser user, string googleUserId);
 
-        Task<ActionResult<GenericClass>> CreateGenericClassAsync(GooglePassTemplate template, string classSuffix);
-        Task<ActionResult<GenericObject>> CreateGenericObjectAsync(GooglePassTemplate template, Customer customer, string objectSuffix);
-        Task<ActionResult<GenericObject>> UpdateGenericObjectAsync(GooglePassTemplate template, Customer customer, string objectSuffix);
-        Task<ActionResult<GenericClass>> UpdateGenericClassAsync(GooglePassTemplate template, string classSuffix);
+        Task<ActionResult<GenericClass>> CreateGenericClassAsync(BusinessProfile profile);
+        Task<ActionResult<GenericObject>> CreateGenericObjectAsync(BusinessProfile profile, Customer customer);
+        Task<ActionResult<GenericObject>> UpdateGenericObjectAsync(BusinessProfile profile, Customer customer);
+        Task<ActionResult<GenericClass>> UpdateGenericClassAsync(BusinessProfile profile);
     }
 }
