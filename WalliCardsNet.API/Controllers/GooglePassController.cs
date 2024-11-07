@@ -8,16 +8,16 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class GooglePassController : ControllerBase
     {
-        private readonly IGooglePass _deviceRepo;
-        public GooglePassController(IGooglePass deviceRepo)
+        private readonly IGooglePass _googlePassRepository;
+        public GooglePassController(IGooglePass googlePassRepository)
         {
-            _deviceRepo = deviceRepo;
+            _googlePassRepository = googlePassRepository;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var result = await _deviceRepo.GetAllAsync();
+            var result = await _googlePassRepository.GetAllAsync();
             if (result != null && result.Any())
             {
                 return Ok(result);
@@ -31,7 +31,7 @@ namespace WalliCardsNet.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(int id)
         {
-            var result = await _deviceRepo.GetByIdAsync(id);
+            var result = await _googlePassRepository.GetByIdAsync(id);
             if (result != null)
             {
                 return Ok(result);
@@ -44,7 +44,7 @@ namespace WalliCardsNet.API.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAsync(GooglePass device)
+        public async Task<IActionResult> AddAsync(GooglePass pass)
         {
             if (!ModelState.IsValid)
             {
@@ -53,8 +53,8 @@ namespace WalliCardsNet.API.Controllers
 
             try
             {
-                await _deviceRepo.AddAsync(device);
-                return CreatedAtAction(nameof(GetByIdAsync), new { id = device.Id }, device);
+                await _googlePassRepository.AddAsync(pass);
+                return CreatedAtAction(nameof(GetByIdAsync), new { id = pass.ObjectId }, pass);
             }
             catch (Exception ex)
             {
@@ -63,7 +63,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAsync(GooglePass device)
+        public async Task<IActionResult> UpdateAsync(GooglePass pass)
         {
             if (!ModelState.IsValid)
             {
@@ -72,7 +72,7 @@ namespace WalliCardsNet.API.Controllers
 
             try
             {
-                await _deviceRepo.UpdateAsync(device);
+                await _googlePassRepository.UpdateAsync(pass);
                 return Ok();
             }
             catch (Exception ex)
@@ -86,7 +86,7 @@ namespace WalliCardsNet.API.Controllers
         {
             try
             {
-                await _deviceRepo.RemoveAsync(id);
+                await _googlePassRepository.RemoveAsync(id);
                 return NoContent();
             }
             catch (Exception ex)
