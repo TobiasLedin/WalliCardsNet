@@ -53,7 +53,7 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<IBusiness, BusinessRepository>();
             builder.Services.AddTransient<ICardTemplate, CardTemplateRepository>();
             builder.Services.AddTransient<ICustomer, CustomerRepository>();
-            builder.Services.AddTransient<IDevice, DeviceRepository>();
+            builder.Services.AddTransient<IGooglePass, GooglePassRepository>();
             builder.Services.AddTransient<IRefreshToken, RefreshTokenRepository>();
             builder.Services.AddTransient<IActivationToken, ActivationTokenRepository>();
             builder.Services.AddTransient<IApplicationUser, ApplicationUserRepository>();
@@ -67,9 +67,6 @@ namespace WalliCardsNet.API
 
             // Mail service
             builder.Services.AddTransient<IMailService, MailService>();
-
-            //BusinessProfiles service
-            builder.Services.AddTransient<IBusinessProfilesService, BusinessProfilesService>();
 
             // Webhook event processing
             builder.Services.AddHostedService<EventProcessingService>();
