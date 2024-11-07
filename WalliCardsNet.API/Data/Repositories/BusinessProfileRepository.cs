@@ -3,6 +3,8 @@ using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
+using WalliCardsNet.ClassLibrary.BusinessProfile.Models;
+using WalliCardsNet.ClassLibrary.Services;
 
 namespace WalliCardsNet.API.Data.Repositories
 {

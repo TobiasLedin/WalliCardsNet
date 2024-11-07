@@ -8,6 +8,7 @@ using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary.Business;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
+using WalliCardsNet.ClassLibrary.Services;
 using WalliCardsNet.ClassLibrary.Card;
 using WalliCardsNet.ClassLibrary.Customer;
 

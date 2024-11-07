@@ -12,6 +12,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Nodes;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using WalliCardsNet.ClassLibrary.BusinessProfile.Models;
 
 namespace WalliCardsNet.API.Services
 {

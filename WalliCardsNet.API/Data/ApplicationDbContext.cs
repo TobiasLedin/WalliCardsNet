@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using System.Reflection.Emit;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.ClassLibrary.BusinessProfile;
+using WalliCardsNet.ClassLibrary.BusinessProfile.Models;
 
 namespace WalliCardsNet.API.Data
 {
