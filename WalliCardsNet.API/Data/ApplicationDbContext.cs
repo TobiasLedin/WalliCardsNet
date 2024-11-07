@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WalliCardsNet.API.Models;
-using WalliCardsNet.ClassLibrary.BusinessProfile;
 using WalliCardsNet.ClassLibrary.BusinessProfile.Models;
 
 namespace WalliCardsNet.API.Data
@@ -71,9 +70,9 @@ namespace WalliCardsNet.API.Data
                 .HasForeignKey(c => c.BusinessId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<BusinessProfile>()
-                .HasOne<Business>()
-                .WithMany(b => b.Profiles)
+            builder.Entity<Business>()
+                .HasMany<BusinessProfile>()
+                .WithOne()
                 .HasForeignKey(bp => bp.BusinessId)
                 .OnDelete(DeleteBehavior.Cascade);
 
