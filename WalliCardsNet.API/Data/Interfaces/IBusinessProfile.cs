@@ -7,12 +7,12 @@ namespace WalliCardsNet.API.Data.Interfaces
     {
         public Task AddAsync(BusinessProfile businessProfile);
 
-        public Task<List<BusinessProfile>> GetAllAsync(Guid businessId);
+        public Task<List<BusinessProfile>?> GetAllAsync(Guid businessId);
 
-        public Task<BusinessProfile> GetByIdAsync(Guid id);
+        public Task<BusinessProfile?> GetByIdAsync(Guid id);
 
-        public Task<BusinessProfile> GetByBusinessIdAsync(Guid businessId);
-        public Task RemoveAsync(int id);
+        public Task<BusinessProfile?> GetActiveByBusinessIdAsync(Guid businessId);
+        public Task RemoveAsync(Guid id);
 
         public Task UpdateAsync(BusinessProfileRequestDTO businessProfile, Guid businessId);
         public Task SetActiveAsync(Guid id);

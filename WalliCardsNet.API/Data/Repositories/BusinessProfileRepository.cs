@@ -16,6 +16,7 @@ namespace WalliCardsNet.API.Data.Repositories
             _applicationDbContext = applicationDbContext;
             _businessProfilesService = businessProfilesService;
         }
+
         public async Task AddAsync(BusinessProfile businessProfile)
         {
             if (businessProfile != null)
@@ -25,41 +26,40 @@ namespace WalliCardsNet.API.Data.Repositories
             }
         }
 
-        public async Task<List<BusinessProfile>> GetAllAsync(Guid businessId)
+        public async Task<List<BusinessProfile>?> GetAllAsync(Guid businessId)
         {
-            var result = await _applicationDbContext.Profiles
+            return await _applicationDbContext.Profiles
                 .Where(x => x.BusinessId == businessId)
                 .Include(x => x.GoogleTemplate)
                 .Include(x => x.JoinForm)
                 .ToListAsync();
-            if (result != null && result.Count > 0)
-            {
-                return result;
-            }
-            return null;
         }
 
-        public async Task<BusinessProfile> GetByIdAsync(Guid id)
+        public async Task<BusinessProfile?> GetByIdAsync(Guid id)
         {
-            return await _applicationDbContext.Profiles.FirstOrDefaultAsync(x => x.Id == id);
+            return await _applicationDbContext.Profiles
+                .Include(x => x.GoogleTemplate)
+                .Include(x => x.JoinForm)
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<BusinessProfile> GetByBusinessIdAsync(Guid businessId)
+        public async Task<BusinessProfile?> GetActiveByBusinessIdAsync(Guid businessId)
         {
-            var result = await _applicationDbContext.Profiles.FirstOrDefaultAsync(x => x.BusinessId == businessId && x.IsActive == true);
-            if (result != null)
-            {
-                return result;
-            }
-            else
-            {
-                return null;
-            }
+            return await _applicationDbContext.Profiles
+                .Include(x => x.GoogleTemplate)
+                .Include(x => x.JoinForm)
+                .FirstOrDefaultAsync(x => x.BusinessId == businessId && x.IsActive == true);
         }
 
-        public Task RemoveAsync(int id)
+        public async Task RemoveAsync(Guid id)
         {
-            throw new NotImplementedException("CardTemplate/RemoveAsync method not yet implemented");
+            var bp = await _applicationDbContext.Profiles.FindAsync(id);
+
+            if (bp != null)
+            {
+                _applicationDbContext.Profiles.Remove(bp);
+                await _applicationDbContext.SaveChangesAsync();
+            }
         }
 
         public async Task UpdateAsync(BusinessProfileRequestDTO businessProfile, Guid businessId)
