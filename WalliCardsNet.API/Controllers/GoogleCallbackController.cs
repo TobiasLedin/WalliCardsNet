@@ -16,6 +16,12 @@ namespace WalliCardsNet.API.Controllers
             _logger = logger;
         }
 
+
+        /// <summary>
+        /// Handle end-user Add pass / Remove pass. Handles Device creation.
+        /// </summary>
+        /// <param name="callback"></param>
+        /// <returns></returns>
         [HttpPost]
         public IActionResult GoogleWalletCallback([FromBody] GoogleWalletCallback callback)
         {
@@ -44,7 +50,10 @@ namespace WalliCardsNet.API.Controllers
                 {
                     // Handle save event
                     _logger.LogInformation("Processing save event for object {ObjectId}", objectId);
-                    // Add your save logic here
+                   
+                    // Create GooglePass object and store.
+                    // Devices?
+
                 }
                 else if (callback.IsDeleteEvent())
                 {
