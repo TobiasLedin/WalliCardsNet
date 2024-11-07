@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using Stripe;
 using System.Reflection.Emit;
 using WalliCardsNet.API.Models;
 
@@ -62,6 +63,12 @@ namespace WalliCardsNet.API.Data
             builder.Entity<Business>()
                 .Property(p => p.SubscriptionStatus)
                 .HasConversion<string>();
+
+            builder.Entity<Business>()
+                .HasMany(b => b.Customers)
+                .WithOne()
+                .HasForeignKey(c => c.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<BusinessProfile>()
                 .HasOne<Business>()
