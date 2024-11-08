@@ -24,10 +24,12 @@ namespace WalliCardsNet.API.Builders
         public GooglePassBuilder ClassWithBasicInfo(Guid businessProfileId)
         {
             _genericClass.Id = $"{_issuerId}.{businessProfileId}";
+            _genericClass.MultipleDevicesAndHoldersAllowedStatus = "ONE_USER_ALL_DEVICES";
             _genericClass.CallbackOptions = new CallbackOptions
             {
                 Url = "https://1nfpss3f-7204.euw.devtunnels.ms/api/google-callback" // TODO: Dev-tunnel adress reference
             };
+            
 
             return this;
         }
@@ -232,8 +234,6 @@ namespace WalliCardsNet.API.Builders
         }
 
         #endregion
-
-        
 
         #region Support methods and classes
 
