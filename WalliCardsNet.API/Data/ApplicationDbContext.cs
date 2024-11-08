@@ -71,7 +71,7 @@ namespace WalliCardsNet.API.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Business>()
-                .HasMany<BusinessProfile>()
+                .HasMany(b => b.Profiles)
                 .WithOne()
                 .HasForeignKey(bp => bp.BusinessId)
                 .OnDelete(DeleteBehavior.Cascade);

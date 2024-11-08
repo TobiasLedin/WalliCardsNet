@@ -36,17 +36,17 @@ namespace WalliCardsNet.ClassLibrary.Services
         }
         public List<BusinessProfileResponseDTO> MapBusinessProfileListToResponseDTO(List<BusinessProfile.Models.BusinessProfile> businessProfiles)
         {
+            var responseDTOs = new List<BusinessProfileResponseDTO>();
+
             if (businessProfiles != null && businessProfiles.Count > 0)
             {
-                var responseDTOs = new List<BusinessProfileResponseDTO>();
                 foreach (var businessProfile in businessProfiles)
                 {
                     var businessProfileResponseDTO = MapBusinessProfileToResponseDTO(businessProfile);
                     responseDTOs.Add(businessProfileResponseDTO);
                 }
-                return responseDTOs;
             }
-            return null;
+            return responseDTOs;
         }
 
         public BusinessProfile.Models.BusinessProfile MapRequestDTOtoBusinessProfile(BusinessProfileRequestDTO businessProfileRequestDTO, Guid businessId)
