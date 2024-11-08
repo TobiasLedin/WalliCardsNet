@@ -60,6 +60,9 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<IApplicationUser, ApplicationUserRepository>();
             builder.Services.AddTransient<IBusinessProfile, BusinessProfileRepository>();
 
+            //BusinessProfile service
+            builder.Services.AddTransient<IBusinessProfilesService, BusinessProfilesService>();
+
             // Token service
             builder.Services.AddTransient<ITokenService, Services.TokenService>();
 
@@ -76,7 +79,8 @@ namespace WalliCardsNet.API
             // Channel to act as queue for PaymentEvents.
             var paymentEventChannel = Channel.CreateUnbounded<PaymentEvent>();
             builder.Services.AddSingleton(paymentEventChannel);
-
+            //BusinessProfile service
+            builder.Services.AddTransient<IBusinessProfilesService, BusinessProfilesService>();
 
 
             // Identity
