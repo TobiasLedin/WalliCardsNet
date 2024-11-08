@@ -167,6 +167,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = Roles.ManagerOrEmployee)]
         public async Task<IActionResult> RemoveAsync(Guid id)
         {
             try
