@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Forms
+@using System.Text.Json
 @using WalliCardsNet.ClassLibrary.BusinessProfile
 @using WalliCardsNet.ClassLibrary.Card
 @using WalliCardsNet.Client.Components.Business
@@ -17,11 +18,11 @@
             <EditForm Model="Card">
                 <div>
                     <label>Title:</label>
-                    <InputText @bind-Value="Title"></InputText>
+                    <InputText @bind-Value="BusinessProfile.JoinFormTemplate.Title"></InputText>
                 </div>
                 <div>
-                    <Switch @bind-Value="UseWideLogo" @bind-Value:after="() => SetLogoType(UseWideLogo)"></Switch>
-                    @if (UseWideLogo)
+                    <Switch @bind-Value="BusinessProfile.JoinFormTemplate.UseWideLogo" @bind-Value:after="() => SetLogoType(BusinessProfile.JoinFormTemplate.UseWideLogo)"></Switch>
+                    @if (BusinessProfile.JoinFormTemplate.UseWideLogo)
                     {
                         <p>Wide Logo</p>
                     }
@@ -31,21 +32,21 @@
                     }
                 </div>
                 <div>
-                    @if (!UseWideLogo)
+                    @if (!BusinessProfile.JoinFormTemplate.UseWideLogo)
                     {
                         <label>Logo Url:</label>
-                        <InputText @bind-Value="LogoUrl"></InputText>
-                        @if (string.IsNullOrEmpty(LogoUrl))
+                        <InputText @bind-Value="BusinessProfile.JoinFormTemplate.LogoUrl"></InputText>
+                        @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.LogoUrl))
                         {
                             <label>Preview</label>
                             <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
                         }
                     }
-                    @if (UseWideLogo)
+                    @if (BusinessProfile.JoinFormTemplate.UseWideLogo)
                     {
                         <label>Wide Logo Url:</label>
-                        <InputText @bind-Value="WideLogoUrl"></InputText>
-                        @if (string.IsNullOrEmpty(LogoUrl))
+                        <InputText @bind-Value="BusinessProfile.JoinFormTemplate.WideLogoUrl"></InputText>
+                        @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.WideLogoUrl))
                         {
                             <label>Preview</label>
                             <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
@@ -54,8 +55,8 @@
                 </div>
                 <div>
                     <label>Hero Image:</label>
-                    <InputText @bind-Value="HeroImageUrl"></InputText>
-                    @if (string.IsNullOrEmpty(HeroImageUrl))
+                    <InputText @bind-Value="BusinessProfile.JoinFormTemplate.HeroImageUrl"></InputText>
+                    @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.HeroImageUrl))
                     {
                         <label>Preview</label>
                         <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
@@ -63,19 +64,19 @@
                 </div>
                 <div>
                     <label>Background Color</label>
-                    <input type="color" @bind="BackgroundColor" @bind:after="OnFieldChange"/>
+                    <input type="color" @bind="BackgroundColor" @bind:after="UpdateCssOptionsJson"/>
                 </div>
                 <div>
                     <label>Text Color</label>
-                    <input type="color" @bind="TextColor" @bind:after="OnFieldChange"/>
+                    <input type="color" @bind="TextColor" @bind:after="UpdateCssOptionsJson" />
                 </div>
                 <div>
                     <button @onclick="CreateField">Create Field</button>
                     @foreach (var field in Fields)
                     {
                         <div>
-                            <InputText @bind-Value="field.FieldName" placeholder="Field name" />
-                            <InputSelect @bind-Value="field.FieldType">
+                            <InputText @bind-Value="field.FieldName" @bind-Value:after="UpdateFieldsJson" placeholder="Field name" />
+                            <InputSelect @bind-Value="field.FieldType" @bind-Value:after="UpdateFieldsJson">
                                 <option value="text">Text</option>
                                 <option value="email">Email</option>
                                 <option value="number">Number</option>
@@ -83,24 +84,20 @@
                                 <option value="checkbox">Checkbox</option>
                             </InputSelect>
                             <label>Required field</label>
-                            <InputCheckbox @bind-Value="field.IsRequired" />
+                            <InputCheckbox @bind-Value="field.IsRequired" @bind-Value:after="UpdateFieldsJson"/>
                             <button type="button" @onclick="() => DeleteField(field)">Delete Field</button>
                         </div>
                     }
                 </div>
             </EditForm>
         </div>
-        <JoinForm Title="@Title"
-                    BusinessName="@BusinessName"
+        <JoinForm   BusinessName="@BusinessName"
                     BackgroundColor="@BackgroundColor"
                     TextColor="@TextColor"
-                    UseWideLogo="@UseWideLogo"
-                    LogoUrl="@LogoUrl"
-                    WideLogoUrl="@WideLogoUrl"
-                    HeroImageUrl="@HeroImageUrl"
                     PreviewLogo="@PreviewLogo"
                     PreviewHeroImage="@PreviewHeroImage"
-                    Fields="@Fields">
+                    Fields="@Fields"
+                    BusinessProfile="@BusinessProfile">
         </JoinForm>
     </div> 
 
@@ -127,61 +124,61 @@
     // public string BackgroundColor { get; set; } = "#ffffff"; 
     // public string TextColor { get; set; } = "#000000"; 
 
-    private string _title;
-    public string Title
-    {
-        get => _title;
-        set
-        {
-            if (_title != value)
-            {
-                _title = value;
-                OnFieldChange();  // Trigger method when Title changes
-            }
-        }
-    }
+    // private string _title;
+    // public string Title
+    // {
+    //     get => _title;
+    //     set
+    //     {
+    //         if (_title != value)
+    //         {
+    //             _title = value;
+    //             OnFieldChange();  // Trigger method when Title changes
+    //         }
+    //     }
+    // }
 
-    private string _logoUrl;
-    public string LogoUrl
-    {
-        get => _logoUrl;
-        set
-        {
-            if (_logoUrl != value)
-            {
-                _logoUrl = value;
-                OnFieldChange();  // Trigger method when LogoUrl changes
-            }
-        }
-    }
+    // private string _logoUrl;
+    // public string LogoUrl
+    // {
+    //     get => _logoUrl;
+    //     set
+    //     {
+    //         if (_logoUrl != value)
+    //         {
+    //             _logoUrl = value;
+    //             OnFieldChange();  // Trigger method when LogoUrl changes
+    //         }
+    //     }
+    // }
 
-    private string _wideLogoUrl;
-    public string WideLogoUrl
-    {
-        get => _wideLogoUrl;
-        set
-        {
-            if (_wideLogoUrl != value)
-            {
-                _wideLogoUrl = value;
-                OnFieldChange();  // Trigger method when WideLogoUrl changes
-            }
-        }
-    }
+    // private string _wideLogoUrl;
+    // public string WideLogoUrl
+    // {
+    //     get => _wideLogoUrl;
+    //     set
+    //     {
+    //         if (_wideLogoUrl != value)
+    //         {
+    //             _wideLogoUrl = value;
+    //             OnFieldChange();  // Trigger method when WideLogoUrl changes
+    //         }
+    //     }
+    // }
 
-    private string _heroImageUrl;
-    public string HeroImageUrl
-    {
-        get => _heroImageUrl;
-        set
-        {
-            if (_heroImageUrl != value)
-            {
-                _heroImageUrl = value;
-                OnFieldChange();  // Trigger method when HeroImageUrl changes
-            }
-        }
-    }
+    // private string _heroImageUrl;
+    // public string HeroImageUrl
+    // {
+    //     get => _heroImageUrl;
+    //     set
+    //     {
+    //         if (_heroImageUrl != value)
+    //         {
+    //             _heroImageUrl = value;
+    //             OnFieldChange();  // Trigger method when HeroImageUrl changes
+    //         }
+    //     }
+    // }
 
     private string _backgroundColor;
     public string BackgroundColor
@@ -205,22 +202,40 @@
     public bool PreviewHeroImage { get; set; } = false;
     public bool UseWideLogo { get; set; } = false;
 
-
-    private void OnFieldChange()
+    protected override async Task OnParametersSetAsync()
     {
-        UpdateFieldsJson();
-        UpdateCssOptionsJson(); 
+        var cssOptions = JsonSerializer.Deserialize<Dictionary<string, string>>(BusinessProfile.JoinFormTemplate.CSSOptionsJson);
+        if (cssOptions != null && cssOptions.ContainsKey("background-color"))
+        {
+            BackgroundColor = cssOptions["background-color"];   
+        }
+        if (cssOptions != null && cssOptions.ContainsKey("color"))
+        {
+            TextColor = cssOptions["color"];
+        }
+
+        var fields = JsonSerializer.Deserialize<List<CardField>>(BusinessProfile.JoinFormTemplate.FieldsJson);
+        if (fields != null)
+        {
+            Fields = new List<CardField>();
+            foreach (var field in fields)
+            {
+                Fields.Add(field);
+            }
+        }
     }
 
     public async Task CreateField()
     {
         Fields.Add(new CardField { FieldName = "", FieldType = "", Label = "", IsRequired = false });
+        UpdateFieldsJson();
         StateHasChanged();
     }
 
     public async Task DeleteField(CardField field)
     {
         Fields.Remove(field);
+        UpdateFieldsJson();
     }
 
     private void SetLogoType(bool UseWideLogo)
@@ -248,11 +263,12 @@
 
     private void CopyDesign()
     {
-        Title = BusinessProfile.GooglePassTemplate.CardTitle;
-        LogoUrl = BusinessProfile.GooglePassTemplate.LogoUrl;
-        WideLogoUrl = BusinessProfile.GooglePassTemplate.WideLogoUrl;
-        HeroImageUrl = BusinessProfile.GooglePassTemplate.HeroImage;
+        BusinessProfile.JoinFormTemplate.Title = BusinessProfile.GooglePassTemplate.CardTitle;
+        BusinessProfile.JoinFormTemplate.LogoUrl = BusinessProfile.GooglePassTemplate.LogoUrl;
+        BusinessProfile.JoinFormTemplate.WideLogoUrl = BusinessProfile.GooglePassTemplate.WideLogoUrl;
+        BusinessProfile.JoinFormTemplate.HeroImageUrl = BusinessProfile.GooglePassTemplate.HeroImage;
         BackgroundColor = BusinessProfile.GooglePassTemplate.HexBackgroundColor;
+        UpdateCssOptionsJson();
     }
 
     private void UpdateFieldsJson()
@@ -264,12 +280,10 @@
 
     private void UpdateCssOptionsJson()
     {
-        Console.WriteLine("Updating CSS Options");
         BusinessProfile.JoinFormTemplate.CSSOptionsJson = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string>
         {
             {"background-color", BackgroundColor},
             {"color", TextColor}
         });
-        Console.WriteLine($"CSS Options: {BusinessProfile.JoinFormTemplate.CSSOptionsJson}");
     }
 }

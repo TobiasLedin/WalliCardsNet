@@ -77,6 +77,7 @@ namespace WalliCardsNet.API.Data.Repositories
                     existingProfile.GoogleTemplate.CardTitle = businessProfile.GooglePassTemplate.CardTitle;
                     existingProfile.GoogleTemplate.Header = businessProfile.GooglePassTemplate.Header;
                     existingProfile.GoogleTemplate.WideLogoUri = businessProfile.GooglePassTemplate.WideLogoUrl;
+                    existingProfile.GoogleTemplate.UseWideLogo = businessProfile.GooglePassTemplate.UseWideLogo;
                     existingProfile.GoogleTemplate.HexBackgroundColor = businessProfile.GooglePassTemplate.HexBackgroundColor;
                     existingProfile.GoogleTemplate.LogoUri = businessProfile.GooglePassTemplate.LogoUrl;
                     existingProfile.GoogleTemplate.HeroImageUri = businessProfile.GooglePassTemplate.HeroImage;
@@ -85,6 +86,11 @@ namespace WalliCardsNet.API.Data.Repositories
 
                 if (existingProfile.JoinForm != null)
                 {
+                    existingProfile.JoinForm.Title = businessProfile.JoinFormTemplate.Title;
+                    existingProfile.JoinForm.LogoUrl = businessProfile.JoinFormTemplate.LogoUrl;
+                    existingProfile.JoinForm.WideLogoUrl = businessProfile.JoinFormTemplate.WideLogoUrl;
+                    existingProfile.JoinForm.UseWideLogo = businessProfile.JoinFormTemplate.UseWideLogo;
+                    existingProfile.JoinForm.HeroImageUrl = businessProfile.JoinFormTemplate.HeroImageUrl;
                     existingProfile.JoinForm.FieldsJson = businessProfile.JoinFormTemplate.FieldsJson;
                     existingProfile.JoinForm.CSSOptionsJson = businessProfile.JoinFormTemplate.CSSOptionsJson;
                 }
