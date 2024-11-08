@@ -9,97 +9,177 @@
 
 @if (BusinessProfile != null)
 {
-    <h3>CardDesigner</h3>
-
-    <EditForm Model="Card">
+    <button class="btn btn-primary" @onclick="CopyDesign">Copy design from Google Pass</button>
+    <div style="display:flex; flex-direction:row; gap: 1rem; margin-top: 1rem;">
         <div>
-            <button @onclick="CreateField">Create Field</button>
-            @foreach (var field in Fields)
-            {
+            <h3>Edit</h3>
+            <EditForm Model="Card">
                 <div>
-                    <InputText @bind-Value="field.FieldName" placeholder="Field name" />
-                    <InputSelect @bind-Value="field.FieldType">
-                        <option value="text">Text</option>
-                        <option value="email">Email</option>
-                        <option value="number">Number</option>
-                        <option value="date">Date</option>
-                        <option value="checkbox">Checkbox</option>
-                    </InputSelect>
-                    <InputText @bind-Value="field.Label" placeholder="Label" />
-                    <label>Required field</label>
-                    <InputCheckbox @bind-Value="field.IsRequired" />
-                    <button type="button" @onclick="() => DeleteField(field)">Delete Field</button>
+                    <label>Title:</label>
+                    <InputText @bind-Value="Title"></InputText>
                 </div>
-            }
+                <div>
+                    <Switch @bind-Value="UseWideLogo" @bind-Value:after="() => SetLogoType(UseWideLogo)"></Switch>
+                    @if (UseWideLogo)
+                    {
+                        <p>Wide Logo</p>
+                    }
+                    else
+                    {
+                        <p>Small Logo</p>
+                    }
+                </div>
+                <div>
+                    @if (!UseWideLogo)
+                    {
+                        <label>Logo Url:</label>
+                        <InputText @bind-Value="LogoUrl"></InputText>
+                        @if (string.IsNullOrEmpty(LogoUrl))
+                        {
+                            <label>Preview</label>
+                            <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                        }
+                    }
+                    @if (UseWideLogo)
+                    {
+                        <label>Wide Logo Url:</label>
+                        <InputText @bind-Value="WideLogoUrl"></InputText>
+                        @if (string.IsNullOrEmpty(LogoUrl))
+                        {
+                            <label>Preview</label>
+                            <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                        }
+                    }
+                </div>
+                <div>
+                    <label>Hero Image:</label>
+                    <InputText @bind-Value="HeroImageUrl"></InputText>
+                    @if (string.IsNullOrEmpty(HeroImageUrl))
+                    {
+                        <label>Preview</label>
+                        <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
+                    }
+                </div>
+                <div>
+                    <label>Background Color</label>
+                    <input type="color" @bind="BackgroundColor" />
+                </div>
+                <div>
+                    <label>Text Color</label>
+                    <input type="color" @bind="TextColor" />
+                </div>
+                <div>
+                    <button @onclick="CreateField">Create Field</button>
+                    @foreach (var field in Fields)
+                    {
+                        <div>
+                            <InputText @bind-Value="field.FieldName" placeholder="Field name" />
+                            <InputSelect @bind-Value="field.FieldType">
+                                <option value="text">Text</option>
+                                <option value="email">Email</option>
+                                <option value="number">Number</option>
+                                <option value="date">Date</option>
+                                <option value="checkbox">Checkbox</option>
+                            </InputSelect>
+                            <label>Required field</label>
+                            <InputCheckbox @bind-Value="field.IsRequired" />
+                            <button type="button" @onclick="() => DeleteField(field)">Delete Field</button>
+                        </div>
+                    }
+                </div>
+            </EditForm>
         </div>
         <div>
-            <label>Background Color</label>
-            <input type="color" @bind="BusinessProfile.GooglePassTemplate.HexBackgroundColor" />
-        </div>
-        <div>
-            <label>Text Color</label>
-            <input type="color" @bind="TextColor" />
-        </div>
-
-    </EditForm>
-
-    <button @onclick="CreateCard">Create Card</button>
-
-    <h3>Preview</h3>
-    <div style="background-color:@BusinessProfile.GooglePassTemplate.HexBackgroundColor; color:@TextColor;">
-        @foreach (var field in Fields)
-        {
-            <div>
-                <label>
-                    @field.Label
-                </label>
-                @if (field.IsRequired == true)
+            <h3>Preview</h3>
+            <div style="background-color:@BackgroundColor; color:@TextColor;">
+                @if (!UseWideLogo)
                 {
-                    <label>*</label>
+                    @if (!string.IsNullOrEmpty(LogoUrl))
+                    {
+                        <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="@LogoUrl" />
+                    }
+                    @if (PreviewLogo && string.IsNullOrEmpty(LogoUrl))
+                    {
+                        <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" />
+                    }
+                    @Title
                 }
-                @{
-                    string exampleText = "";
-                }
-                @switch (field.FieldType)
+                @if (UseWideLogo)
                 {
-                    case "text":
-                        <InputText @bind-Value="exampleText" />
-                        break;
-                    case "email":
-                        <InputText @bind-Value="exampleText" type="email" />
-                        break;
-                    case "number":
-                        <InputText @bind-Value="exampleText" type="number" />
-                        break;
-                    case "date":
-                        {
-                            DateTime parsedDate;
-                            if (DateTime.TryParse(exampleText, out parsedDate))
-                            {
-                                <InputDate @bind-Value="parsedDate" />
-                                exampleText = parsedDate.ToString("yyyy-MM-dd");
-                            }
-                            else
-                            {
-                                DateTime currentDate = DateTime.Now;
-                                <InputDate @bind-Value="currentDate" />
-                                exampleText = currentDate.ToString("yyyy-MM-dd");
-                            }
-                        }
-                        break;
-                    case "checkbox":
-                        {
-                            bool isChecked = exampleText == "true";
-                            <InputCheckbox @bind-Value="isChecked" />
-                            exampleText = isChecked ? "true" : "false";
-                        }
-                        break;
-                    default:
-                        <p>Unsupported field type: @field.FieldType</p>
-                        break;
+                    @if (!string.IsNullOrEmpty(WideLogoUrl))
+                    {
+                        <img style="max-height:80px; width:100%; object-fit:cover" src="@WideLogoUrl" />
+                    }
+                    @if (PreviewLogo && string.IsNullOrEmpty(WideLogoUrl))
+                    {
+                        <img style="max-height:80px; width:100%; object-fit:cover" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png" />
+                    }
                 }
+                @foreach (var field in Fields)
+                {
+                    <div>
+                        <label>
+                            @field.FieldName
+                        </label>
+                        @if (field.IsRequired == true)
+                        {
+                            <label>*</label>
+                        }
+                        @{
+                            string exampleText = "";
+                        }
+                        @switch (field.FieldType)
+                        {
+                            case "text":
+                                <InputText @bind-Value="exampleText" />
+                                break;
+                            case "email":
+                                <InputText @bind-Value="exampleText" type="email" />
+                                break;
+                            case "number":
+                                <InputText @bind-Value="exampleText" type="number" />
+                                break;
+                            case "date":
+                                {
+                                    DateTime parsedDate;
+                                    if (DateTime.TryParse(exampleText, out parsedDate))
+                                    {
+                                        <InputDate @bind-Value="parsedDate" />
+                                        exampleText = parsedDate.ToString("yyyy-MM-dd");
+                                    }
+                                    else
+                                    {
+                                        DateTime currentDate = DateTime.Now;
+                                        <InputDate @bind-Value="currentDate" />
+                                        exampleText = currentDate.ToString("yyyy-MM-dd");
+                                    }
+                                }
+                                break;
+                            case "checkbox":
+                                {
+                                    bool isChecked = exampleText == "true";
+                                    <InputCheckbox @bind-Value="isChecked" />
+                                    exampleText = isChecked ? "true" : "false";
+                                }
+                                break;
+                            default:
+                                <p>Unsupported field type: @field.FieldType</p>
+                                break;
+                        }
+                    </div>
+                }
+                <div>
+                    @if (!string.IsNullOrEmpty(HeroImageUrl))
+                    {
+                        <img style="max-height:120px; width:100%; object-fit:cover" src="@HeroImageUrl" />
+                    }
+                    @if (PreviewHeroImage)
+                    {
+                        <img style="max-height:120px; width:100%;" src="https://images.unsplash.com/photo-1698191373970-228c25ee6fd0?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fDNkJTIwYWJzdHJhY3R8ZW58MHx8MHx8fDA%3D" />
+                    }
+                </div>
             </div>
-        }
+        </div>
     </div>
 }
 
@@ -110,14 +190,26 @@
     [Parameter]
     public BusinessProfileRequestDTO BusinessProfile { get; set; }
 
-    public string CurrentView { get; set; } = "";
-
     public CardRequestDTO Card { get; set; } = new CardRequestDTO();
 
     public List<CardField> Fields { get; set; } = new List<CardField>();
+    public string Title { get; set; } = "";
+    public string LogoUrl { get; set; } = "";
+    public string WideLogoUrl { get; set; } = "";
+    public string HeroImageUrl { get; set; } = "";
     public string BackgroundColor { get; set; } = "#ffffff"; 
     public string TextColor { get; set; } = "#000000"; 
-    
+
+    public string LastCardTitle = "";
+    public string LogoType { get; set; } = "small";
+    public string Message { get; set; } = "";
+    public bool PreviewLogo { get; set; } = false;
+    public bool PreviewHeroImage { get; set; } = false;
+
+
+    //Swtich test
+    public bool UseWideLogo { get; set; } = false;
+
 
     public async Task CreateCard()
     {
@@ -152,5 +244,37 @@
     public async Task DeleteField(CardField field)
     {
         Fields.Remove(field);
+    }
+
+    private void SetLogoType(bool UseWideLogo)
+    {
+        switch (UseWideLogo)
+        {
+            case false:
+                if (!string.IsNullOrEmpty(LastCardTitle))
+                {
+                    BusinessProfile.GooglePassTemplate.CardTitle = LastCardTitle;
+                    LastCardTitle = "";
+                }
+                break;
+
+            case true:
+                LastCardTitle = BusinessProfile.GooglePassTemplate.CardTitle;
+                BusinessProfile.GooglePassTemplate.CardTitle = "";
+                break;
+
+            default:
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private void CopyDesign()
+    {
+        Title = BusinessProfile.GooglePassTemplate.CardTitle;
+        LogoUrl = BusinessProfile.GooglePassTemplate.LogoUrl;
+        WideLogoUrl = BusinessProfile.GooglePassTemplate.WideLogoUrl;
+        HeroImageUrl = BusinessProfile.GooglePassTemplate.HeroImage;
+        BackgroundColor = BusinessProfile.GooglePassTemplate.HexBackgroundColor;
     }
 }
