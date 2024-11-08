@@ -1,0 +1,139 @@
+﻿@using System
+@using WalliCardsNet.ClassLibrary.Card
+@using WalliCardsNet.Client.Components
+@implements IComponent
+
+<div class="form-container">
+    <h3 class="form-title">Join @BusinessName</h3>
+
+    <div class="form-preview" style="background-color:@BackgroundColor; color:@TextColor;">
+        <!-- Logo Handling -->
+        <div class="logo-container">
+            @if (!UseWideLogo)
+            {
+                @if (!string.IsNullOrEmpty(LogoUrl))
+                {
+                    <img class="logo" src="@LogoUrl" />
+                }
+                @if (PreviewLogo && string.IsNullOrEmpty(LogoUrl))
+                {
+                    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" />
+                }
+                <span class="title" style="color: @TextColor">@Title</span>
+            }
+            @if (UseWideLogo)
+            {
+                @if (!string.IsNullOrEmpty(WideLogoUrl))
+                {
+                    <img class="wide-logo" src="@WideLogoUrl" />
+                }
+                @if (PreviewLogo && string.IsNullOrEmpty(WideLogoUrl))
+                {
+                    <img class="wide-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png" />
+                }
+            }
+        </div>
+
+        <!-- Fields -->
+        <div class="fields-container">
+            @foreach (var field in Fields)
+            {
+                <div class="field-container">
+                    <label class="field-label">@field.FieldName</label>
+                    @if (field.IsRequired == true)
+                    {
+                        <label class="required">*</label>
+                    }
+                    @{
+                        string exampleText = "";
+                    }
+                    @switch (field.FieldType)
+                    {
+                        case "text":
+                            <InputText @bind-Value="exampleText" class="field-input" />
+                            break;
+                        case "email":
+                            <InputText @bind-Value="exampleText" type="email" class="field-input" />
+                            break;
+                        case "number":
+                            <InputText @bind-Value="exampleText" type="number" class="field-input" />
+                            break;
+                        case "date":
+                            {
+                                DateTime parsedDate;
+                                if (DateTime.TryParse(exampleText, out parsedDate))
+                                {
+                                    <InputDate @bind-Value="parsedDate" class="field-input" />
+                                    exampleText = parsedDate.ToString("yyyy-MM-dd");
+                                }
+                                else
+                                {
+                                    DateTime currentDate = DateTime.Now;
+                                    <InputDate @bind-Value="currentDate" class="field-input" />
+                                    exampleText = currentDate.ToString("yyyy-MM-dd");
+                                }
+                            }
+                            break;
+                        case "checkbox":
+                            {
+                                bool isChecked = exampleText == "true";
+                                <InputCheckbox @bind-Value="isChecked" class="checkbox-input" />
+                                exampleText = isChecked ? "true" : "false";
+                            }
+                            break;
+                        default:
+                            <p class="unsupported-field">Unsupported field type: @field.FieldType</p>
+                            break;
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Hero Image -->
+        <div class="hero-image-container">
+            @if (!string.IsNullOrEmpty(HeroImageUrl))
+            {
+                <img class="hero-image" src="@HeroImageUrl" />
+            }
+            @if (PreviewHeroImage)
+            {
+                <img class="hero-image" src="https://images.unsplash.com/photo-1698191373970-228c25ee6fd0?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fDNkJTIwYWJzdHJhY3R8ZW58MHx8MHx8fDA%3D" />
+            }
+        </div>
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public string BackgroundColor { get; set; }
+
+    [Parameter]
+    public string TextColor { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string BusinessName { get; set; }
+
+    [Parameter]
+    public bool UseWideLogo { get; set; }
+
+    [Parameter]
+    public string LogoUrl { get; set; }
+
+    [Parameter]
+    public string WideLogoUrl { get; set; }
+
+    [Parameter]
+    public string HeroImageUrl { get; set; }
+
+    [Parameter]
+    public bool PreviewLogo { get; set; }
+
+    [Parameter]
+    public bool PreviewHeroImage { get; set; }
+
+    [Parameter]
+    public List<CardField> Fields { get; set; } = new List<CardField>();
+}

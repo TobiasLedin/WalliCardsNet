@@ -3,7 +3,6 @@ using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
-using WalliCardsNet.ClassLibrary.BusinessProfile.Models;
 using WalliCardsNet.ClassLibrary.Services;
 
 namespace WalliCardsNet.API.Data.Repositories
@@ -11,9 +10,9 @@ namespace WalliCardsNet.API.Data.Repositories
     public class BusinessProfileRepository : IBusinessProfile
     {
         private readonly ApplicationDbContext _applicationDbContext;
-        private readonly IBusinessProfilesService _businessProfilesService;
+        private readonly IAPIBusinessProfilesService _businessProfilesService;
 
-        public BusinessProfileRepository(ApplicationDbContext applicationDbContext, IBusinessProfilesService businessProfilesService)
+        public BusinessProfileRepository(ApplicationDbContext applicationDbContext, IAPIBusinessProfilesService businessProfilesService)
         {
             _applicationDbContext = applicationDbContext;
             _businessProfilesService = businessProfilesService;

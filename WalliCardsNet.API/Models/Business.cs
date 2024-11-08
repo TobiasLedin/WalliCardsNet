@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using WalliCardsNet.ClassLibrary.Business;
-using WalliCardsNet.ClassLibrary.BusinessProfile.Models;
 
 namespace WalliCardsNet.API.Models
 {

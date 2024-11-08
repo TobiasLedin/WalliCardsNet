@@ -29,7 +29,7 @@ namespace WalliCardsNet.Client
                 client.BaseAddress = new Uri("https://localhost:7204/api/auth/");
             }).AddHttpMessageHandler(() => new IncludeCredentialsHandler());
             
-            builder.Services.AddTransient<IBusinessProfilesService, BusinessProfilesService>();
+            builder.Services.AddTransient<IClassLibraryBusinessProfilesService, ClassLibraryBusinessProfilesService>();
 
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddBlazorBootstrap();

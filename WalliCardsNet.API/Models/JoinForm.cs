@@ -1,4 +1,4 @@
-﻿namespace WalliCardsNet.ClassLibrary.BusinessProfile.Models
+﻿namespace WalliCardsNet.API.Models
 {
     public class JoinForm
     {

@@ -1,6 +1,5 @@
 ﻿using WalliCardsNet.API.Models;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
-using WalliCardsNet.ClassLibrary.BusinessProfile.Models;
 
 namespace WalliCardsNet.API.Data.Interfaces
 {

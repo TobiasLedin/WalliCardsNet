@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WalliCardsNet.ClassLibrary.BusinessProfile.Models
+namespace WalliCardsNet.API.Models
 {
     public class GooglePassTemplate
     {

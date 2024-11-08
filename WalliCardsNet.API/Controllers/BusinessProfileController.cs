@@ -22,9 +22,9 @@ namespace WalliCardsNet.API.Controllers
         private readonly ICardTemplate _cardTemplateRepo;
         private readonly IBusiness _businessRepo;
         private readonly IGoogleService _googleService;
-        private readonly IBusinessProfilesService _businessProfilesService;
+        private readonly IAPIBusinessProfilesService _businessProfilesService;
 
-        public BusinessProfileController(ICardTemplate cardTemplateRepo, IBusiness businessRepo, IGoogleService googleService, IBusinessProfile businessProfileRepo, IBusinessProfilesService businessProfilesService)
+        public BusinessProfileController(ICardTemplate cardTemplateRepo, IBusiness businessRepo, IGoogleService googleService, IBusinessProfile businessProfileRepo, IAPIBusinessProfilesService businessProfilesService)
         {
             _cardTemplateRepo = cardTemplateRepo;
             _businessRepo = businessRepo;

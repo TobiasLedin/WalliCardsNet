@@ -1,6 +1,5 @@
 ﻿using Google.Apis.Walletobjects.v1.Data;
 using WalliCardsNet.API.Models;
-using WalliCardsNet.ClassLibrary.BusinessProfile.Models;
 
 namespace WalliCardsNet.API.Services
 {

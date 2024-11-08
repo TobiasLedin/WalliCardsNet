@@ -7,7 +7,7 @@
 @page "/card/{token}"
 @attribute [Authorize]
 @inject WalliCardsApiService WalliCardsApiService;
-@inject IBusinessProfilesService BusinessProfilesService;
+@inject IClassLibraryBusinessProfilesService BusinessProfilesService;
 
 
 @if(Business != null)
@@ -45,7 +45,7 @@
         <button class="btn btn-primary" @onclick='() => SetCurrentView("google")'>Google Pass Designer</button>
         <button class="btn btn-primary" @onclick='() => SetCurrentView("join")'>Join Form Designer</button>
     </div>
-    @if (CurrentView == "google" && string.IsNullOrEmpty(Message))
+    @if (CurrentView == "google" && Message != "Successfully added business profile.")
     {
         <GooglePassDesigner BusinessProfile="@BusinessProfile"
                             BusinessName="@Business.Name"></GooglePassDesigner>
@@ -59,10 +59,11 @@
         }
     }
 
-    @if (CurrentView == "join" && string.IsNullOrEmpty(Message))
+    @if (CurrentView == "join" && Message != "Successfully added business profile.")
     {
         <JoinFormDesigner Token="@Token"
-                          BusinessProfile="@BusinessProfile"></JoinFormDesigner>
+                          BusinessProfile="@BusinessProfile"
+                          BusinessName="@Business.Name"></JoinFormDesigner>
         @if (SelectedBusinessProfileId == Guid.Empty)
         {
             <button @onclick="Create">Create</button>
@@ -119,16 +120,19 @@
     {
         if (BusinessProfile.GooglePassTemplate == null)
         {
-            BusinessProfile.GooglePassTemplate = new GooglePassTemplateRequestDTO();
+            Message = "Google Pass template incomplete.";
         }
         if (BusinessProfile.JoinFormTemplate == null)
         {
-            BusinessProfile.JoinFormTemplate = new JoinFormTemplateRequestDTO();
+            Message = "Join Form template incomplete.";
         }
-        var response = await WalliCardsApiService.PostAsync<BusinessProfileRequestDTO>("businessprofile/create", BusinessProfile);
-        if (response.IsSuccess)
+        if (BusinessProfile.GooglePassTemplate != null && BusinessProfile.JoinFormTemplate != null)
         {
-            Message = string.IsNullOrEmpty(response.Message) ? "Successfully added business profile." : response.Message;
+            var response = await WalliCardsApiService.PostAsync<BusinessProfileRequestDTO>("businessprofile/create", BusinessProfile);
+            if (response.IsSuccess)
+            {
+                Message = string.IsNullOrEmpty(response.Message) ? "Successfully added business profile." : response.Message;
+            }
         }
     }
 

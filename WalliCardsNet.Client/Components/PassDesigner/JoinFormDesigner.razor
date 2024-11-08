@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using WalliCardsNet.ClassLibrary.BusinessProfile
 @using WalliCardsNet.ClassLibrary.Card
+@using WalliCardsNet.Client.Components.Business
 @using WalliCardsNet.Client.Models
 @using WalliCardsNet.Client.Components.PassDesigner
 @using WalliCardsNet.Client.Services
@@ -62,11 +63,11 @@
                 </div>
                 <div>
                     <label>Background Color</label>
-                    <input type="color" @bind="BackgroundColor" />
+                    <input type="color" @bind="BackgroundColor" @bind:after="OnFieldChange"/>
                 </div>
                 <div>
                     <label>Text Color</label>
-                    <input type="color" @bind="TextColor" />
+                    <input type="color" @bind="TextColor" @bind:after="OnFieldChange"/>
                 </div>
                 <div>
                     <button @onclick="CreateField">Create Field</button>
@@ -89,98 +90,20 @@
                 </div>
             </EditForm>
         </div>
-        <div>
-            <h3>Preview</h3>
-            <div style="background-color:@BackgroundColor; color:@TextColor;">
-                @if (!UseWideLogo)
-                {
-                    @if (!string.IsNullOrEmpty(LogoUrl))
-                    {
-                        <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="@LogoUrl" />
-                    }
-                    @if (PreviewLogo && string.IsNullOrEmpty(LogoUrl))
-                    {
-                        <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" />
-                    }
-                    @Title
-                }
-                @if (UseWideLogo)
-                {
-                    @if (!string.IsNullOrEmpty(WideLogoUrl))
-                    {
-                        <img style="max-height:80px; width:100%; object-fit:cover" src="@WideLogoUrl" />
-                    }
-                    @if (PreviewLogo && string.IsNullOrEmpty(WideLogoUrl))
-                    {
-                        <img style="max-height:80px; width:100%; object-fit:cover" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png" />
-                    }
-                }
-                @foreach (var field in Fields)
-                {
-                    <div>
-                        <label>
-                            @field.FieldName
-                        </label>
-                        @if (field.IsRequired == true)
-                        {
-                            <label>*</label>
-                        }
-                        @{
-                            string exampleText = "";
-                        }
-                        @switch (field.FieldType)
-                        {
-                            case "text":
-                                <InputText @bind-Value="exampleText" />
-                                break;
-                            case "email":
-                                <InputText @bind-Value="exampleText" type="email" />
-                                break;
-                            case "number":
-                                <InputText @bind-Value="exampleText" type="number" />
-                                break;
-                            case "date":
-                                {
-                                    DateTime parsedDate;
-                                    if (DateTime.TryParse(exampleText, out parsedDate))
-                                    {
-                                        <InputDate @bind-Value="parsedDate" />
-                                        exampleText = parsedDate.ToString("yyyy-MM-dd");
-                                    }
-                                    else
-                                    {
-                                        DateTime currentDate = DateTime.Now;
-                                        <InputDate @bind-Value="currentDate" />
-                                        exampleText = currentDate.ToString("yyyy-MM-dd");
-                                    }
-                                }
-                                break;
-                            case "checkbox":
-                                {
-                                    bool isChecked = exampleText == "true";
-                                    <InputCheckbox @bind-Value="isChecked" />
-                                    exampleText = isChecked ? "true" : "false";
-                                }
-                                break;
-                            default:
-                                <p>Unsupported field type: @field.FieldType</p>
-                                break;
-                        }
-                    </div>
-                }
-                <div>
-                    @if (!string.IsNullOrEmpty(HeroImageUrl))
-                    {
-                        <img style="max-height:120px; width:100%; object-fit:cover" src="@HeroImageUrl" />
-                    }
-                    @if (PreviewHeroImage)
-                    {
-                        <img style="max-height:120px; width:100%;" src="https://images.unsplash.com/photo-1698191373970-228c25ee6fd0?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fDNkJTIwYWJzdHJhY3R8ZW58MHx8MHx8fDA%3D" />
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
+        <JoinForm Title="@Title"
+                    BusinessName="@BusinessName"
+                    BackgroundColor="@BackgroundColor"
+                    TextColor="@TextColor"
+                    UseWideLogo="@UseWideLogo"
+                    LogoUrl="@LogoUrl"
+                    WideLogoUrl="@WideLogoUrl"
+                    HeroImageUrl="@HeroImageUrl"
+                    PreviewLogo="@PreviewLogo"
+                    PreviewHeroImage="@PreviewHeroImage"
+                    Fields="@Fields">
+        </JoinForm>
+    </div> 
+
 }
 
 @code {
@@ -190,49 +113,103 @@
     [Parameter]
     public BusinessProfileRequestDTO BusinessProfile { get; set; }
 
+    [Parameter]
+    public string BusinessName { get; set; }
+
     public CardRequestDTO Card { get; set; } = new CardRequestDTO();
 
     public List<CardField> Fields { get; set; } = new List<CardField>();
-    public string Title { get; set; } = "";
-    public string LogoUrl { get; set; } = "";
-    public string WideLogoUrl { get; set; } = "";
-    public string HeroImageUrl { get; set; } = "";
-    public string BackgroundColor { get; set; } = "#ffffff"; 
-    public string TextColor { get; set; } = "#000000"; 
+
+    // public string Title { get; set; } = "";
+    // public string LogoUrl { get; set; } = "";
+    // public string WideLogoUrl { get; set; } = "";
+    // public string HeroImageUrl { get; set; } = "";
+    // public string BackgroundColor { get; set; } = "#ffffff"; 
+    // public string TextColor { get; set; } = "#000000"; 
+
+    private string _title;
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            if (_title != value)
+            {
+                _title = value;
+                OnFieldChange();  // Trigger method when Title changes
+            }
+        }
+    }
+
+    private string _logoUrl;
+    public string LogoUrl
+    {
+        get => _logoUrl;
+        set
+        {
+            if (_logoUrl != value)
+            {
+                _logoUrl = value;
+                OnFieldChange();  // Trigger method when LogoUrl changes
+            }
+        }
+    }
+
+    private string _wideLogoUrl;
+    public string WideLogoUrl
+    {
+        get => _wideLogoUrl;
+        set
+        {
+            if (_wideLogoUrl != value)
+            {
+                _wideLogoUrl = value;
+                OnFieldChange();  // Trigger method when WideLogoUrl changes
+            }
+        }
+    }
+
+    private string _heroImageUrl;
+    public string HeroImageUrl
+    {
+        get => _heroImageUrl;
+        set
+        {
+            if (_heroImageUrl != value)
+            {
+                _heroImageUrl = value;
+                OnFieldChange();  // Trigger method when HeroImageUrl changes
+            }
+        }
+    }
+
+    private string _backgroundColor;
+    public string BackgroundColor
+    {
+        get => _backgroundColor;
+        set => _backgroundColor = value;
+    }
+
+    private string _textColor;
+    public string TextColor
+    {
+        get => _textColor;
+        set => _textColor = value;
+    }
+
 
     public string LastCardTitle = "";
     public string LogoType { get; set; } = "small";
     public string Message { get; set; } = "";
     public bool PreviewLogo { get; set; } = false;
     public bool PreviewHeroImage { get; set; } = false;
-
-
-    //Swtich test
     public bool UseWideLogo { get; set; } = false;
 
 
-    public async Task CreateCard()
+    private void OnFieldChange()
     {
-        Card.BusinessToken = Token;
-        var cardDesign = new CardDesign
-        {
-            CardFields = Fields,
-            CssOptions = new Dictionary<string, string>
-            {
-                {"background-color", BackgroundColor },
-                {"color", TextColor }
-            }
-        };
-        Card.DesignJson = System.Text.Json.JsonSerializer.Serialize(cardDesign);
-        var response = await WalliCardsApiService.PostAsync<CardRequestDTO>("businessprofile", Card);
-        if (response.IsSuccess)
-        {
-            Console.WriteLine("Success");
-        }
-        else
-        {
-            Console.WriteLine($"Error: {response.Message}");
-        }
+        UpdateFieldsJson();
+        UpdateCssOptionsJson(); 
     }
 
     public async Task CreateField()
@@ -276,5 +253,23 @@
         WideLogoUrl = BusinessProfile.GooglePassTemplate.WideLogoUrl;
         HeroImageUrl = BusinessProfile.GooglePassTemplate.HeroImage;
         BackgroundColor = BusinessProfile.GooglePassTemplate.HexBackgroundColor;
+    }
+
+    private void UpdateFieldsJson()
+    {
+        Console.WriteLine("Updating fields");
+        BusinessProfile.JoinFormTemplate.FieldsJson = System.Text.Json.JsonSerializer.Serialize(Fields);
+        Console.WriteLine($"Fields: {BusinessProfile.JoinFormTemplate.FieldsJson}");
+    }
+
+    private void UpdateCssOptionsJson()
+    {
+        Console.WriteLine("Updating CSS Options");
+        BusinessProfile.JoinFormTemplate.CSSOptionsJson = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string>
+        {
+            {"background-color", BackgroundColor},
+            {"color", TextColor}
+        });
+        Console.WriteLine($"CSS Options: {BusinessProfile.JoinFormTemplate.CSSOptionsJson}");
     }
 }
