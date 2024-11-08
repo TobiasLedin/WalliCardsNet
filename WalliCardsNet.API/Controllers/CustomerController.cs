@@ -6,6 +6,7 @@ using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Constants;
 using WalliCardsNet.ClassLibrary.Customer;
+using WalliCardsNet.API.Services;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -15,10 +16,15 @@ namespace WalliCardsNet.API.Controllers
     {
         private readonly ICustomer _customerRepo;
         private readonly IBusiness _businessRepo;
-        public CustomerController(ICustomer customerRepo, IBusiness businessRepo)
+        private readonly IBusinessProfile _profileRepo;
+        private readonly IGoogleService _googleService;
+
+        public CustomerController(ICustomer customerRepo, IBusiness businessRepo, IBusinessProfile profileRepo, IGoogleService googleService)
         {
             _customerRepo = customerRepo;
             _businessRepo = businessRepo;
+            _profileRepo = profileRepo;
+            _googleService = googleService;
         }
 
         
@@ -92,18 +98,43 @@ namespace WalliCardsNet.API.Controllers
         {
             try
             {
-                var business = await _businessRepo.GetByTokenAsync(joinFormModel.BusinessToken); //TODO: Not used. Needed?
-                var customer = new Customer
+                var business = await _businessRepo.GetByTokenAsync(joinFormModel.BusinessToken);
+
+                var customerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(joinFormModel.FormDataJson);
+                if (customerDetails != null && customerDetails.ContainsKey("email"))
                 {
-                    BusinessId = business.Id,
-                    CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(joinFormModel.FormDataJson)
-                };
-                await _customerRepo.AddAsync(customer);
-                return Created($"api/Customer/{customer.Id}", new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
+                    var customer = new Customer
+                    {
+                        BusinessId = business.Id,
+                        CustomerDetails = customerDetails
+                    };
+                    await _customerRepo.AddAsync(customer);
+
+                    // GooglePass generation
+                    //var profile = await _profileRepo.GetActiveByBusinessIdAsync(business.Id);
+
+                    //if (profile == null)
+                    //{
+                    //    return Problem();
+                    //}
+
+                    //var result = await _googleService.CreateGenericObjectAsync(profile, customer);
+
+                    //if (result.Success && result.Data != null)
+                    //{
+                    //    var token = _googleService.CreateSignedJWT(genericClass, result.Data)
+                    //}
+
+
+                    //return Ok();
+                    return Created($"api/Customer/{customer.Id}", new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
+                }
+
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Problem(ex.Message);
             }
         }
 
