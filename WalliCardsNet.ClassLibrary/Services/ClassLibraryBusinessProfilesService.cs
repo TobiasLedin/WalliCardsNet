@@ -20,12 +20,18 @@ namespace WalliCardsNet.ClassLibrary.Services
                     HexBackgroundColor = businessProfileResponseDTO.GooglePassTemplate.HexBackgroundColor,
                     LogoUrl = businessProfileResponseDTO.GooglePassTemplate.LogoUrl,
                     WideLogoUrl = businessProfileResponseDTO.GooglePassTemplate.WideLogoUrl,
+                    UseWideLogo = businessProfileResponseDTO.GooglePassTemplate.UseWideLogo,
                     HeroImage = businessProfileResponseDTO.GooglePassTemplate.HeroImage,
                     FieldsJson = businessProfileResponseDTO.GooglePassTemplate.FieldsJson
                 };
 
                 var joinForm = new JoinFormTemplateRequestDTO
                 {
+                    Title = businessProfileResponseDTO.JoinForm.Title,
+                    LogoUrl = businessProfileResponseDTO.JoinForm.LogoUrl,
+                    WideLogoUrl = businessProfileResponseDTO.JoinForm.WideLogoUrl,
+                    UseWideLogo = businessProfileResponseDTO.JoinForm.UseWideLogo,
+                    HeroImageUrl = businessProfileResponseDTO.JoinForm.HeroImageUrl,
                     FieldsJson = businessProfileResponseDTO.JoinForm.FieldsJson,
                     CSSOptionsJson = businessProfileResponseDTO.JoinForm.CSSOptionsJson
                 };

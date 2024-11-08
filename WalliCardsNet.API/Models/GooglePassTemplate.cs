@@ -16,6 +16,7 @@ namespace WalliCardsNet.API.Models
         public string? HexBackgroundColor { get; set; }
         public string? LogoUri { get; set; }
         public string? WideLogoUri { get; set; }
+        public bool UseWideLogo { get; set; }
         public string? HeroImageUri { get; set; }
     }
 }

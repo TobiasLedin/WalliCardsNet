@@ -17,11 +17,17 @@ namespace WalliCardsNet.API.Services
                     LogoUrl = businessProfile.GoogleTemplate.LogoUri,
                     WideLogoUrl = businessProfile.GoogleTemplate.WideLogoUri,
                     HeroImage = businessProfile.GoogleTemplate.HeroImageUri,
+                    UseWideLogo = businessProfile.GoogleTemplate.UseWideLogo,
                     HexBackgroundColor = businessProfile.GoogleTemplate.HexBackgroundColor,
                     FieldsJson = businessProfile.GoogleTemplate.FieldsJson
                 };
                 var joinFormRequestDTO = new JoinFormTemplateResponseDTO
                 {
+                    Title = businessProfile.JoinForm.Title,
+                    LogoUrl = businessProfile.JoinForm.LogoUrl,
+                    WideLogoUrl = businessProfile.JoinForm.WideLogoUrl,
+                    UseWideLogo = businessProfile.JoinForm.UseWideLogo,
+                    HeroImageUrl = businessProfile.JoinForm.HeroImageUrl,
                     FieldsJson = businessProfile.JoinForm.FieldsJson,
                     CSSOptionsJson = businessProfile.JoinForm.CSSOptionsJson
                 };
@@ -65,6 +71,7 @@ namespace WalliCardsNet.API.Services
                     CardTitle = businessProfileRequestDTO.GooglePassTemplate.CardTitle,
                     Header = businessProfileRequestDTO.GooglePassTemplate.Header,
                     WideLogoUri = businessProfileRequestDTO.GooglePassTemplate.WideLogoUrl,
+                    UseWideLogo = businessProfileRequestDTO.GooglePassTemplate.UseWideLogo,
                     HexBackgroundColor = businessProfileRequestDTO.GooglePassTemplate.HexBackgroundColor,
                     LogoUri = businessProfileRequestDTO.GooglePassTemplate.LogoUrl,
                     HeroImageUri = businessProfileRequestDTO.GooglePassTemplate.HeroImage,
@@ -74,6 +81,11 @@ namespace WalliCardsNet.API.Services
                 var joinForm = new JoinForm
                 {
                     BusinessProfileId = businessId,
+                    Title = businessProfileRequestDTO.JoinFormTemplate.Title,
+                    LogoUrl = businessProfileRequestDTO.JoinFormTemplate.LogoUrl,
+                    WideLogoUrl = businessProfileRequestDTO.JoinFormTemplate.WideLogoUrl,
+                    HeroImageUrl = businessProfileRequestDTO.JoinFormTemplate.HeroImageUrl,
+                    UseWideLogo = businessProfileRequestDTO.JoinFormTemplate.UseWideLogo,
                     FieldsJson = businessProfileRequestDTO.JoinFormTemplate.FieldsJson,
                     CSSOptionsJson = businessProfileRequestDTO.JoinFormTemplate.CSSOptionsJson
                 };
