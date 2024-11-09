@@ -1,4 +1,5 @@
-﻿using WalliCardsNet.API.Data.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
@@ -12,19 +13,23 @@ namespace WalliCardsNet.API.Data.Repositories
             _applicationDbContext = applicationDbContext;
         }
 
-        public Task AddAsync(GooglePass pass)
+        public async Task AddAsync(GooglePass pass)
         {
-            throw new NotImplementedException("Device/AddAsync method not yet implemented");
+            await _applicationDbContext.GooglePasses.AddAsync(pass);
+            await _applicationDbContext.SaveChangesAsync();
         }
 
-        public async Task<List<GooglePass>> GetAllAsync()
+        public async Task<List<GooglePass>> GetAllByClassIdAsync(string classId)
         {
-            throw new NotImplementedException("Device/GetAllAsync method not yet implemented");
+            return await _applicationDbContext.GooglePasses
+                .Where(gp => gp.ClassId == classId)
+                .Include(gp => gp.Customer)
+                .ToListAsync();
         }
 
-        public Task<GooglePass> GetByIdAsync(int objectId)
+        public async Task<GooglePass?> GetByIdAsync(string objectId)
         {
-            throw new NotImplementedException("Device/GetByIdAsync method not yet implemented");
+            return await _applicationDbContext.GooglePasses.FindAsync(objectId);
         }
 
         public Task RemoveAsync(int id)
@@ -32,9 +37,10 @@ namespace WalliCardsNet.API.Data.Repositories
             throw new NotImplementedException("Device/RemoveAsync method not yet implemented");
         }
 
-        public Task UpdateAsync(GooglePass pass)
+        public async Task UpdateAsync(GooglePass pass)
         {
-            throw new NotImplementedException("Device/UpdateAsync method not yet implemented");
+            _applicationDbContext.GooglePasses.Update(pass);
+            await _applicationDbContext.SaveChangesAsync();
         }
     }
 }

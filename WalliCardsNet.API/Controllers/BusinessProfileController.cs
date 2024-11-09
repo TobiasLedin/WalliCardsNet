@@ -11,6 +11,7 @@ using WalliCardsNet.ClassLibrary.BusinessProfile;
 using WalliCardsNet.ClassLibrary.Services;
 using WalliCardsNet.ClassLibrary.Card;
 using WalliCardsNet.ClassLibrary.Customer;
+using Google.Apis.Walletobjects.v1.Data;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -22,13 +23,21 @@ namespace WalliCardsNet.API.Controllers
         private readonly ICardTemplate _cardTemplateRepo;
         private readonly IBusiness _businessRepo;
         private readonly IGoogleService _googleService;
+        private readonly IGooglePass _googlePassRepository;
         private readonly IAPIBusinessProfilesService _businessProfilesService;
 
-        public BusinessProfileController(ICardTemplate cardTemplateRepo, IBusiness businessRepo, IGoogleService googleService, IBusinessProfile businessProfileRepo, IAPIBusinessProfilesService businessProfilesService)
+        public BusinessProfileController(
+            ICardTemplate cardTemplateRepo, 
+            IBusiness businessRepo, 
+            IGoogleService googleService,
+            IGooglePass googlePassRepository,
+            IBusinessProfile businessProfileRepo, 
+            IAPIBusinessProfilesService businessProfilesService)
         {
             _cardTemplateRepo = cardTemplateRepo;
             _businessRepo = businessRepo;
             _googleService = googleService;
+            _googlePassRepository = googlePassRepository;
             _businessProfileRepo = businessProfileRepo;
             _businessProfilesService = businessProfilesService;
         }
@@ -185,8 +194,9 @@ namespace WalliCardsNet.API.Controllers
             return BadRequest();
         }
 
-        // TODO: Authorization => Manager only?
+        
         [HttpPut("set-active/{id}")]
+        [Authorize(Roles = Roles.Manager)]
         public async Task<IActionResult> SetActiveBusinessProfile(Guid id)
         {
             var businessProfile = await _businessProfileRepo.GetByIdAsync(id);
@@ -195,10 +205,48 @@ namespace WalliCardsNet.API.Controllers
                 return NotFound();
             }
 
-            // Trigger GenericClass creation/update (GoogleWallet API) + trigger update of related GenericObjects
+            // Trigger GenericClass creation/update (GoogleWallet API). If ClassId exists, update will be performed.
+            var createResult = await _googleService.CreateGenericClassAsync(businessProfile);
+
+            if (createResult.Success && createResult.Data != null)
+            {
+                var genericClassJson = JsonSerializer.Serialize(createResult.Data, _googleService.SerializerOptions());
+
+                // Set GoogleTemplate props
+                businessProfile.GoogleTemplate!.GenericClassJson = genericClassJson;
+                businessProfile.GoogleTemplate!.GenericClassId = createResult.Data.Id;
+
+                // Trigger update of related GenericObjects
+                var passList = await _googlePassRepository.GetAllByClassIdAsync(createResult.Data.Id);
+
+                if (passList.Count > 0)
+                {
+                    var failedUpdates = new List<string>();
+
+                    foreach (var pass in passList)
+                    {
+                        var updateResult = await _googleService.UpdateGenericObjectAsync(businessProfile, pass.Customer);
+
+                        if (!createResult.Success)
+                        {
+                            failedUpdates.Add(updateResult.Message);
+                        }
+                    }
+
+                    if (failedUpdates.Count > 0)
+                    {
+                        return Problem($"{failedUpdates} out of {passList.Count} passes realated to classId: {createResult.Data.Id} failed to be updated");
+                    }
+                }
+            }
+            else
+            {
+                return Problem("Failed to create/update GenericClass");
+            }
 
             await _businessProfileRepo.SetActiveAsync(id);
-            return Ok();
+
+            return Ok($"ClassId: {createResult.Data.Id} active");
         }
 
         [HttpDelete("{id}")]

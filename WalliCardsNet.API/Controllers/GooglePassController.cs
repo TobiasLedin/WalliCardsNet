@@ -14,24 +14,18 @@ namespace WalliCardsNet.API.Controllers
             _googlePassRepository = googlePassRepository;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
+        [HttpGet("get-all-by-class/{classId}")]
+        public async Task<IActionResult> GetAllByClassIdAsync(string classId)
         {
-            var result = await _googlePassRepository.GetAllAsync();
-            if (result != null && result.Any())
-            {
-                return Ok(result);
-            }
-            else
-            {
-                return Ok(new List<GooglePass>());
-            }
+            var result = await _googlePassRepository.GetAllByClassIdAsync(classId);
+            
+            return Ok(result); 
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(int id)
+        [HttpGet("{objectId}")]
+        public async Task<IActionResult> GetByIdAsync(string objectId)
         {
-            var result = await _googlePassRepository.GetByIdAsync(id);
+            var result = await _googlePassRepository.GetByIdAsync(objectId);
             if (result != null)
             {
                 return Ok(result);
