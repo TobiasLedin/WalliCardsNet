@@ -8,6 +8,7 @@
 @attribute [Authorize]
 @inject WalliCardsApiService WalliCardsApiService;
 @inject IClassLibraryBusinessProfilesService BusinessProfilesService;
+@inject AuthStateProvider AuthStateProvider;
 
 
 @if(Business != null)
@@ -31,7 +32,7 @@
                     <option value="@Guid.Empty">New profile</option>
                     }
                 </InputSelect>
-                @if (SelectedBusinessProfileId != Guid.Empty && !SelectedBusinessProfile.IsActive)
+                @if (SelectedBusinessProfileId != Guid.Empty && !SelectedBusinessProfile.IsActive && IsManager)
                 {
                     <button @onclick="SetActiveProfile" class="btn btn-primary">Set as active profile</button>
                 }
@@ -100,8 +101,12 @@
 
     public string Message { get; set; } = "";
 
+    public bool IsManager { get; set; } = false;
+
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        IsManager = authState.User?.Claims.FirstOrDefault(x => x.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" && x.Value == "Manager") != null;
         var response = await WalliCardsApiService.GetByTokenAsync<BusinessDTO>("business", Token);
         if (response.IsSuccess)
         {
@@ -177,6 +182,7 @@
     public async Task SetActiveProfile()
     {
         var response = await WalliCardsApiService.PutAsync<Guid>($"businessprofile/set-active/{SelectedBusinessProfileId}", SelectedBusinessProfileId);
+
         await FetchBusinessProfiles();
     }
 }
