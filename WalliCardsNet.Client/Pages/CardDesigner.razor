@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
 @using WalliCardsNet.ClassLibrary.BusinessProfile
 @using WalliCardsNet.ClassLibrary.Card
 @using WalliCardsNet.ClassLibrary.Services
@@ -106,7 +107,8 @@
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        IsManager = authState.User?.Claims.FirstOrDefault(x => x.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" && x.Value == "Manager") != null;
+        var role = authState.User.FindFirst(ClaimTypes.Role)?.Value ?? "Unknown";
+        IsManager = role == "Manager";
         var response = await WalliCardsApiService.GetByTokenAsync<BusinessDTO>("business", Token);
         if (response.IsSuccess)
         {
