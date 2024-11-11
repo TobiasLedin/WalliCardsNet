@@ -5,11 +5,14 @@
 @using WalliCardsNet.ClassLibrary.Services
 @using WalliCardsNet.Client.Models
 @using WalliCardsNet.Client.Components.PassDesigner
+@using Blazored.LocalStorage
 @page "/card/{token}"
 @attribute [Authorize]
 @inject WalliCardsApiService WalliCardsApiService;
 @inject IClassLibraryBusinessProfilesService BusinessProfilesService;
 @inject AuthStateProvider AuthStateProvider;
+@inject ILocalStorageService _localStorage;
+
 
 
 @if(Business != null)
@@ -35,7 +38,15 @@
                 </InputSelect>
                 @if (SelectedBusinessProfileId != Guid.Empty && !SelectedBusinessProfile.IsActive && IsManager)
                 {
-                    <button @onclick="SetActiveProfile" class="btn btn-primary">Set as active profile</button>
+                    @if (TimeOfLastSetActiveRequest > DateTime.UtcNow.AddMinutes(-10))
+                    {
+                        <button class="btn btn-secondary" disabled>Set as active profile</button>
+                        <p>Can't set a new profile as active until @TimeOfLastSetActiveRequest.AddMinutes(10).ToLocalTime().ToString("HH:mm").</p>
+                    }
+                    else
+                    {
+                        <button @onclick="SetActiveProfile" class="btn btn-primary">Set as active profile</button>
+                    }
                 }
             </div>
             <button @onclick="NewProfile" class="btn btn-primary">New profile</button>
@@ -104,6 +115,8 @@
 
     public bool IsManager { get; set; } = false;
 
+    public DateTime TimeOfLastSetActiveRequest { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
@@ -114,6 +127,7 @@
         {
             Business = response.Data;
         }
+        TimeOfLastSetActiveRequest = await _localStorage.GetItemAsync<DateTime>("lastRequest-SetActiveProfile");
         await FetchBusinessProfiles();
     }
 
@@ -184,7 +198,9 @@
     public async Task SetActiveProfile()
     {
         var response = await WalliCardsApiService.PutAsync<Guid>($"businessprofile/set-active/{SelectedBusinessProfileId}", SelectedBusinessProfileId);
-
+        var timeOfRequest = DateTime.UtcNow;
+        await _localStorage.SetItemAsync<DateTime>("lastRequest-SetActiveProfile", timeOfRequest);
+        TimeOfLastSetActiveRequest = timeOfRequest;
         await FetchBusinessProfiles();
     }
 }
