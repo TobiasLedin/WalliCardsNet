@@ -216,18 +216,28 @@
             TextColor = cssOptions["color"];
         }
 
-        var fields = JsonSerializer.Deserialize<List<CardField>>(BusinessProfile.JoinFormTemplate.FieldsJson);
-        if (fields != null)
+        if (!string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.FieldsJson) || BusinessProfile.JoinFormTemplate.FieldsJson != "{}")
         {
-            Fields = new List<CardField>();
-            foreach (var field in fields)
+            try
             {
-                Fields.Add(field);
+                var fields = JsonSerializer.Deserialize<List<CardField>>(BusinessProfile.JoinFormTemplate.FieldsJson);
+                if (fields != null)
+                {
+                    Fields = new List<CardField>();
+                    foreach (var field in fields)
+                    {
+                        Fields.Add(field);
+                    }
+                    foreach (var field in Fields)
+                    {
+                        FormData.Add(new JoinFormData { FieldName = field.FieldName, FieldData = "" });
+                    }
+                }
             }
-        }
-        foreach (var field in Fields)
-        {
-            FormData.Add(new JoinFormData { FieldName = field.FieldName, FieldData = "" });
+            catch(JsonException exception)
+            {
+                Console.WriteLine("Couldn't deserialize json");
+            }
         }
     }
 

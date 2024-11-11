@@ -13,7 +13,7 @@ namespace WalliCardsNet.ClassLibrary.BusinessProfile
         public string WideLogoUrl { get; set; } = "";
         public bool UseWideLogo { get; set; }
         public string HeroImageUrl { get; set; } = "";
-        public string FieldsJson { get; set; } = "{}";
-        public string CSSOptionsJson { get; set; } = "{}";
+        public string FieldsJson { get; set; } = "";
+        public string CSSOptionsJson { get; set; } = "";
     }
 }
