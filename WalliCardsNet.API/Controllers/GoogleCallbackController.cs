@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
+using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Controllers
@@ -10,56 +11,54 @@ namespace WalliCardsNet.API.Controllers
     public class GoogleCallbackController : ControllerBase
     {
         private readonly ILogger<GoogleCallbackController> _logger;
+        private readonly IGooglePass _googlePassRepository;
 
-        public GoogleCallbackController(ILogger<GoogleCallbackController> logger)
+        public GoogleCallbackController(ILogger<GoogleCallbackController> logger, IGooglePass googlePassRepository)
         {
             _logger = logger;
+            _googlePassRepository = googlePassRepository;
         }
 
 
         /// <summary>
-        /// Handle end-user Add pass / Remove pass. Handles Device creation.
+        /// Handle end-user Add pass / Remove pass.
         /// </summary>
         /// <param name="callback"></param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult GoogleWalletCallback([FromBody] GoogleWalletCallback callback)
+        public async Task<IActionResult> GoogleWalletCallback([FromBody] GoogleWalletCallback callback)
         {
             try
             {
-                // Check if the callback has expired
                 if (callback.IsExpired())
                 {
                     _logger.LogWarning("Received expired callback for object {ObjectId}", callback.ObjectId);
                     return BadRequest("Callback expired");
                 }
 
-                // Example callback JSON:
-                // {
-                //   "classId": "3388000000022321761.movie_ticket",
-                //   "objectId": "3388000000022321761.movie_ticket_object_1",
-                //   "expTimeMillis": 1699209600000,
-                //   "eventType": "save",
-                //   "nonce": "abc123xyz789"
-                // }
-
-                var (issuerId, classId) = callback.ParseClassId();
-                var (_, objectId) = callback.ParseObjectId();
-
                 if (callback.IsSaveEvent())
                 {
-                    // Handle save event
-                    _logger.LogInformation("Processing save event for object {ObjectId}", objectId);
-                   
-                    // Create GooglePass object and store.
-                    // Devices?
+                    _logger.LogInformation("Processing save event for object {ObjectId}", callback.ObjectId);
 
+                    var googlePass = await _googlePassRepository.GetByIdAsync(callback.ObjectId);
+                    if (googlePass != null)
+                    {
+                        googlePass.PassStatus = Enums.PassStatus.Saved;
+
+                        await _googlePassRepository.UpdateAsync(googlePass);
+                    }
                 }
                 else if (callback.IsDeleteEvent())
                 {
-                    // Handle delete event
-                    _logger.LogInformation("Processing delete event for object {ObjectId}", objectId);
-                    // Add your delete logic here
+                    _logger.LogInformation("Processing delete event for object {ObjectId}", callback.ObjectId);
+
+                    var googlePass = await _googlePassRepository.GetByIdAsync(callback.ObjectId);
+                    if (googlePass != null)
+                    {
+                        googlePass.PassStatus = Enums.PassStatus.Deleted;
+
+                        await _googlePassRepository.UpdateAsync(googlePass);
+                    }
                 }
                 else
                 {

@@ -7,6 +7,8 @@ using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Constants;
 using WalliCardsNet.ClassLibrary.Customer;
 using WalliCardsNet.API.Services;
+using Google.Apis.Walletobjects.v1.Data;
+using SendGrid.Helpers.Mail;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -18,13 +20,20 @@ namespace WalliCardsNet.API.Controllers
         private readonly IBusiness _businessRepo;
         private readonly IBusinessProfile _profileRepo;
         private readonly IGoogleService _googleService;
+        private readonly IGooglePass _googlePassRepository;
 
-        public CustomerController(ICustomer customerRepo, IBusiness businessRepo, IBusinessProfile profileRepo, IGoogleService googleService)
+        public CustomerController(
+            ICustomer customerRepo, 
+            IBusiness businessRepo, 
+            IBusinessProfile profileRepo, 
+            IGoogleService googleService, 
+            IGooglePass googlePassRepository)
         {
             _customerRepo = customerRepo;
             _businessRepo = businessRepo;
             _profileRepo = profileRepo;
             _googleService = googleService;
+            _googlePassRepository = googlePassRepository;
         }
 
         
@@ -101,7 +110,8 @@ namespace WalliCardsNet.API.Controllers
                 var business = await _businessRepo.GetByTokenAsync(joinFormModel.BusinessToken);
 
                 var customerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(joinFormModel.FormDataJson);
-                if (customerDetails != null && customerDetails.ContainsKey("Email"))
+
+                if (customerDetails != null && customerDetails.TryGetValue("Email", out var email))
                 {
                     var customer = new Customer
                     {
@@ -111,23 +121,37 @@ namespace WalliCardsNet.API.Controllers
                     await _customerRepo.AddAsync(customer);
 
                     // GooglePass generation
-                    //var profile = await _profileRepo.GetActiveByBusinessIdAsync(business.Id);
 
-                    //if (profile == null)
-                    //{
-                    //    return Problem();
-                    //}
+                    var profile = await _profileRepo.GetActiveByBusinessIdAsync(business.Id);
+                    if (profile == null)
+                    {
+                        return Problem();
+                    }
 
-                    //var result = await _googleService.CreateGenericObjectAsync(profile, customer);
+                    var objectCreateResult = await _googleService.CreateGenericObjectAsync(profile, customer);
+                    if (!objectCreateResult.Success || objectCreateResult.Data == null)
+                    {
+                        return Problem();
+                    }
 
-                    //if (result.Success && result.Data != null)
-                    //{
-                    //    var token = _googleService.CreateSignedJWT(genericClass, result.Data)
-                    //}
+                    var objectJson = JsonSerializer.Serialize(objectCreateResult.Data, _googleService.SerializerOptions());
 
+                    var googlePass = new GooglePass
+                    {
+                        ObjectId = objectCreateResult.Data.Id,
+                        ObjectJson = objectJson,
+                        ClassId = profile.GoogleTemplate!.GenericClassId!,
+                        ClassJson = profile.GoogleTemplate!.GenericClassJson!,
+                        Customer = customer,
+                    };
 
-                    //return Ok();
-                    return Created($"api/Customer/{customer.Id}", new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
+                    var creationResult = _googleService.CreateSignedJWT(googlePass.ClassJson, googlePass.ObjectJson, email);
+                    if (creationResult.Success)
+                    {
+                        await _googlePassRepository.AddAsync(googlePass);
+
+                        return Ok(creationResult.Data);
+                    }
                 }
 
                 return BadRequest();

@@ -1,4 +1,5 @@
 ﻿using Google.Apis.Walletobjects.v1.Data;
+using System.Text.Json;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Services
@@ -13,6 +14,7 @@ namespace WalliCardsNet.API.Services
         Task<ActionResult<GenericObject>> CreateGenericObjectAsync(BusinessProfile profile, Customer customer);
         Task<ActionResult<GenericObject>> UpdateGenericObjectAsync(BusinessProfile profile, Customer customer);
         Task<ActionResult<GenericClass>> UpdateGenericClassAsync(BusinessProfile profile);
-        ActionResult<string> CreateSignedJWT(GenericClass genericClass, GenericObject genericObject);
+        ActionResult<string> CreateSignedJWT(string genericClassJson, string genericObjectJson, string customerEmail);
+        JsonSerializerOptions SerializerOptions();
     }
 }

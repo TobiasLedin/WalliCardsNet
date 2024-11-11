@@ -8,6 +8,8 @@ namespace WalliCardsNet.API.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid BusinessProfileId { get; set; }
         public string? FieldsJson { get; set; } // Used by Generic class + Generic object
+        public string? GenericClassId { get; set; }
+        public string? GenericClassJson { get; set; }
 
 
         // Generic object required props
