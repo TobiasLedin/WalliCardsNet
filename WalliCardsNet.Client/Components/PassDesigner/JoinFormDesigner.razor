@@ -97,6 +97,7 @@
                     PreviewLogo="@PreviewLogo"
                     PreviewHeroImage="@PreviewHeroImage"
                     Fields="@Fields"
+                    FormData="@FormData"
                     BusinessProfile="@BusinessProfile">
         </JoinForm>
     </div> 
@@ -116,6 +117,7 @@
     public CardRequestDTO Card { get; set; } = new CardRequestDTO();
 
     public List<CardField> Fields { get; set; } = new List<CardField>();
+    public List<JoinFormData> FormData { get; set; } = new List<JoinFormData>();
 
     // public string Title { get; set; } = "";
     // public string LogoUrl { get; set; } = "";
@@ -222,6 +224,10 @@
             {
                 Fields.Add(field);
             }
+        }
+        foreach (var field in Fields)
+        {
+            FormData.Add(new JoinFormData { FieldName = field.FieldName, FieldData = "" });
         }
     }
 
