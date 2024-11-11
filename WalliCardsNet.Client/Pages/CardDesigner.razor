@@ -147,7 +147,12 @@
         {
             Message = "Join Form template incomplete.";
         }
-        if (BusinessProfile.GooglePassTemplate != null && BusinessProfile.JoinFormTemplate != null)
+        if (string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.FieldsJson))
+        {
+            Message = "Google Pass rows/fields can not be empty";
+            Console.WriteLine("Rows/fields error");
+        }
+        if (BusinessProfile.GooglePassTemplate != null && BusinessProfile.JoinFormTemplate != null && !string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.FieldsJson))
         {
             var response = await WalliCardsApiService.PostAsync<BusinessProfileRequestDTO>("businessprofile/create", BusinessProfile);
             if (response.IsSuccess)

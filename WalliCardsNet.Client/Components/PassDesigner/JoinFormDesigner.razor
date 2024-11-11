@@ -206,14 +206,21 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        var cssOptions = JsonSerializer.Deserialize<Dictionary<string, string>>(BusinessProfile.JoinFormTemplate.CSSOptionsJson);
-        if (cssOptions != null && cssOptions.ContainsKey("background-color"))
+        try
         {
-            BackgroundColor = cssOptions["background-color"];   
+            var cssOptions = JsonSerializer.Deserialize<Dictionary<string, string>>(BusinessProfile.JoinFormTemplate.CSSOptionsJson);
+            if (cssOptions != null && cssOptions.ContainsKey("background-color"))
+            {
+                BackgroundColor = cssOptions["background-color"];
+            }
+            if (cssOptions != null && cssOptions.ContainsKey("color"))
+            {
+                TextColor = cssOptions["color"];
+            }
         }
-        if (cssOptions != null && cssOptions.ContainsKey("color"))
+        catch (JsonException exception)
         {
-            TextColor = cssOptions["color"];
+            Console.WriteLine("Couldn't deserialize CssOptions");
         }
 
         if (!string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.FieldsJson) || BusinessProfile.JoinFormTemplate.FieldsJson != "{}")
