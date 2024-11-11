@@ -84,14 +84,11 @@ namespace WalliCardsNet.API.Controllers
         public async Task<IActionResult> GetByTokenAsync(string token)
         {
             var business = await _businessRepo.GetByTokenAsync(token);
-            var result = await _cardTemplateRepo.GetByBusinessIdAsync(business.Id);
+            var result = await _businessProfileRepo.GetActiveByBusinessIdAsync(business.Id);
             if (result != null)
             {
-                var cardResponseDTO = new CardResponseDTO
-                {
-                    DesignJson = result.DesignJson
-                };
-                return Ok(cardResponseDTO);
+                var businessProfileRequestDTO = _businessProfilesService.MapBusinessProfileToResponseDTO(result);
+                return Ok(businessProfileRequestDTO);
             }
             else
             {
@@ -162,6 +159,7 @@ namespace WalliCardsNet.API.Controllers
             {
                 var businessProfile = _businessProfilesService.MapRequestDTOtoBusinessProfile(businessProfileRequest, businessId);
                 await _businessProfileRepo.AddAsync(businessProfile);
+                await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(businessProfile.JoinForm.FieldsJson, businessId);
                 return Created($"api/businessprofile/{businessProfile.Id}", businessProfile);
             }
             return BadRequest();
@@ -180,6 +178,7 @@ namespace WalliCardsNet.API.Controllers
             if (businessProfileRequest != null)
             {
                 await _businessProfileRepo.UpdateAsync(businessProfileRequest, businessId);
+                await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(businessProfileRequest.JoinFormTemplate.FieldsJson, businessId);
                 return Ok(businessProfileRequest);
             }
             return BadRequest();

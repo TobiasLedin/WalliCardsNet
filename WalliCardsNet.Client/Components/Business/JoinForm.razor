@@ -2,6 +2,7 @@
 @using WalliCardsNet.ClassLibrary.BusinessProfile
 @using WalliCardsNet.ClassLibrary.Card
 @using WalliCardsNet.Client.Components
+@using WalliCardsNet.Client.Models
 @implements IComponent
 
 @if (BusinessProfile != null)
@@ -41,54 +42,49 @@
         <div class="fields-container">
             @foreach (var field in Fields)
             {
-                <div class="field-container">
-                    <label class="field-label">@field.FieldName</label>
-                    @if (field.IsRequired == true)
+                    var formdata = FormData.FirstOrDefault(x => x.FieldName == field.FieldName);
+                    if (formdata != null)
                     {
-                        <label class="required">*</label>
-                    }
-                    @{
-                        string exampleText = "";
-                    }
-                    @switch (field.FieldType)
-                    {
-                        case "text":
-                            <InputText @bind-Value="exampleText" class="field-input" />
-                            break;
-                        case "email":
-                            <InputText @bind-Value="exampleText" type="email" class="field-input" />
-                            break;
-                        case "number":
-                            <InputText @bind-Value="exampleText" type="number" class="field-input" />
-                            break;
-                        case "date":
+                        <div class="field-container">
+                            <label class="field-label">@field.FieldName</label>
+                            @if (field.IsRequired == true)
                             {
-                                DateTime parsedDate;
-                                if (DateTime.TryParse(exampleText, out parsedDate))
-                                {
-                                    <InputDate @bind-Value="parsedDate" class="field-input" />
-                                    exampleText = parsedDate.ToString("yyyy-MM-dd");
-                                }
-                                else
-                                {
-                                    DateTime currentDate = DateTime.Now;
-                                    <InputDate @bind-Value="currentDate" class="field-input" />
-                                    exampleText = currentDate.ToString("yyyy-MM-dd");
-                                }
+                                <label class="required">*</label>
                             }
-                            break;
-                        case "checkbox":
+                            @switch (field.FieldType)
                             {
-                                bool isChecked = exampleText == "true";
-                                <InputCheckbox @bind-Value="isChecked" class="checkbox-input" />
-                                exampleText = isChecked ? "true" : "false";
+                                case "text":
+                                    <InputText @bind-Value="formdata.FieldData" class="field-input" />
+                                    break;
+                                case "email":
+                                    <InputText @bind-Value="formdata.FieldData" type="email" class="field-input" />
+                                    break;
+                                case "number":
+                                    <InputText @bind-Value="formdata.FieldData" type="number" class="field-input" />
+                                    break;
+                                case "date":
+                                    if (DateValues != null && DateValues.Count > 0)
+                                    {
+                                        var dateField = DateValues.FirstOrDefault(x => x.FieldName == field.FieldName);
+                                        if (dateField != null)
+                                        {
+                                            <InputDate @bind-Value="dateField.DateValue" @bind-Value:after="SetDate" class="field-input" />
+                                        }
+                                    }
+                                    break;
+                                case "checkbox":
+                                    {
+                                        bool isChecked = formdata.FieldData == "true";
+                                        <InputCheckbox @bind-Value="isChecked" class="checkbox-input" />
+                                        formdata.FieldData = isChecked ? "true" : "false";
+                                    }
+                                    break;
+                                default:
+                                    <p class="unsupported-field">Unsupported field type: @field.FieldType</p>
+                                    break;
                             }
-                            break;
-                        default:
-                            <p class="unsupported-field">Unsupported field type: @field.FieldType</p>
-                            break;
+                        </div>
                     }
-                </div>
             }
         </div>
 
@@ -124,8 +120,44 @@
     public List<CardField> Fields { get; set; } = new List<CardField>();
 
     [Parameter]
+    public List<JoinFormData> FormData { get; set; } = new List<JoinFormData>();
+
+    [Parameter]
     public bool PreviewLogo { get; set; }
 
     [Parameter]
     public bool PreviewHeroImage { get; set; }
+
+    public List<DateField> DateValues { get; set; } = new List<DateField>();
+
+    public class DateField()
+    {
+        public string FieldName{ get; set; }
+        public DateTime DateValue { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var dateValues = new List<DateField>();
+        foreach (var field in Fields)
+        {
+            if (field.FieldType == "date")
+            {
+                dateValues.Add(new DateField{FieldName = field.FieldName, DateValue = DateTime.UtcNow});
+            }
+            DateValues = dateValues;
+        }
+        StateHasChanged();
+    }
+
+    public void SetDate()
+    {
+        foreach (var date in DateValues)
+        {
+            string dateString = date.DateValue.ToString("yyyy-MM-dd");
+            FormData.FirstOrDefault(x => x.FieldName == date.FieldName).FieldData = dateString;
+            Console.WriteLine($"Changed {date.FieldName} to {dateString}");
+        }
+        StateHasChanged();
+    }
 }

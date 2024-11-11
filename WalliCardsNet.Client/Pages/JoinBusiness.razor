@@ -4,84 +4,35 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 @using WalliCardsNet.ClassLibrary
+@using WalliCardsNet.ClassLibrary.BusinessProfile
 @using WalliCardsNet.ClassLibrary.Card
 @using WalliCardsNet.ClassLibrary.Customer
+@using WalliCardsNet.ClassLibrary.Services
+@using WalliCardsNet.Client.Components.Business
 @using WalliCardsNet.Client.Models
 @inject WalliCardsApiService WalliCardsApiService
+@inject IClassLibraryBusinessProfilesService BusinessProfilesService
 @inject HttpClient Http
 
-
-<h3>JoinBusiness</h3>
-@if (Business != null && CardTemplate != null && string.IsNullOrEmpty(SuccessMessage))
+@if (!Fetching && BusinessProfile != null && Fields != null && CssOptions != null)
 {
-    <p>Join @Business.Name</p>
-    <EditForm Model="@JoinFormModel" OnValidSubmit="Submit"
-              style="@GenerateStyleString()">
-        <DataAnnotationsValidator/>
-        @foreach (var field in CardTemplate.CardFields)
-        {
-            <div>
-                <label>@field.Label</label>
-                @{var formField = FormData.FirstOrDefault(x => x.FieldName == field.FieldName);}
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <JoinForm BusinessName="@Business.Name"
+                  BackgroundColor="@CssOptions[key:"background-color"]"
+                  TextColor="@CssOptions[key:"color"]"
+                  BusinessProfile="@BusinessProfile"
+                  FormData="@FormData"
+                  Fields="@Fields"
+                  PreviewLogo="false"
+                  PreviewHeroImage="false"></JoinForm>
+        <button @onclick="Submit" style="height: 40px; width: 240px; margin-top: 2rem;" class=" btn btn-primary">Join</button>
+    </div>
 
-                @if (formField != null && DateValues != null && CheckboxValues != null)
-                {
-                    @switch (field.FieldType)
-                    {
-                        case "text":
-                            <InputText @bind-Value="formField.FieldData" />
-                            break;
-                        case "email":
-                            <InputText @bind-Value="formField.FieldData" type="email" />
-                            break;
-                        case "number":
-                            <InputText @bind-Value="formField.FieldData"/>
-                            break;
-                        case "date":
-                            int dateIndex = CardTemplate.CardFields.IndexOf(field);
-                            if (dateIndex >= 0)
-                            {
-                                while (DateValues.Count <= dateIndex)
-                                {
-                                    DateValues.Add(DateTime.Now.Date);
-                                }
-                                <InputDate @bind-Value="DateValues[dateIndex]" />
-                            }
-                            else
-                            {
-                                <p>Error: Field not found in CardFields.</p>
-                            }
-                            break;
-                        case "checkbox":
-                            int checkboxIndex = CardTemplate.CardFields.IndexOf(field);
-                            if (checkboxIndex >= 0)
-                            {
-                                while (CheckboxValues.Count <= checkboxIndex)
-                                {
-                                    CheckboxValues.Add(false);
-                                }
-                                bool isChecked = formField.FieldData == "true";
-                                <InputCheckbox @bind-Value="CheckboxValues[checkboxIndex]" />
-                                formField.FieldData = CheckboxValues[checkboxIndex] ? "true" : "false";
-                            }
-                            else
-                            {
-                                <p>Error: Field not found in CardFields.</p>
-                            }
-                            break;
-                        default:
-                            <p>Unsupported field type: @field.FieldType</p>
-                            break;
-                    }
-                }
-                else
-                {
-                    <p>No data found for this field.</p>
-                }
-            </div>
-        }
-        <button type="submit">Join</button>
-    </EditForm>
+}
+
+@if (Fetching)
+{
+    <p>Fetching data...</p>
 }
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
@@ -105,7 +56,9 @@
     public JoinFormModel JoinFormModel { get; set; } = new JoinFormModel();
     public List<JoinFormData> FormData { get; set; } = new List<JoinFormData>();
     public Dictionary<string, string> CssOptions { get; set; } = new Dictionary<string, string>();
+    public List<CardField> Fields { get; set; } = new List<CardField>();
     public CardDesign CardTemplate {get; set;} = new CardDesign();
+    public BusinessProfileRequestDTO BusinessProfile { get; set; } = new BusinessProfileRequestDTO();
     public string SuccessMessage { get; set; } = "";
     public string ErrorMessage { get; set; }
     public bool Fetching = false;
@@ -114,7 +67,7 @@
     public List<bool> CheckboxValues { get; set; } = new List<bool>();
     public List<DateTime> DateValues { get; set; } = new List<DateTime>();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         Fetching = true;
         var businessResponse = await WalliCardsApiService.GetByTokenAsync<PublicBusinessTokenDTO>("business", Token);
@@ -126,15 +79,27 @@
         {
             ErrorMessage = businessResponse.Message;
         }
-        var cardTemplateResponse = await WalliCardsApiService.GetByTokenAsync<CardResponseDTO>("businessprofile", Token);
-        if (cardTemplateResponse.IsSuccess)
+        var businessProfileResponse = await WalliCardsApiService.GetByTokenAsync<BusinessProfileResponseDTO>("businessprofile", Token);
+        if (businessProfileResponse.IsSuccess)
         {
-            CardTemplate = JsonSerializer.Deserialize<CardDesign>(cardTemplateResponse.Data.DesignJson);
-            foreach (var field in CardTemplate.CardFields)
+            var businessProfileResponseDTO = businessProfileResponse.Data;
+            BusinessProfile = BusinessProfilesService.MapResponseDTOToRequestDTO(businessProfileResponseDTO);
+            if (BusinessProfile.JoinFormTemplate != null)
             {
-                FormData.Add(new JoinFormData { FieldName = field.FieldName });
+                if (BusinessProfile.JoinFormTemplate.CSSOptionsJson != null)
+                {
+                    CssOptions = JsonSerializer.Deserialize<Dictionary<string, string>>(BusinessProfile.JoinFormTemplate.CSSOptionsJson);
+                }
+
+                if (BusinessProfile.JoinFormTemplate.FieldsJson != null)
+                {
+                    Fields = JsonSerializer.Deserialize<List<CardField>>(BusinessProfile.JoinFormTemplate.FieldsJson);
+                    foreach (var field in Fields)
+                    {
+                        FormData.Add(new JoinFormData{FieldName = field.FieldName, FieldData = "" });
+                    }
+                }
             }
-            CssOptions = CardTemplate.CssOptions;
         }
         else
         {
@@ -149,14 +114,23 @@
         JoinFormModel.BusinessToken = Token;
         ErrorMessage = "";
         bool hasError = false;
-        for (int i = 0; i < CardTemplate.CardFields.Count; i++)
+        for (int i = 0; i < Fields.Count; i++)
         {
-            var field = CardTemplate.CardFields[i];
+            var field = Fields[i];
             var formField = FormData.FirstOrDefault(x => x.FieldName == field.FieldName);
 
             if (field.FieldType == "date" && formField != null)
             {
-                formField.FieldData = DateValues[i].ToString("yyyy-MM-dd"); 
+                DateTime date;
+                if (DateTime.TryParse(formField.FieldData, out date))
+                {
+                    string formattedDate = date.ToString("yyyy-MM-dd");
+                    formField.FieldData = formattedDate;
+                }
+                else
+                {
+                    formField.FieldData = DateTime.Now.ToString("yyyy-MM-dd");
+                }
             }
             if (field.FieldType == "number" && formField != null)
             {
@@ -193,10 +167,5 @@
         {
             Console.WriteLine($"Error: {response.Message}");
         }
-    }
-
-    private string GenerateStyleString()
-    {
-        return string.Join(";", CssOptions.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
     }
 }

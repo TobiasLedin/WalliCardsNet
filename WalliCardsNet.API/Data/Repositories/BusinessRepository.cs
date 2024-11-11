@@ -78,11 +78,11 @@ namespace WalliCardsNet.API.Data.Repositories
         {
             var business = await GetByIdAsync(businessId);
             var columnPreset = JsonSerializer.Deserialize<ColumnPreset>(business.ColumnPresetJson) ?? new ColumnPreset();
-            var design = JsonSerializer.Deserialize<CardDesign>(designJson);
+            var design = JsonSerializer.Deserialize<List<CardField>>(designJson);
 
             if (design != null)
             {
-                foreach (var field in design.CardFields)
+                foreach (var field in design)
                 {
                     if (!columnPreset.VisibleColumns.Contains(field.FieldName) && !columnPreset.HiddenColumns.Contains(field.FieldName))
                     {

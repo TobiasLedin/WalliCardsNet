@@ -101,7 +101,7 @@ namespace WalliCardsNet.API.Controllers
                 var business = await _businessRepo.GetByTokenAsync(joinFormModel.BusinessToken);
 
                 var customerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(joinFormModel.FormDataJson);
-                if (customerDetails != null && customerDetails.ContainsKey("email"))
+                if (customerDetails != null && customerDetails.ContainsKey("Email"))
                 {
                     var customer = new Customer
                     {

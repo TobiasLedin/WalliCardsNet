@@ -17,7 +17,7 @@ namespace WalliCardsNet.API.Data.Repositories
             _applicationDbContext = applicationDbContext;
             _businessProfilesService = businessProfilesService;
         }
-
+        
         public async Task AddAsync(BusinessProfile businessProfile)
         {
             if (businessProfile != null)
