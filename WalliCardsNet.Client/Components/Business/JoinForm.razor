@@ -73,10 +73,13 @@
                                     }
                                     break;
                                 case "checkbox":
+                                    if (CheckboxValues != null && CheckboxValues.Count > 0)
                                     {
-                                        bool isChecked = formdata.FieldData == "true";
-                                        <InputCheckbox @bind-Value="isChecked" class="checkbox-input" />
-                                        formdata.FieldData = isChecked ? "true" : "false";
+                                        var checkboxField = CheckboxValues.FirstOrDefault(x => x.FieldName == field.FieldName);
+                                        if (checkboxField != null)
+                                        {
+                                            <InputCheckbox @bind-Value="checkboxField.CheckboxValue" @bind-Value:after="SetCheckboxes" class="field-input"></InputCheckbox>
+                                        }
                                     }
                                     break;
                                 default:
@@ -129,6 +132,7 @@
     public bool PreviewHeroImage { get; set; }
 
     public List<DateField> DateValues { get; set; } = new List<DateField>();
+    public List<CheckboxField> CheckboxValues { get; set; } = new List<CheckboxField>();
 
     public class DateField()
     {
@@ -136,9 +140,16 @@
         public DateTime DateValue { get; set; }
     }
 
+    public class CheckboxField()
+    {
+        public string FieldName { get; set; }
+        public bool CheckboxValue { get; set; }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         var dateValues = new List<DateField>();
+        var checkboxValues = new List<CheckboxField>();
         foreach (var field in Fields)
         {
             if (field.FieldType == "date")
@@ -146,7 +157,13 @@
                 dateValues.Add(new DateField{FieldName = field.FieldName, DateValue = DateTime.UtcNow});
             }
             DateValues = dateValues;
+            if (field.FieldType == "checkbox")
+            {
+                checkboxValues.Add(new CheckboxField { FieldName = field.FieldName, CheckboxValue = false });
+            }
+            CheckboxValues = checkboxValues;
         }
+
         StateHasChanged();
     }
 
@@ -159,5 +176,13 @@
             Console.WriteLine($"Changed {date.FieldName} to {dateString}");
         }
         StateHasChanged();
+    }
+
+    public void SetCheckboxes()
+    {
+        foreach (var checkbox in CheckboxValues)
+        {
+            FormData.FirstOrDefault(x => x.FieldName == checkbox.FieldName).FieldData = checkbox.CheckboxValue.ToString();
+        }
     }
 }

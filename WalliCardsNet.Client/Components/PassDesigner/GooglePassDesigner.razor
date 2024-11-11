@@ -107,18 +107,24 @@
                 {
                     <button class="btn btn-primary" @onclick="AddRow">Add row</button>
                 }
+                @{
+                    int i = 1;
+                }
                 @foreach (var row in fields.Rows)
                 {
                     <div>
-                        <label>Row</label>
+                        <label>Row @i</label><br />
+                        @{i++;}
                         @if (row.Fields.Count < 3)
                         {
                             <button class="btn btn-primary" @onclick="() => AddField(row)">Add field</button>
                         }
+                        <button class="btn btn-danger" @onclick="() => DeleteRow(row)">Delete row</button>
                         <div>
                             @foreach (var field in row.Fields)
                             {
                                 <InputText @bind-Value="field.Header" @onblur="ConvertToListOfLists" placeholder="Header value" />
+                                <button class="btn btn-danger" @onclick="() => DeleteField(row, field)">Delete field</button>
                             }
                         </div>
                     </div>
@@ -233,11 +239,27 @@
         }
     }
 
+    private void DeleteRow(Row row)
+    {
+        if (fields.Rows != null && fields.Rows.Count > 0)
+        {
+            fields.Rows.Remove(row);
+        }
+    }
+
     private void AddField(Row row)
     {
         if (row.Fields.Count < 3)
         {
             row.Fields.Add(new Field());
+        }
+    }
+
+    private void DeleteField(Row row, Field field)
+    {
+        if (row.Fields != null && row.Fields.Count > 0)
+        {
+            row.Fields.Remove(field);
         }
     }
 
