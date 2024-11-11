@@ -14,7 +14,7 @@
 @inject IClassLibraryBusinessProfilesService BusinessProfilesService
 @inject HttpClient Http
 
-@if (!Fetching && BusinessProfile != null && Fields != null && CssOptions != null)
+@if (!Fetching && BusinessProfile != null && Fields != null && CssOptions != null && CssOptions.ContainsKey("background-color") && CssOptions.ContainsKey("color"))
 {
     <div style="display: flex; flex-direction: column; align-items: center;">
         <JoinForm BusinessName="@Business.Name"
@@ -47,6 +47,13 @@
     <img src="enUS_add_to_google_wallet_wallet-button.png"/>
     </a>
 }
+@if (!BusinessProfileExists && Business != null)
+{
+    <div style="background-color: aquamarine; padding-inline: 3rem; padding-block: 6rem; display: flex; flex-direction: column; align-items: center;">
+        <p>@Business.Name hasn't configured this link yet. Check back later!</p>
+    </div>
+
+}
 
 
 @code {
@@ -62,6 +69,7 @@
     public string SuccessMessage { get; set; } = "";
     public string ErrorMessage { get; set; }
     public bool Fetching = false;
+    public bool BusinessProfileExists = false;
     private string? googleLink = "https://www.google.com";
 
     public List<bool> CheckboxValues { get; set; } = new List<bool>();
@@ -82,6 +90,7 @@
         var businessProfileResponse = await WalliCardsApiService.GetByTokenAsync<BusinessProfileResponseDTO>("businessprofile", Token);
         if (businessProfileResponse.IsSuccess)
         {
+            BusinessProfileExists = true;
             var businessProfileResponseDTO = businessProfileResponse.Data;
             BusinessProfile = BusinessProfilesService.MapResponseDTOToRequestDTO(businessProfileResponseDTO);
             if (BusinessProfile.JoinFormTemplate != null)
@@ -103,7 +112,7 @@
         }
         else
         {
-            Console.WriteLine("Error fetching card template");
+            BusinessProfileExists = false;
         }
         Fetching = false;
         StateHasChanged();
