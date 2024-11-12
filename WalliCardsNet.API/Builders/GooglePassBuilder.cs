@@ -113,7 +113,8 @@ namespace WalliCardsNet.API.Builders
 
         public GooglePassBuilder WithImageInfo(string? logoUri, string? wideLogoUri, string? heroUri)
         {
-            if (logoUri != null && wideLogoUri == null)
+            //if (logoUri != null && wideLogoUri == null)
+            if (!string.IsNullOrEmpty(logoUri) && string.IsNullOrEmpty(wideLogoUri))
             {
                 _genericObject.Logo = new Image
                 {
@@ -125,7 +126,8 @@ namespace WalliCardsNet.API.Builders
                 };
             }
 
-            if (wideLogoUri != null)
+            //if (wideLogoUri != null)
+            if (!string.IsNullOrEmpty(wideLogoUri))
             {
                 _genericObject.WideLogo = new Image
                 {
@@ -137,7 +139,7 @@ namespace WalliCardsNet.API.Builders
                 };
             }
 
-            if(heroUri != null)
+            if(!string.IsNullOrEmpty(heroUri))
             {
                 _genericObject.HeroImage = new Image
                 {
