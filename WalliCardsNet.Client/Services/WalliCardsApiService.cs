@@ -31,11 +31,24 @@ namespace WalliCardsNet.Client.Services
             return await ProcessResponse<T>(response);
         }
 
-        public async Task<ApiResponse<T>> PostAsync<T>(string endpoint, T data)
+        // Add this new method for different input/output types
+        public async Task<ApiResponse<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, TRequest data)
         {
             var response = await _httpClient.PostAsJsonAsync($"/api/{endpoint}", data);
-            return await ProcessResponse<T>(response);
+            return await ProcessResponse<TResponse>(response);
         }
+
+        // Keep the existing method for backward compatibility
+        public async Task<ApiResponse<T>> PostAsync<T>(string endpoint, T data)
+        {
+            return await PostAsync<T, T>(endpoint, data);
+        }
+
+        //public async Task<ApiResponse<T>> PostAsync<T>(string endpoint, T data)
+        //{
+        //    var response = await _httpClient.PostAsJsonAsync($"/api/{endpoint}", data);
+        //    return await ProcessResponse<T>(response);
+        //}
 
         public async Task<HttpResponseMessage> PostFormUrlEncodedAsync(string endpoint, Dictionary<string, string> formData)
         {
