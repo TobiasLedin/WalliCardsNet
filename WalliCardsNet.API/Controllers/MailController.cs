@@ -47,13 +47,20 @@ namespace WalliCardsNet.API.Controllers
             }
 
             List<EmailAddress> emailAddressesList = new List<EmailAddress>();
+            List<EmailAddress> failedEmailAddressesList = new List<EmailAddress>();
             foreach (var emailAddress in emailAddresses)
             {
-                var email = new EmailAddress { Email = emailAddress};
+                var email = new EmailAddress { Email = emailAddress };
+
                 var result = await _authService.CreateUserAccountAsync(businessId, Roles.Employee, emailAddress, emailAddress);
                 if (result.Success)
                 {
                     emailAddressesList.Add(email);
+                }
+                else
+                {
+                    failedEmailAddressesList.Add(email);
+                    return BadRequest(failedEmailAddressesList);
                 }
             }
 
