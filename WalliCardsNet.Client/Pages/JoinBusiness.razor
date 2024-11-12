@@ -14,7 +14,7 @@
 @inject IClassLibraryBusinessProfilesService BusinessProfilesService
 @inject HttpClient Http
 
-@if (!Fetching && BusinessProfile != null && Fields != null && CssOptions != null && CssOptions.ContainsKey("background-color") && CssOptions.ContainsKey("color"))
+@if (!Fetching && string.IsNullOrEmpty(SuccessMessage) && BusinessProfile != null && Fields != null && CssOptions != null && CssOptions.ContainsKey("background-color") && CssOptions.ContainsKey("color"))
 {
     <div style="display: flex; flex-direction: column; align-items: center;">
         <JoinForm BusinessName="@Business.Name"
@@ -42,10 +42,19 @@
 {
     <p>@SuccessMessage</p>
     <br />
+
     @* Add to Google Wallet button *@
-    <a href="@googleLink">
-    <img src="enUS_add_to_google_wallet_wallet-button.png"/>
-    </a>
+    @if (!string.IsNullOrEmpty(_googleLink))
+    {
+        <a href="@_googleLink">
+            <img src="enUS_add_to_google_wallet_wallet-button.png" />
+        </a>
+    }
+    else
+    {
+        <p>Something went wrong when generating the Add to Google Wallet link!</p>
+    }
+
 }
 @if (!BusinessProfileExists && Business != null)
 {
@@ -70,7 +79,7 @@
     public string ErrorMessage { get; set; }
     public bool Fetching = false;
     public bool BusinessProfileExists = false;
-    private string? googleLink = "https://www.google.com";
+    private string? _googleLink;
 
     public List<bool> CheckboxValues { get; set; } = new List<bool>();
     public List<DateTime> DateValues { get; set; } = new List<DateTime>();
@@ -166,9 +175,11 @@
             Console.WriteLine($"Key: {entry.Key} Value: {entry.Value}");
         }
         Console.WriteLine($"FormDataJson: {JoinFormModel.FormDataJson}");
-        var response = await WalliCardsApiService.PostAsync<JoinFormModel>("customer/join", JoinFormModel);
+
+        var response = await WalliCardsApiService.PostAsync<JoinFormModel, string>("customer/join", JoinFormModel);
         if (response.IsSuccess)
         {
+            _googleLink = response.Data;
             SuccessMessage = $"Welcome to {Business.Name}!";
             Console.WriteLine("success");
         }
