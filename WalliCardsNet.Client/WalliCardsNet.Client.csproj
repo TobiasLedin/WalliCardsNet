@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Styles\tailwind.css" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="3.0.0" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
@@ -22,4 +26,11 @@
     <ProjectReference Include="..\WalliCardsNet.ClassLibrary\WalliCardsNet.ClassLibrary.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Watch Include="./Styles/tailwind.css" Exclude="./wwwroot/**/*;obj\**\*;bin\**\*" />
+	</ItemGroup>
+
+	<Target Name="Tailwind" BeforeTargets="Compile">
+		<Exec Command="npx tailwindcss -i ./Styles/tailwind.css -o ./wwwroot/css/styles.css" />
+	</Target>
 </Project>
