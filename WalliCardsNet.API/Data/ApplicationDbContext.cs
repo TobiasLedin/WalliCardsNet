@@ -57,9 +57,13 @@ namespace WalliCardsNet.API.Data
                     NormalizedName = Constants.Roles.Employee.ToUpper()
                 });
 
-            // String conversion of SubscriptionStatus enum.
+            // String conversion of enums.
             builder.Entity<Business>()
                 .Property(p => p.SubscriptionStatus)
+                .HasConversion<string>();
+
+            builder.Entity<GooglePass>()
+                .Property(p => p.PassStatus)
                 .HasConversion<string>();
 
             // Model relationsships
