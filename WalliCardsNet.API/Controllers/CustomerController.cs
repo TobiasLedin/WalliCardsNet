@@ -152,6 +152,10 @@ namespace WalliCardsNet.API.Controllers
 
                         return Ok(creationResult.Data);
                     }
+                    else
+                    {
+                        return Problem(creationResult.Message);
+                    }
                 }
 
                 return BadRequest();
