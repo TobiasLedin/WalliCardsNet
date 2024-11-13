@@ -4,15 +4,10 @@
 @using WalliCardsNet.Client.Components.Business
 
 <PageTitle>Home</PageTitle>
-
-<h1 class="text-3xl font-bold underline">HEJSAN</h1>
-
-
 <AuthorizeView>
 
     <NotAuthorized>
-        <Login />
-        <LoginGoogle />
+
     </NotAuthorized>
     <Authorizing>
         <p>Authorization underway...</p>
@@ -38,8 +33,6 @@
         <SetBusinessName BusinessId="@BusinessId"></SetBusinessName>
         <LinkGoogleAccount GoogleId="@GoogleId"></LinkGoogleAccount>
     </Authorized>
-
-
 </AuthorizeView>
 
 
