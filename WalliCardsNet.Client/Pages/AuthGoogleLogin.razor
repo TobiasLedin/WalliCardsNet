@@ -2,13 +2,21 @@
 @inject NavigationManager NavigationManager
 @inject ClientAuthService AuthService
 
-<div class="bg-white flex flex-col mx-auto text-center gap-2 py-12 px-8 rounded-md max-w-md shadow-sm">
-    <p>Loading...</p>
+<div class="mx-auto flex max-w-md flex-col gap-2 rounded-md bg-white px-8 py-12 text-center shadow-sm">
+    @if(!string.IsNullOrEmpty(Message))
+    {
+        <p>@Message</p>
+    }
+    else{
+        <p>Loading...</p>
+    }
 </div>
 
 @code {
     [Parameter]
     public string Code { get; set; }
+
+    public string Message { get; set; }
 
     protected override async void OnInitialized()
     {
@@ -18,8 +26,17 @@
         Code = queryParams["code"];
         if (Code != null)
         {
-            await AuthService.LoginGoogleAsync(Code);
-            NavigationManager.NavigateTo("/");
+            var response = await AuthService.LoginGoogleAsync(Code);
+            if (response.Success == true)
+            {
+                NavigationManager.NavigateTo("/settings");
+            }
+            else
+            {
+                Message = "Login through google failed, please link your google account first.";
+                StateHasChanged();
+            }
+
         }
     }
 }

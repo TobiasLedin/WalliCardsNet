@@ -3,50 +3,8 @@
 @using System.Security.Claims
 @using WalliCardsNet.Client.Components.Business
 
-<PageTitle>Home</PageTitle>
-<AuthorizeView>
 
-    <NotAuthorized>
-
-    </NotAuthorized>
-    <Authorizing>
-        <p>Authorization underway...</p>
-    </Authorizing>
-    <Authorized>
-
-        @foreach (var claim in context.User.Claims)
-        {
-            if (claim.Type == ClaimTypes.Name)
-            {
-                <p>Welcome @claim.Value</p>
-            }
-            if (claim.Type == "business-id")
-            {
-                BusinessId = claim.Value;
-            }
-            if (claim.Type == "google-id")
-            {
-                GoogleId = claim.Value;
-            }
-        }
-
-        <SetBusinessName BusinessId="@BusinessId"></SetBusinessName>
-        <LinkGoogleAccount GoogleId="@GoogleId"></LinkGoogleAccount>
-    </Authorized>
-</AuthorizeView>
-
-<div class="text-lg"></div>
 
 @code {
-
-    public List<string> Roles { get; set; }
-    public string Token { get; set; }
-    public string BusinessId { get; set; }
-    public string GoogleId { get; set; }
-
-    protected override Task OnInitializedAsync()
-    {
-        return base.OnInitializedAsync();
-    }
 
 }

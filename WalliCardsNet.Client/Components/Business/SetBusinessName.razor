@@ -5,9 +5,11 @@
     if (BusinessResponse != null && string.IsNullOrEmpty(BusinessResponse.Name))
     {    
         <EditForm Model="Business" OnSubmit="SetName">
-            <p>It looks like this is your first time signing in. Please set the name of your business.</p>
-            <InputText @bind-Value="BusinessName"></InputText>
-            <button class="btn btn-primary" type="submit">Update</button>
+            <p class="mb-2 text-left text-sm font-bold">It looks like this is your first time signing in. Please set the name of your business.</p>
+            <div class="flex flex-row gap-4">
+                <InputText class="w-full rounded-lg border px-3 py-2 tracking-wide shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessName"></InputText>
+                <button class="rounded-md bg-blue-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-blue-400 active:bg-blue-200" type="submit">Update</button>
+            </div>
         </EditForm>
     }
     if (!string.IsNullOrEmpty(Message))

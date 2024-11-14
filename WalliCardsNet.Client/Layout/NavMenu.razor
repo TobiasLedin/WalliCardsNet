@@ -65,12 +65,12 @@
 @* Original code *@
 
 
-@* <NavLink Match="NavLinkMatch.All" class="font-bold text-2xl text-gray-50 hover:text-cyan-950 transition" href="api-test">API Test</NavLink> *@
+@* <NavLink Match="NavLinkMatch.All" class="text-2xl font-bold text-gray-50 transition hover:text-cyan-950" href="api-test">API Test</NavLink> *@
 
 
-<div class="bg-teal-300 flex gap-8 items-center py-4 px-4 justify-between mb-4      ">
+<div class="mb-4 flex items-center justify-between gap-8 bg-teal-300 px-4 py-4">
     <div class="space-x-4">
-        <NavLink class="font-extrabold text-4xl tracking-wide text-gray-50 hover:text-cyan-950 transition" href="/">WalliCards</NavLink>
+        <NavLink class="text-4xl font-extrabold tracking-wide text-gray-50 transition hover:text-cyan-950" href="/">WalliCards</NavLink>
         <AuthorizeView>
             <NotAuthorized>
                 <NavItem Url="/stripe" Text="Subscribe"></NavItem>
@@ -83,7 +83,7 @@
                     var joinUrl = $"join/{businessToken}";
                     var cardUrl = $"card/{businessToken}";
                 }
-                @* <NavLink Match="NavLinkMatch.All" class="font-bold text-2xl text-gray-50 hover:text-cyan-950 transition" href="@joinUrl">Join</NavLink> *@
+                @* <NavLink Match="NavLinkMatch.All" class="text-2xl font-bold text-gray-50 transition hover:text-cyan-950" href="@joinUrl">Join</NavLink> *@
                 <NavItem Url="customers" Text="Customers"></NavItem>
                 <NavItem Url="@cardUrl" Text="Designer"></NavItem>
                 <NavItem Url="/invite" Text="Invite Employees"></NavItem>
@@ -93,7 +93,10 @@
     <div>
         <AuthorizeView>
             <Authorized>
-                <Logout />
+                <div class="flex flex-row gap-4">
+                    <NavItem Url="/settings" Text="Settings"></NavItem>
+                    <Logout />
+                </div>
             </Authorized>
             <NotAuthorized>
                 <NavItem Url="/login" Text="Log in"></NavItem>
