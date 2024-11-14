@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using WalliCardsNet.API.Models;
 
-namespace WalliCardsNet.API.Services
+namespace WalliCardsNet.API.Services.Token
 {
     public interface ITokenService
     {

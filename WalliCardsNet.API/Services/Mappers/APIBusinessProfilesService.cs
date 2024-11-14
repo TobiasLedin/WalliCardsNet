@@ -1,7 +1,7 @@
 ﻿using WalliCardsNet.API.Models;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
 
-namespace WalliCardsNet.API.Services
+namespace WalliCardsNet.API.Services.Mappers
 {
     public class APIBusinessProfilesService : IAPIBusinessProfilesService
     {

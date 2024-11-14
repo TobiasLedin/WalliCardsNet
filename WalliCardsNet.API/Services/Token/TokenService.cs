@@ -7,15 +7,15 @@ using System.Text;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 
-namespace WalliCardsNet.API.Services
+namespace WalliCardsNet.API.Services.Token
 {
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _config;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IRefreshToken _tokenRepository;
+        private readonly IRefreshTokenRepo _tokenRepository;
 
-        public TokenService(IConfiguration config, UserManager<ApplicationUser> userManager, IRefreshToken tokenRepository)
+        public TokenService(IConfiguration config, UserManager<ApplicationUser> userManager, IRefreshTokenRepo tokenRepository)
         {
             _config = config;
             _userManager = userManager;

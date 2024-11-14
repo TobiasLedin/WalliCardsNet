@@ -11,10 +11,12 @@ using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Repositories;
 using WalliCardsNet.API.Models;
+using WalliCardsNet.API.Services.GoogleServices.GoogleAuth;
+using WalliCardsNet.API.Services.Token;
 using WalliCardsNet.ClassLibrary.Login;
 using WalliCardsNet.ClassLibrary.Register;
 
-namespace WalliCardsNet.API.Services
+namespace WalliCardsNet.API.Services.Authentication
 {
 
     // Author: Tobias
@@ -22,14 +24,14 @@ namespace WalliCardsNet.API.Services
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IBusiness _businessRepository;
-        private readonly IGoogleService _googleService;
+        private readonly IBusinessRepo _businessRepository;
+        private readonly IGoogleAuth _googleService;
         private readonly ITokenService _tokenService;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
-            IBusiness businessRepository,
-            IGoogleService googleService,
+            IBusinessRepo businessRepository,
+            IGoogleAuth googleService,
             ITokenService tokenService)
         {
             _userManager = userManager;

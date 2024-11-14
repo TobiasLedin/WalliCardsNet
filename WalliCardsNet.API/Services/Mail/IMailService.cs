@@ -2,13 +2,13 @@
 using SendGrid.Helpers.Mail;
 using System.Net.Mail;
 
-namespace WalliCardsNet.API.Services
+namespace WalliCardsNet.API.Services.Mail
 {
     public interface IMailService
     {
         public Task SendEmailAsync(EmailAddress to, string subject, string plainTextContent, string htmlContent);
         public Task InviteEmployeeEmailAsync(EmailAddress to, string businessName);
-        public Task SendActivationLinkAsync (EmailAddress to, string applicationUserId);
+        public Task SendActivationLinkAsync(EmailAddress to, string applicationUserId);
         public Task SendForgotPasswordEmail(EmailAddress to, string applicationUserId);
         public Task BatchInviteAsync(List<EmailAddress> emailAddresses);
     }

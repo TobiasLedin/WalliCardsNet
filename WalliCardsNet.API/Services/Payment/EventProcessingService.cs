@@ -1,19 +1,14 @@
-﻿using System.Collections.Concurrent;
-using WalliCardsNet.API.Data;
-using WalliCardsNet.API.Models;
+﻿using WalliCardsNet.API.Models;
 using Stripe;
 using System.Text.Json;
-using Microsoft.AspNetCore.Identity;
-using WalliCardsNet.API.Data.Repositories;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Constants;
 using System.Threading.Channels;
-using System.Configuration;
-using System.Reflection.Metadata.Ecma335;
 using SendGrid.Helpers.Mail;
-using WalliCardsNet.ClassLibrary.Register;
+using WalliCardsNet.API.Services.Authentication;
+using WalliCardsNet.API.Services.Mail;
 
-namespace WalliCardsNet.API.Services
+namespace WalliCardsNet.API.Services.Payment
 {
     public class EventProcessingService : BackgroundService
     {
@@ -70,7 +65,7 @@ namespace WalliCardsNet.API.Services
         private async Task ProcessEventAsync(PaymentEvent paymentEvent)
         {
             using var scope = _serviceProvider.CreateScope();
-            var businessRepository = scope.ServiceProvider.GetRequiredService<IBusiness>();
+            var businessRepository = scope.ServiceProvider.GetRequiredService<IBusinessRepo>();
             //var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var authService = scope.ServiceProvider.GetService<IAuthService>();
             var mailService = scope.ServiceProvider.GetService<IMailService>();
@@ -92,11 +87,11 @@ namespace WalliCardsNet.API.Services
         }
 
         #region Stripe event processing
-        private async Task ProcessStripeEventAsync(IAuthService authService, IBusiness businessRepo, PaymentEvent paymentEvent, IMailService mailService)
+        private async Task ProcessStripeEventAsync(IAuthService authService, IBusinessRepo businessRepo, PaymentEvent paymentEvent, IMailService mailService)
         {
             Business? business = null;
-            Stripe.Subscription? subscription = null;
-            Stripe.Invoice? invoice = null;
+            Subscription? subscription = null;
+            Invoice? invoice = null;
             string? subscriptionType = null;
             DateTime? subscriptionEnd = null;
             EmailAddress email = null;
@@ -106,7 +101,7 @@ namespace WalliCardsNet.API.Services
                 // Manage Stripe event Invoice.Paid
                 case Events.InvoicePaid:
 
-                    invoice = paymentEvent.EventData as Stripe.Invoice;
+                    invoice = paymentEvent.EventData as Invoice;
 
                     if (invoice != null)
                     {
@@ -165,7 +160,7 @@ namespace WalliCardsNet.API.Services
                             try
                             {
                                 await businessRepo.AddAsync(business);
-                                var registerResult = await authService.CreateUserAccountAsync(business.Id, Constants.Roles.Manager, invoice.CustomerName, invoice.CustomerEmail);
+                                var registerResult = await authService.CreateUserAccountAsync(business.Id, Roles.Manager, invoice.CustomerName, invoice.CustomerEmail);
 
                                 if (registerResult.Success && registerResult.UserId != null)
                                 {
@@ -190,7 +185,7 @@ namespace WalliCardsNet.API.Services
                 // Manage Stripe event Invoice.PaymentFailed
                 case Events.InvoicePaymentFailed:
 
-                    invoice = paymentEvent.EventData as Stripe.Invoice;
+                    invoice = paymentEvent.EventData as Invoice;
 
                     if (invoice != null && await businessRepo.BusinessWithPspIdExists(invoice.CustomerId))
                     {
@@ -205,7 +200,7 @@ namespace WalliCardsNet.API.Services
                 // Manage Stripe event Customer.SubscriptionUpdated
                 case Events.CustomerSubscriptionUpdated:
 
-                    subscription = paymentEvent.EventData as Stripe.Subscription;
+                    subscription = paymentEvent.EventData as Subscription;
 
                     if (subscription != null)
                     {
@@ -240,7 +235,7 @@ namespace WalliCardsNet.API.Services
                 // Manage Stripe event Customer.SubscriptionDeleted
                 case Events.CustomerSubscriptionDeleted:
 
-                    subscription = paymentEvent.EventData as Stripe.Subscription;
+                    subscription = paymentEvent.EventData as Subscription;
 
                     if (subscription != null)
                     {
@@ -261,7 +256,7 @@ namespace WalliCardsNet.API.Services
         }
         #endregion
 
-        private async Task ProcessLemonSqueezyEventAsync(IAuthService authService, IBusiness businessRepo, PaymentEvent paymentEvent, IMailService mailService)
+        private async Task ProcessLemonSqueezyEventAsync(IAuthService authService, IBusinessRepo businessRepo, PaymentEvent paymentEvent, IMailService mailService)
         {
             throw new NotImplementedException();
         }

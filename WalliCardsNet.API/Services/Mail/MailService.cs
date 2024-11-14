@@ -2,15 +2,15 @@
 using SendGrid.Helpers.Mail;
 using WalliCardsNet.API.Data.Interfaces;
 
-namespace WalliCardsNet.API.Services
+namespace WalliCardsNet.API.Services.Mail
 {
     public class MailService : IMailService
     {
         private readonly SendGridClient _client;
         private readonly EmailAddress _emailSender;
-        private readonly IActivationToken _activationTokenRepo;
+        private readonly IActivationTokenRepo _activationTokenRepo;
 
-        public MailService(IActivationToken activationTokenRepo)
+        public MailService(IActivationTokenRepo activationTokenRepo)
         {
             var sendGridKey = Environment.GetEnvironmentVariable("SENDGRID-KEY");
             var senderEmail = Environment.GetEnvironmentVariable("EMAIL-SENDER");
@@ -87,7 +87,7 @@ namespace WalliCardsNet.API.Services
                     Console.WriteLine($"Error sending email to {email.Email}: {ex.Message}");
                 }
             }
-        } 
+        }
 
         public async Task SendActivationLinkAsync(EmailAddress to, string applicationUserId)
         {

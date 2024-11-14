@@ -1,9 +1,9 @@
 ﻿using WalliCardsNet.API.Models;
 using WalliCardsNet.ClassLibrary.Login;
 using WalliCardsNet.ClassLibrary.Register;
-using static WalliCardsNet.API.Services.AuthService;
+using static WalliCardsNet.API.Services.Authentication.AuthService;
 
-namespace WalliCardsNet.API.Services
+namespace WalliCardsNet.API.Services.Authentication
 {
     public interface IAuthService
     {
