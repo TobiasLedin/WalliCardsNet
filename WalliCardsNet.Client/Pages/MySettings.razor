@@ -1,0 +1,62 @@
+﻿@page "/settings"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using WalliCardsNet.Client.Components.Business
+
+<AuthorizeView>
+
+    <NotAuthorized>
+
+    </NotAuthorized>
+    <Authorizing>
+        <p>Authorization underway...</p>
+    </Authorizing>
+    <Authorized>
+        @foreach (var claim in context.User.Claims)
+        {
+            if (claim.Type == "business-id")
+            {
+                BusinessId = claim.Value;
+            }
+            if (claim.Type == "google-id")
+            {
+                GoogleId = claim.Value;
+            }
+        }
+
+        <div class="mx-auto max-w-md gap-2 rounded-md bg-white px-8 py-12 text-center shadow-sm">
+                <h1 class="mb-4 text-lg font-bold">Settings</h1>
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <SetBusinessName BusinessId="@BusinessId"></SetBusinessName>
+                    </div>
+                    <div>
+                        <LinkGoogleAccount GoogleId="@GoogleId"></LinkGoogleAccount>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <a class="rounded-md bg-blue-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-blue-400 active:bg-blue-200" href="/forgot-password">Reset Password</a>
+                    </div>
+                </div>
+
+                
+        </div>
+
+        
+
+    </Authorized>
+</AuthorizeView>
+
+<div class="text-lg"></div>
+
+@code {
+    public List<string> Roles { get; set; }
+    public string Token { get; set; }
+    public string BusinessId { get; set; }
+    public string GoogleId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+}

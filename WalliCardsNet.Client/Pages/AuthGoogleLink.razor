@@ -2,8 +2,8 @@
 @inject NavigationManager NavigationManager
 @inject ClientAuthService AuthService
 
-<div class="bg-white flex flex-col mx-auto text-center gap-2 py-12 px-8 rounded-md max-w-md shadow-sm">
-    <p>Google account successfully linked and can now be used for login!</p>
+<div class="mx-auto flex max-w-md flex-col gap-2 rounded-md bg-white px-8 py-12 text-center shadow-sm">
+    <p>@Message</p>
 </div>
 
 @code {
@@ -13,6 +13,8 @@
     [Parameter]
     public string Scope { get; set; }
 
+    public string Message { get; set; }
+
     protected override async void OnInitialized()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
@@ -21,7 +23,16 @@
         Code = queryParams["code"];
         if(Code != null)
         {
-            await AuthService.LinkGoogleAccountAsync(Code);
+            var response = await AuthService.LinkGoogleAccountAsync(Code);
+            if (response)
+            {
+                Message = "Google account successfully linked and can now be used for login!";
+            }
+            else
+            {
+                Message = "Couldn't link google account.";
+            }
+            StateHasChanged();
         }
     }
 }

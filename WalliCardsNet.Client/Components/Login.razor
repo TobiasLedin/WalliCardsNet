@@ -1,5 +1,6 @@
 ﻿@using System.ComponentModel.DataAnnotations
 @using WalliCardsNet.ClassLibrary
+@using WalliCardsNet.Client.Models
 @using WalliCardsNet.Client.Services
 @inject NavigationManager NavigationManager
 
@@ -20,9 +21,13 @@
             <ValidationMessage For="@(() => Credentials.Password)" />
         </div>
         <div class="mx-auto flex w-full flex-col gap-2 text-center">
-                <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" type="submit">Login</button>
-                <LoginGoogle/>
-                <NavLink class="underline-offset-2 text-sm tracking-wider text-blue-500 underline" href="/forgot-password">Forgot your password?</NavLink>
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <p class="text-center font-bold text-red-400">@Message</p>
+            }
+            <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" type="submit">Login</button>
+            <LoginGoogle/>
+            <NavLink class="underline-offset-2 text-sm tracking-wider text-blue-500 underline" href="/forgot-password">Forgot your password?</NavLink>
         </div>
     </div>
 </EditForm>
@@ -36,12 +41,21 @@
 
 @code {
     public LoginCredentials Credentials { get; set; } = new();
+    public string Message { get; set; }
 
     private async Task LoginAsync()
     {
-        await authService.LoginAsync(Credentials.Email, Credentials.Password);
+        Message = "";
+        LoginSuccessCheck response = await authService.LoginAsync(Credentials.Email, Credentials.Password);
+        if (response.Success == true)
+        {
+            NavigationManager.NavigateTo("/settings");   
+        }
+        if (response.Success == false)
+        {
+            Message = "Login failed";
+        }
         StateHasChanged();
-        NavigationManager.NavigateTo("https://localhost:7102");
     }
 
     public class LoginCredentials
