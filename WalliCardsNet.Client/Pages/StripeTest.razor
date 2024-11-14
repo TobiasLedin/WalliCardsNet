@@ -4,13 +4,13 @@
 @inject WalliCardsApiService WalliCardsApiService
 @inject NavigationManager NavigationManager
 
-<h3>Subscribe to a Cool Product</h3>
+<div class="bg-white flex flex-col mx-auto text-center gap-2 py-12 px-8 rounded-md max-w-md shadow-sm">
+    <h1 class="font-bold text-xl">Subscribe to WalliCards now!</h1>
+    <InputText class="px-3 py-2 rounded-lg shadow-lg w-full focus:ring ring-cyan-100 border" placeholder="Email Address" type="email" id="email" @bind-Value="CustomerEmail"></InputText>
+    <button class="font-bold rounded-md shadow-md text-gray-50 bg-teal-300 py-3 px-4 hover:bg-teal-400 active:bg-teal-200 transition" @onclick="CreateCheckoutSession">Checkout</button>
+    <p class="text-sm tracking-wide text-opacity-30 text-gray-500">You will be redirected to Stripe for payment</p>
+</div>
 
-
-<label for="email">Email Adress:</label>
-<InputText type="email" id="email" @bind-Value="CustomerEmail"></InputText>
-
-<button class="btn btn-primary" @onclick="CreateCheckoutSession">Checkout</button>
 
 @if (ErrorMessage != null)
 {

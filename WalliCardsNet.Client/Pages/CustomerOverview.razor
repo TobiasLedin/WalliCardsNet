@@ -21,7 +21,7 @@
     <SharedListColumns ColumnPreset="ColumnPreset" OnColumnsUpdated="UpdateColumns"></SharedListColumns>
     <button class="btn btn-primary" @onclick="ExportCustomers">Export as CSV</button>
     @* Component to customize table appearance *@
-@*     <EditTable Columns="TableColumns" OnColumnsUpdated="UpdateColumns" /> *@
+    @*     <EditTable Columns="TableColumns" OnColumnsUpdated="UpdateColumns" /> *@
 
     if (ColumnPreset != null)
     {
@@ -60,47 +60,92 @@
     @if (ColumnPreset != null)
     {
         @* Blazor Bootstrap modal start - Edit customer details *@
-        <Modal @ref="_modal" title="Customer details" IsVerticallyCentered="true">
+        <Modal @ref="_modal" title="Customer details" IsVerticallyCentered="true" ShowCloseButton="false" UseStaticBackdrop="true">
             <BodyTemplate>
 
-                <div>
-                    @* List all available business columns and corresponding CustomerDetails value. *@
-                    @foreach (var column in ColumnPreset.VisibleColumns)
-                    {
-                        <label>@column</label>
-                        <InputText @bind-Value="@_editableCustomerDetails[column]" maxlength="30" />
-                        <br />
-                    }
-                    <br />
-
-                    @* List all additional CustomerDetails stored, but not matching a business column *@
-                    @if (_hasAdditionalData)
-                    {
-                        <span>Additional stored data</span>
-                        <br />
-                        @foreach (var key in _editableCustomerDetails.Keys.ToList())
+                @if (_deleteCustomer is false)
+                {
+                    <div>
+                        @* List all available business columns and corresponding CustomerDetails value. *@
+                        @foreach (var column in ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns))
                         {
-                            @* if (!ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns).Contains(key)) *@
-                            if (!ColumnPreset.VisibleColumns.Contains(key))
+                            <label>@column</label>
+                            <InputText @bind-Value="@_editableCustomerDetails[column]" maxlength="30" />
+                            <br />
+                        }
+                        <br />
+
+                        @* List all additional CustomerDetails stored, but not matching a business column *@
+                        @if (_hasAdditionalData)
+                        {
+                            <span>Additional stored data</span>
+                            <br />
+                            @foreach (var key in _editableCustomerDetails.Keys.ToList())
                             {
-                                <label>@key</label>
-                                <InputText @bind-Value="_editableCustomerDetails[key]" maxlength="30" />
-                                <Icon Name="IconName.Trash" @onclick="() => DeleteCustomerDetail(key)" />
-                                <br />
+                                if (!ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns).Contains(key))
+                                {
+                                    <label>@key</label>
+                                    <InputText @bind-Value="_editableCustomerDetails[key]" maxlength="30" />
+                                    <br />
+                                }
                             }
                         }
-                    }
-                </div>
+                        
+                    </div>
+                }
+                else if (_deleteCustomer is true && _deleteConfirmation is false)
+                {
+                    <div>
+                        <p>This action will completely delete the customer record. <br/> Are you sure?</p>
+                    </div>
+                }
+                else
+                {
+                    <div>
+                        <p>Customer record successfully erased.</p>
+                    </div>
+                }
+                
 
             </BodyTemplate>
             <FooterTemplate>
-                @if (DataStoreStatusMessage != null)
+
+                @if(_deleteCustomer is false)
                 {
-                    @* Status message as returned from ApiService Put method *@
-                    <span>@DataStoreStatusMessage</span>
+                    <div class="d-flex justify-content-between w-100">
+
+                        <Button Color="ButtonColor.Danger" Size="ButtonSize.Small" @onclick="OnDeleteClick">Delete</Button>
+
+                        <div>
+                            @if (DataStoreStatusMessage != null)
+                            {
+                                @* Status message as returned from ApiService Put method *@
+                                <span>@DataStoreStatusMessage</span>
+                            }
+                        </div>
+
+                        <div>
+                            <button @onclick="OnHideModalClick">Close</button>
+                            <button @onclick="SaveCustomerChanges">Save</button>
+                        </div>
+                    </div>
                 }
-                <button @onclick="OnHideModalClick">Close</button>
-                <button @onclick="SaveCustomerChanges">Save</button>
+                else if (_deleteCustomer is true && _deleteConfirmation is false)
+                {
+                    <div>
+                        <button @onclick="OnHideModalClick">Close</button>
+                        <Button Color="ButtonColor.Danger" Size="ButtonSize.Small" @onclick="OnDeleteConfirmClick">Delete</Button>
+                    </div>
+                }
+                else
+                {
+                    <div>
+                        <button @onclick="OnHideModalClick">Close</button>
+                    </div>
+                }
+                
+
+                
             </FooterTemplate>
         </Modal>
         @* Blazor Bootstrap modal end *@
@@ -129,6 +174,8 @@ else
     private CustomerDTO? _editedCustomer;
     private bool _hasAdditionalData = false;
     private Dictionary<string, string> _editableCustomerDetails = new Dictionary<string, string>();
+    private bool _deleteCustomer = false;
+    private bool _deleteConfirmation = false;
 
     //New ColumnPreset implementation
     private ColumnPreset ColumnPreset { get; set; } = new ColumnPreset();
@@ -191,12 +238,35 @@ else
         _selectedCustomer = null;
         _hasAdditionalData = false;
         DataStoreStatusMessage = null;
+        _deleteCustomer = false;
+        _deleteConfirmation = false;
+
         await _modal.HideAsync();
+    }
+
+    private void OnDeleteClick()
+    {
+        _deleteCustomer = true;
+    }
+
+    private async void OnDeleteConfirmClick()
+    {
+        _deleteConfirmation = true;
+        if (_selectedCustomer != null)
+        {
+            var result = await ApiService.DeleteAsync<CustomerDTO>("Customer", _selectedCustomer.Id);
+
+            if (result.IsSuccess)
+            {
+                await GetCustomersAsync();
+            }
+        }
     }
 
     private async void SaveCustomerChanges()
     {
-        // Look for keys with no stored value and delete these before saving the updated CustomerDetails dictionary.
+        // TODO: BROKEN
+        // Look for keys with no stored value and delete these before saving the updated CustomerDetails dictionary. 
         // var kvpToRemove = new List<string>();
 
         // foreach (var kvp in _editableCustomerDetails)

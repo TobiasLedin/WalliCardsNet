@@ -48,8 +48,13 @@ namespace WalliCardsNet.API.Data.Repositories
 
         public async Task RemoveExpiredAsync()
         {
-            await _appDbCtx.RefreshTokens.Where(x => x.Expiry < DateTime.UtcNow).ExecuteDeleteAsync();
-        }
+            var expired = await _appDbCtx.RefreshTokens.Where(x => x.Expiry < DateTime.UtcNow).ToListAsync();
 
+            if (expired.Count > 0)
+            {
+                _appDbCtx.RemoveRange(expired);
+                await _appDbCtx.SaveChangesAsync();
+            }
+        }
     }
 }

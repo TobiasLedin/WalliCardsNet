@@ -1,0 +1,312 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Text.Json
+@using WalliCardsNet.ClassLibrary.BusinessProfile
+@using WalliCardsNet.ClassLibrary.Card
+@using WalliCardsNet.Client.Components.Business
+@using WalliCardsNet.Client.Models
+@using WalliCardsNet.Client.Components.PassDesigner
+@using WalliCardsNet.Client.Services
+@inject WalliCardsApiService WalliCardsApiService;
+
+@if (BusinessProfile != null)
+{
+    <button class="btn btn-primary" @onclick="CopyDesign">Copy design from Google Pass</button>
+    <div style="display:flex; flex-direction:row; gap: 1rem; margin-top: 1rem;">
+        <div>
+            <h3>Edit</h3>
+            <EditForm Model="Card">
+                <div>
+                    <label>Title:</label>
+                    <InputText @bind-Value="BusinessProfile.JoinFormTemplate.Title"></InputText>
+                </div>
+                <div>
+                    <Switch @bind-Value="BusinessProfile.JoinFormTemplate.UseWideLogo" @bind-Value:after="() => SetLogoType(BusinessProfile.JoinFormTemplate.UseWideLogo)"></Switch>
+                    @if (BusinessProfile.JoinFormTemplate.UseWideLogo)
+                    {
+                        <p>Wide Logo</p>
+                    }
+                    else
+                    {
+                        <p>Small Logo</p>
+                    }
+                </div>
+                <div>
+                    @if (!BusinessProfile.JoinFormTemplate.UseWideLogo)
+                    {
+                        <label>Logo Url:</label>
+                        <InputText @bind-Value="BusinessProfile.JoinFormTemplate.LogoUrl"></InputText>
+                        @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.LogoUrl))
+                        {
+                            <label>Preview</label>
+                            <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                        }
+                    }
+                    @if (BusinessProfile.JoinFormTemplate.UseWideLogo)
+                    {
+                        <label>Wide Logo Url:</label>
+                        <InputText @bind-Value="BusinessProfile.JoinFormTemplate.WideLogoUrl"></InputText>
+                        @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.WideLogoUrl))
+                        {
+                            <label>Preview</label>
+                            <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                        }
+                    }
+                </div>
+                <div>
+                    <label>Hero Image:</label>
+                    <InputText @bind-Value="BusinessProfile.JoinFormTemplate.HeroImageUrl"></InputText>
+                    @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.HeroImageUrl))
+                    {
+                        <label>Preview</label>
+                        <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
+                    }
+                </div>
+                <div>
+                    <label>Background Color</label>
+                    <input type="color" @bind="BackgroundColor" @bind:after="UpdateCssOptionsJson"/>
+                </div>
+                <div>
+                    <label>Text Color</label>
+                    <input type="color" @bind="TextColor" @bind:after="UpdateCssOptionsJson" />
+                </div>
+                <div>
+                    <button @onclick="CreateField">Create Field</button>
+                    @foreach (var field in Fields)
+                    {
+                        <div>
+                            <InputText @bind-Value="field.FieldName" @bind-Value:after="UpdateFieldsJson" placeholder="Field name" />
+                            <InputSelect @bind-Value="field.FieldType" @bind-Value:after="UpdateFieldsJson">
+                                <option value="text">Text</option>
+                                <option value="email">Email</option>
+                                <option value="number">Number</option>
+                                <option value="date">Date</option>
+                                <option value="checkbox">Checkbox</option>
+                            </InputSelect>
+                            <label>Required field</label>
+                            <InputCheckbox @bind-Value="field.IsRequired" @bind-Value:after="UpdateFieldsJson"/>
+                            <button type="button" @onclick="() => DeleteField(field)">Delete Field</button>
+                        </div>
+                    }
+                </div>
+            </EditForm>
+        </div>
+        <JoinForm   BusinessName="@BusinessName"
+                    BackgroundColor="@BackgroundColor"
+                    TextColor="@TextColor"
+                    PreviewLogo="@PreviewLogo"
+                    PreviewHeroImage="@PreviewHeroImage"
+                    Fields="@Fields"
+                    FormData="@FormData"
+                    BusinessProfile="@BusinessProfile">
+        </JoinForm>
+    </div> 
+
+}
+
+@code {
+    [Parameter]
+    public string Token { get; set; }
+
+    [Parameter]
+    public BusinessProfileRequestDTO BusinessProfile { get; set; }
+
+    [Parameter]
+    public string BusinessName { get; set; }
+
+    public CardRequestDTO Card { get; set; } = new CardRequestDTO();
+
+    public List<CardField> Fields { get; set; } = new List<CardField>();
+    public List<JoinFormData> FormData { get; set; } = new List<JoinFormData>();
+
+    // public string Title { get; set; } = "";
+    // public string LogoUrl { get; set; } = "";
+    // public string WideLogoUrl { get; set; } = "";
+    // public string HeroImageUrl { get; set; } = "";
+    // public string BackgroundColor { get; set; } = "#ffffff"; 
+    // public string TextColor { get; set; } = "#000000"; 
+
+    // private string _title;
+    // public string Title
+    // {
+    //     get => _title;
+    //     set
+    //     {
+    //         if (_title != value)
+    //         {
+    //             _title = value;
+    //             OnFieldChange();  // Trigger method when Title changes
+    //         }
+    //     }
+    // }
+
+    // private string _logoUrl;
+    // public string LogoUrl
+    // {
+    //     get => _logoUrl;
+    //     set
+    //     {
+    //         if (_logoUrl != value)
+    //         {
+    //             _logoUrl = value;
+    //             OnFieldChange();  // Trigger method when LogoUrl changes
+    //         }
+    //     }
+    // }
+
+    // private string _wideLogoUrl;
+    // public string WideLogoUrl
+    // {
+    //     get => _wideLogoUrl;
+    //     set
+    //     {
+    //         if (_wideLogoUrl != value)
+    //         {
+    //             _wideLogoUrl = value;
+    //             OnFieldChange();  // Trigger method when WideLogoUrl changes
+    //         }
+    //     }
+    // }
+
+    // private string _heroImageUrl;
+    // public string HeroImageUrl
+    // {
+    //     get => _heroImageUrl;
+    //     set
+    //     {
+    //         if (_heroImageUrl != value)
+    //         {
+    //             _heroImageUrl = value;
+    //             OnFieldChange();  // Trigger method when HeroImageUrl changes
+    //         }
+    //     }
+    // }
+
+    private string _backgroundColor;
+    public string BackgroundColor
+    {
+        get => _backgroundColor;
+        set => _backgroundColor = value;
+    }
+
+    private string _textColor;
+    public string TextColor
+    {
+        get => _textColor;
+        set => _textColor = value;
+    }
+
+
+    public string LastCardTitle = "";
+    public string LogoType { get; set; } = "small";
+    public string Message { get; set; } = "";
+    public bool PreviewLogo { get; set; } = false;
+    public bool PreviewHeroImage { get; set; } = false;
+    public bool UseWideLogo { get; set; } = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            var cssOptions = JsonSerializer.Deserialize<Dictionary<string, string>>(BusinessProfile.JoinFormTemplate.CSSOptionsJson);
+            if (cssOptions != null && cssOptions.ContainsKey("background-color"))
+            {
+                BackgroundColor = cssOptions["background-color"];
+            }
+            if (cssOptions != null && cssOptions.ContainsKey("color"))
+            {
+                TextColor = cssOptions["color"];
+            }
+        }
+        catch (JsonException exception)
+        {
+            Console.WriteLine("Couldn't deserialize CssOptions");
+        }
+
+        if (!string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.FieldsJson) || BusinessProfile.JoinFormTemplate.FieldsJson != "{}")
+        {
+            try
+            {
+                var fields = JsonSerializer.Deserialize<List<CardField>>(BusinessProfile.JoinFormTemplate.FieldsJson);
+                if (fields != null)
+                {
+                    Fields = new List<CardField>();
+                    foreach (var field in fields)
+                    {
+                        Fields.Add(field);
+                    }
+                    foreach (var field in Fields)
+                    {
+                        FormData.Add(new JoinFormData { FieldName = field.FieldName, FieldData = "" });
+                    }
+                }
+            }
+            catch(JsonException exception)
+            {
+                Console.WriteLine("Couldn't deserialize json");
+            }
+        }
+    }
+
+    public async Task CreateField()
+    {
+        Fields.Add(new CardField { FieldName = "", FieldType = "", Label = "", IsRequired = false });
+        UpdateFieldsJson();
+        StateHasChanged();
+    }
+
+    public async Task DeleteField(CardField field)
+    {
+        Fields.Remove(field);
+        UpdateFieldsJson();
+    }
+
+    private void SetLogoType(bool UseWideLogo)
+    {
+        switch (UseWideLogo)
+        {
+            case false:
+                if (!string.IsNullOrEmpty(LastCardTitle))
+                {
+                    BusinessProfile.GooglePassTemplate.CardTitle = LastCardTitle;
+                    LastCardTitle = "";
+                }
+                break;
+
+            case true:
+                LastCardTitle = BusinessProfile.GooglePassTemplate.CardTitle;
+                BusinessProfile.GooglePassTemplate.CardTitle = "";
+                break;
+
+            default:
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private void CopyDesign()
+    {
+        BusinessProfile.JoinFormTemplate.Title = BusinessProfile.GooglePassTemplate.CardTitle;
+        BusinessProfile.JoinFormTemplate.LogoUrl = BusinessProfile.GooglePassTemplate.LogoUrl;
+        BusinessProfile.JoinFormTemplate.WideLogoUrl = BusinessProfile.GooglePassTemplate.WideLogoUrl;
+        BusinessProfile.JoinFormTemplate.HeroImageUrl = BusinessProfile.GooglePassTemplate.HeroImage;
+        BackgroundColor = BusinessProfile.GooglePassTemplate.HexBackgroundColor;
+        UpdateCssOptionsJson();
+    }
+
+    private void UpdateFieldsJson()
+    {
+        Console.WriteLine("Updating fields");
+        BusinessProfile.JoinFormTemplate.FieldsJson = System.Text.Json.JsonSerializer.Serialize(Fields);
+        Console.WriteLine($"Fields: {BusinessProfile.JoinFormTemplate.FieldsJson}");
+    }
+
+    private void UpdateCssOptionsJson()
+    {
+        BusinessProfile.JoinFormTemplate.CSSOptionsJson = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string>
+        {
+            {"background-color", BackgroundColor},
+            {"color", TextColor}
+        });
+    }
+}

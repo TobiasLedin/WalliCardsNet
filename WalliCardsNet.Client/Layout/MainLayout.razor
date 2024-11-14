@@ -60,24 +60,12 @@
 @* Original code *@
     
 @* @inherits LayoutComponentBase *@
-<div class="page">
-    <div class="sidebar">
+<div>
+    <div>
         <NavMenu />
     </div>
-
     <main>
-        <div class="top-row px-4">
-            <AuthorizeView>
-                <NotAuthorized>
-                    <p>Not logged in</p>
-                </NotAuthorized>
-                <Authorized>
-                    <Logout />
-                </Authorized>
-            </AuthorizeView>
-        </div>
-
-        <article class="content px-4">
+        <article>
             @Body
         </article>
     </main>

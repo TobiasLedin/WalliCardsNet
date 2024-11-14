@@ -1,49 +1,45 @@
 ﻿@page "/"
 @using System.Security.Cryptography
+@using System.Security.Claims
 @using WalliCardsNet.Client.Components.Business
 
 <PageTitle>Home</PageTitle>
-
-
-
 <AuthorizeView>
 
     <NotAuthorized>
-        <Login />
-        <LoginGoogle/>
+
     </NotAuthorized>
     <Authorizing>
         <p>Authorization underway...</p>
     </Authorizing>
     <Authorized>
-        
-        <p>Welcome, @context.User.Identity.Name!</p>
-        <p>Here are all your claims:</p>
-        <ul>
-            @foreach (var claim in context.User.Claims)
+
+        @foreach (var claim in context.User.Claims)
+        {
+            if (claim.Type == ClaimTypes.Name)
             {
-                <li>@claim.Type: @claim.Value</li>
-                if (claim.Type == "business-id")
-                {
-                    BusinessId = claim.Value;
-                }
-                if (claim.Type == "google-id")
-                {
-                    GoogleId = claim.Value;
-                }
+                <p>Welcome @claim.Value</p>
             }
-        </ul>
+            if (claim.Type == "business-id")
+            {
+                BusinessId = claim.Value;
+            }
+            if (claim.Type == "google-id")
+            {
+                GoogleId = claim.Value;
+            }
+        }
+
         <SetBusinessName BusinessId="@BusinessId"></SetBusinessName>
         <LinkGoogleAccount GoogleId="@GoogleId"></LinkGoogleAccount>
     </Authorized>
-    
-    
 </AuthorizeView>
 
+<div class="text-lg"></div>
 
-@code{
+@code {
 
-    public List<string> Roles {get; set; }
+    public List<string> Roles { get; set; }
     public string Token { get; set; }
     public string BusinessId { get; set; }
     public string GoogleId { get; set; }
@@ -52,5 +48,5 @@
     {
         return base.OnInitializedAsync();
     }
-    
+
 }

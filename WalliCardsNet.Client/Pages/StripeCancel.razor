@@ -1,10 +1,10 @@
 ﻿@page "/cancel"
 
-<h3>Transaction Canceled</h3>
-
-<p>Your transaction was canceled. If this was a mistake, you can try again below:</p>
-
-<a href="/stripe" class="btn btn-primary">Try Again</a>
+<div class="bg-white flex flex-col mx-auto text-center gap-2 py-12 px-8 rounded-md max-w-md shadow-sm">
+    <h1 class="text-lg font-bold">Transaction cancelled</h1>
+    <p>Your transaction was canceled. If this was a mistake, you can try again below:</p>
+    <a href="/stripe" class="font-bold rounded-md shadow-md text-gray-50 bg-teal-300 py-3 px-4 hover:bg-teal-400 active:bg-teal-200 transition ">Try Again</a>
+</div>
 
 @code {
 

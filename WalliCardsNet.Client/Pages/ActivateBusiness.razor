@@ -7,30 +7,35 @@
     @if (!Success)
     {
         <EditForm Model="User" OnSubmit="Submit">
-            <h3>Set your password.</h3>
-            <div>
-                <label>Password</label>
-                <InputText @bind-Value="User.Password" type="password"></InputText>
+            <div class="flex flex-col max-w-lg sm:w-1/3 mx-auto gap-2 py-2">
+                <h1 class="font-bold text-xl">Set your password</h1>
+                <div>
+                    <InputText class="px-3 py-2 rounded-lg shadow-lg w-full focus:ring ring-cyan-100 border" placeholder="Enter a password" @bind-Value="User.Password" type="password"></InputText>
+                </div>
+                <div>
+                    <InputText class="px-3 py-2 rounded-lg shadow-lg w-full focus:ring ring-cyan-100 border" placeholder="Confirm password" @bind-Value="ConfirmPassword" type="password"></InputText>
+                </div>
+                <button type="submit" class="font-bold rounded-md shadow-md text-gray-50 bg-teal-300 py-3 px-4 hover:bg-teal-400 active:bg-teal-200 transition">Activate Account</button>
+                @if (!string.IsNullOrEmpty(ErrorMessage))
+                {
+                    <p class="text-danger">@ErrorMessage</p>
+                }
             </div>
-            <div>
-                <label>Confirm Password</label>
-                <InputText @bind-Value="ConfirmPassword" type="password"></InputText>
-            </div>
-            <button type="submit" class="btn btn-primary">Activate Account</button>
-            @if (!string.IsNullOrEmpty(ErrorMessage))
-            {
-                <p class="text-danger">@ErrorMessage</p>
-            }
         </EditForm>
+        
     }
     else
     {
-        <p>Password set! You can now <NavLink href="/">log in</NavLink>.</p>
+        <div class="flex flex-col max-w-lg sm:w-1/3 mx-auto gap-2 py-2">
+            <p>Password set! You can now <NavLink class="text-bold" href="/login">log in</NavLink>.</p>
+        </div>
     }
 }
 else
 {
-    <p>Invalid or expired link.</p>
+    <div class="flex flex-col max-w-lg sm:w-1/3 mx-auto gap-2 py-2">
+        <p>Invalid or expired link.</p>
+    </div>
 }
 
 

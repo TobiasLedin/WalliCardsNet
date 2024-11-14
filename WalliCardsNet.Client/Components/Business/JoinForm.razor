@@ -1,0 +1,188 @@
+﻿@using System
+@using WalliCardsNet.ClassLibrary.BusinessProfile
+@using WalliCardsNet.ClassLibrary.Card
+@using WalliCardsNet.Client.Components
+@using WalliCardsNet.Client.Models
+@implements IComponent
+
+@if (BusinessProfile != null)
+{
+    <div class="form-container">
+    <h3 class="form-title">Join @BusinessName</h3>
+
+    <div class="form-preview" style="background-color:@BackgroundColor; color:@TextColor;">
+        <!-- Logo Handling -->
+        <div class="logo-container">
+            @if (!BusinessProfile.JoinFormTemplate.UseWideLogo)
+            {
+                @if (!string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.LogoUrl))
+                {
+                    <img class="logo" src="@BusinessProfile.JoinFormTemplate.LogoUrl" />
+                }
+                    @if (PreviewLogo && string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.LogoUrl))
+                {
+                    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" />
+                }
+                    <span class="title" style="color: @TextColor;">@BusinessProfile.JoinFormTemplate.Title</span>
+            }
+            @if (BusinessProfile.JoinFormTemplate.UseWideLogo)
+            {
+                @if (!string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.WideLogoUrl))
+                {
+                    <img class="wide-logo" src="@BusinessProfile.JoinFormTemplate.WideLogoUrl" />
+                }
+                @if (PreviewLogo && string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.WideLogoUrl))
+                {
+                    <img class="wide-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png" />
+                }
+            }
+        </div>
+
+        <!-- Fields -->
+        <div class="fields-container">
+            @foreach (var field in Fields)
+            {
+                    var formdata = FormData.FirstOrDefault(x => x.FieldName == field.FieldName);
+                    if (formdata != null)
+                    {
+                        <div class="field-container">
+                            <label class="field-label">@field.FieldName</label>
+                            @if (field.IsRequired == true)
+                            {
+                                <label class="required">*</label>
+                            }
+                            @switch (field.FieldType)
+                            {
+                                case "text":
+                                    <InputText @bind-Value="formdata.FieldData" class="field-input" />
+                                    break;
+                                case "email":
+                                    <InputText @bind-Value="formdata.FieldData" type="email" class="field-input" />
+                                    break;
+                                case "number":
+                                    <InputText @bind-Value="formdata.FieldData" type="number" class="field-input" />
+                                    break;
+                                case "date":
+                                    if (DateValues != null && DateValues.Count > 0)
+                                    {
+                                        var dateField = DateValues.FirstOrDefault(x => x.FieldName == field.FieldName);
+                                        if (dateField != null)
+                                        {
+                                            <InputDate @bind-Value="dateField.DateValue" @bind-Value:after="SetDate" class="field-input" />
+                                        }
+                                    }
+                                    break;
+                                case "checkbox":
+                                    if (CheckboxValues != null && CheckboxValues.Count > 0)
+                                    {
+                                        var checkboxField = CheckboxValues.FirstOrDefault(x => x.FieldName == field.FieldName);
+                                        if (checkboxField != null)
+                                        {
+                                            <InputCheckbox @bind-Value="checkboxField.CheckboxValue" @bind-Value:after="SetCheckboxes" class="field-input"></InputCheckbox>
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    <p class="unsupported-field">Unsupported field type: @field.FieldType</p>
+                                    break;
+                            }
+                        </div>
+                    }
+            }
+        </div>
+
+        <!-- Hero Image -->
+        <div class="hero-image-container">
+            @if (!string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.HeroImageUrl))
+            {
+                <img class="hero-image" src="@BusinessProfile.JoinFormTemplate.HeroImageUrl" />
+            }
+            @if (PreviewHeroImage)
+            {
+                <img class="hero-image" src="https://images.unsplash.com/photo-1698191373970-228c25ee6fd0?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fDNkJTIwYWJzdHJhY3R8ZW58MHx8MHx8fDA%3D" />
+            }
+        </div>
+    </div>
+</div>
+}
+
+@code{
+    [Parameter]
+    public string BackgroundColor { get; set; }
+
+    [Parameter]
+    public string TextColor { get; set; }
+
+    [Parameter]
+    public string BusinessName { get; set; }
+
+    [Parameter]
+    public BusinessProfileRequestDTO BusinessProfile { get; set; }
+
+    [Parameter]
+    public List<CardField> Fields { get; set; } = new List<CardField>();
+
+    [Parameter]
+    public List<JoinFormData> FormData { get; set; } = new List<JoinFormData>();
+
+    [Parameter]
+    public bool PreviewLogo { get; set; }
+
+    [Parameter]
+    public bool PreviewHeroImage { get; set; }
+
+    public List<DateField> DateValues { get; set; } = new List<DateField>();
+    public List<CheckboxField> CheckboxValues { get; set; } = new List<CheckboxField>();
+
+    public class DateField()
+    {
+        public string FieldName{ get; set; }
+        public DateTime DateValue { get; set; }
+    }
+
+    public class CheckboxField()
+    {
+        public string FieldName { get; set; }
+        public bool CheckboxValue { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var dateValues = new List<DateField>();
+        var checkboxValues = new List<CheckboxField>();
+        foreach (var field in Fields)
+        {
+            if (field.FieldType == "date")
+            {
+                dateValues.Add(new DateField{FieldName = field.FieldName, DateValue = DateTime.UtcNow});
+            }
+            DateValues = dateValues;
+            if (field.FieldType == "checkbox")
+            {
+                checkboxValues.Add(new CheckboxField { FieldName = field.FieldName, CheckboxValue = false });
+            }
+            CheckboxValues = checkboxValues;
+        }
+
+        StateHasChanged();
+    }
+
+    public void SetDate()
+    {
+        foreach (var date in DateValues)
+        {
+            string dateString = date.DateValue.ToString("yyyy-MM-dd");
+            FormData.FirstOrDefault(x => x.FieldName == date.FieldName).FieldData = dateString;
+            Console.WriteLine($"Changed {date.FieldName} to {dateString}");
+        }
+        StateHasChanged();
+    }
+
+    public void SetCheckboxes()
+    {
+        foreach (var checkbox in CheckboxValues)
+        {
+            FormData.FirstOrDefault(x => x.FieldName == checkbox.FieldName).FieldData = checkbox.CheckboxValue.ToString();
+        }
+    }
+}

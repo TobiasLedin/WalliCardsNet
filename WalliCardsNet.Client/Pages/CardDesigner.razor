@@ -1,148 +1,213 @@
 ﻿@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using WalliCardsNet.ClassLibrary.BusinessProfile
 @using WalliCardsNet.ClassLibrary.Card
+@using WalliCardsNet.ClassLibrary.Services
 @using WalliCardsNet.Client.Models
+@using WalliCardsNet.Client.Components.PassDesigner
+@using Blazored.LocalStorage
 @page "/card/{token}"
 @attribute [Authorize]
 @inject WalliCardsApiService WalliCardsApiService;
-
-<h3>CardDesigner</h3>
-
-<EditForm Model="Card">
-    <div>
-        <button @onclick="CreateField">Create Field</button>
-        @foreach (var field in Fields)
-        {
-            <div>
-                <InputText @bind-Value="field.FieldName" placeholder="Field name"/>
-                <InputSelect @bind-Value="field.FieldType">
-                    <option value="text">Text</option>
-                    <option value="email">Email</option>
-                    <option value="number">Number</option>
-                    <option value="date">Date</option>
-                    <option value="checkbox">Checkbox</option>
-                </InputSelect>
-                <InputText @bind-Value="field.Label" placeholder="Label" />
-                <label>Required field</label>
-                <InputCheckbox @bind-Value="field.IsRequired"/>
-                <button type="button" @onclick="() => DeleteField(field)">Delete Field</button>
-            </div>
-        }
-    </div>
-    <div>
-        <label>Background Color</label>
-        <input type="color" @bind="BackgroundColor" />
-    </div>
-    <div>
-        <label>Text Color</label>
-        <input type="color" @bind="TextColor" />
-    </div>
-   
-</EditForm>
+@inject IClassLibraryBusinessProfilesService BusinessProfilesService;
+@inject AuthStateProvider AuthStateProvider;
+@inject ILocalStorageService _localStorage;
 
 
-<button @onclick="CreateCard">Create Card</button>
 
-
-<h3>Preview</h3>
-<div style="background-color:@BackgroundColor; color:@TextColor;">
-    @foreach (var field in Fields)
+@if(Business != null)
+{
+    <div class="w-7xl mx-auto gap-2 rounded-md bg-white px-8 py-12 shadow-sm">
+    @if (BusinessProfiles != null && BusinessProfiles.Count > 0)
     {
-        <div>
-            <label>
-                @field.Label 
-            </label>
-            @if (field.IsRequired == true)
-            {
-                <label>*</label>
-            }
-            @{
-                string exampleText = "";
-            }
-            @switch (field.FieldType)
-            {
-                case "text":
-                    <InputText @bind-Value="exampleText" />
-                    break;
-                case "email":
-                    <InputText @bind-Value="exampleText" type="email" />
-                    break;
-                case "number":
-                    <InputText @bind-Value="exampleText" type="number" />
-                    break;
-                case "date":
-                    {
-                        DateTime parsedDate;
-                        if (DateTime.TryParse(exampleText, out parsedDate))
-                        {
-                            <InputDate @bind-Value="parsedDate" />
-                            exampleText = parsedDate.ToString("yyyy-MM-dd");
-                        }
-                        else
-                        {
-                            DateTime currentDate = DateTime.Now;
-                            <InputDate @bind-Value="currentDate" />
-                            exampleText = currentDate.ToString("yyyy-MM-dd");
-                        }
+        <div style="border-bottom: 1px solid black; margin-bottom: 1rem; padding-bottom: 0.4rem;">
+            <div>
+                <h1 class="text-lg font-bold">Select existing profile to edit</h1>
+                <InputSelect class="font-montserrat mb-2 mr-4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="SelectedBusinessProfileId" @bind-Value:after="OnBusinessProfileChange">
+                    @{
+                        int i = 1;
                     }
-                    break;
-                case "checkbox":
+                    @foreach (var profile in BusinessProfiles)
                     {
-                        bool isChecked = exampleText == "true";
-                        <InputCheckbox @bind-Value="isChecked" />
-                        exampleText = isChecked ? "true" : "false";
+                        <option class="font-monserrat bg-white hover:bg-teal-300" value="@profile.Id">Profile @i @(profile.IsActive ? "(Active)" : "")</option> 
+                        i++;
                     }
-                    break;
-                default:
-                    <p>Unsupported field type: @field.FieldType</p>
-                    break;
-            }
+                    @if (SelectedBusinessProfileId == Guid.Empty)
+                    {
+                    <option value="@Guid.Empty">New profile</option>
+                    }
+                </InputSelect>
+                @if (SelectedBusinessProfileId != Guid.Empty && !SelectedBusinessProfile.IsActive && IsManager)
+                {
+                    @if (TimeOfLastSetActiveRequest > DateTime.UtcNow.AddMinutes(-10))
+                    {
+                        <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" disabled>Set as active profile</button>
+                        <p>Can't set a new profile as active until @TimeOfLastSetActiveRequest.AddMinutes(10).ToLocalTime().ToString("HH:mm").</p>
+                    }
+                    else
+                    {
+                        <button @onclick="SetActiveProfile" class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200">Set as active profile</button>
+                    }
+                }
+            </div>
+            <button @onclick="NewProfile" class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200">New profile</button>
         </div>
-    }
-</div>
 
+
+    }
+    <div class="col">
+        <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick='() => SetCurrentView("google")'>Google Pass Designer</button>
+        <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick='() => SetCurrentView("join")'>Join Form Designer</button>
+    </div>
+    @if (CurrentView == "google" && Message != "Successfully added business profile.")
+    {
+        <GooglePassDesigner BusinessProfile="@BusinessProfile"
+                            BusinessName="@Business.Name"></GooglePassDesigner>
+        @if (SelectedBusinessProfileId == Guid.Empty)
+        {
+            <button @onclick="Create">Create</button>
+        }
+        else
+        {
+            <button @onclick="Update">Update</button>
+        }
+    }
+
+    @if (CurrentView == "join" && Message != "Successfully added business profile.")
+    {
+        <JoinFormDesigner Token="@Token"
+                          BusinessProfile="@BusinessProfile"
+                          BusinessName="@Business.Name"></JoinFormDesigner>
+        @if (SelectedBusinessProfileId == Guid.Empty)
+        {
+            <button @onclick="Create">Create</button>
+        }
+        else
+        {
+            <button @onclick="Update">Update</button>
+        }
+    }
+
+    else if (CurrentView == "old")
+    {
+        <h3>CardDesigner</h3>
+    }
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p>@Message</p>
+    }
+    </div>
+}
 
 @code {
     [Parameter]
     public string Token { get; set; }
 
-    public CardRequestDTO Card { get; set; } = new CardRequestDTO();
+    public string CurrentView { get; set; } = "google";
 
-    public List<CardField> Fields { get; set; } = new List<CardField>();
-    public string BackgroundColor { get; set; } = "#ffffff"; 
-    public string TextColor { get; set; } = "#000000"; 
+    public BusinessDTO Business { get; set; } = new BusinessDTO();
+    public BusinessProfileRequestDTO BusinessProfile { get; set; } = new BusinessProfileRequestDTO();
+    public List<BusinessProfileResponseDTO> BusinessProfiles { get; set; } = new List<BusinessProfileResponseDTO>();
 
-    public async Task CreateCard()
+    public Guid SelectedBusinessProfileId { get; set; }
+    public BusinessProfileResponseDTO SelectedBusinessProfile => BusinessProfiles.FirstOrDefault(profile => profile.Id == SelectedBusinessProfileId);
+
+    public string Message { get; set; } = "";
+
+    public bool IsManager { get; set; } = false;
+
+    public DateTime TimeOfLastSetActiveRequest { get; set; }
+
+    protected override async Task OnInitializedAsync()
     {
-        Card.BusinessToken = Token;
-        var cardDesign = new CardDesign
-        {
-            CardFields = Fields,
-            CssOptions = new Dictionary<string, string>
-            {
-                {"background-color", BackgroundColor },
-                {"color", TextColor }
-            }
-        };
-        Card.DesignJson = System.Text.Json.JsonSerializer.Serialize(cardDesign);
-        var response = await WalliCardsApiService.PostAsync<CardRequestDTO>("cardtemplate", Card);
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var role = authState.User.FindFirst(ClaimTypes.Role)?.Value ?? "Unknown";
+        IsManager = role == "Manager";
+        var response = await WalliCardsApiService.GetByTokenAsync<BusinessDTO>("business", Token);
         if (response.IsSuccess)
         {
-            Console.WriteLine("Success");
+            Business = response.Data;
         }
-        else
-        {
-            Console.WriteLine($"Error: {response.Message}");
-        }
+        TimeOfLastSetActiveRequest = await _localStorage.GetItemAsync<DateTime>("lastRequest-SetActiveProfile");
+        await FetchBusinessProfiles();
     }
 
-    public async Task CreateField()
+    public void SetCurrentView(string newView)
     {
-        Fields.Add(new CardField { FieldName = "", FieldType = "", Label = "", IsRequired = false });
+        CurrentView = newView;
         StateHasChanged();
     }
 
-    public async Task DeleteField(CardField field)
+    public async Task Create()
     {
-        Fields.Remove(field);
+        if (BusinessProfile.GooglePassTemplate == null)
+        {
+            Message = "Google Pass template incomplete.";
+        }
+        if (BusinessProfile.JoinFormTemplate == null)
+        {
+            Message = "Join Form template incomplete.";
+        }
+        if (string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.FieldsJson))
+        {
+            Message = "Google Pass rows/fields can not be empty";
+            Console.WriteLine("Rows/fields error");
+        }
+        if (BusinessProfile.GooglePassTemplate != null && BusinessProfile.JoinFormTemplate != null && !string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.FieldsJson))
+        {
+            var response = await WalliCardsApiService.PostAsync<BusinessProfileRequestDTO>("businessprofile/create", BusinessProfile);
+            if (response.IsSuccess)
+            {
+                Message = string.IsNullOrEmpty(response.Message) ? "Successfully added business profile." : response.Message;
+            }
+        }
+    }
+
+    public async Task Update()
+    {
+        var response = await WalliCardsApiService.PutAsync<BusinessProfileRequestDTO>("businessprofile", BusinessProfile);
+        if (response.IsSuccess)
+        {
+            Message = string.IsNullOrEmpty(response.Message) ? "Successfully added business profile." : response.Message;
+        }
+    }
+
+    private void OnBusinessProfileChange()
+    {
+        BusinessProfile = BusinessProfilesService.MapResponseDTOToRequestDTO(BusinessProfiles.FirstOrDefault(x => x.Id == SelectedBusinessProfileId));
+        StateHasChanged();
+    }
+
+    private void NewProfile()
+    {
+        BusinessProfile = new BusinessProfileRequestDTO();
+        SelectedBusinessProfileId = Guid.Empty;
+        StateHasChanged();
+    }
+
+    private async Task FetchBusinessProfiles()
+    {
+        var businessProfilesResponse = await WalliCardsApiService.GetAllAsync<List<BusinessProfileResponseDTO>>("businessprofile/all");
+        if (businessProfilesResponse.IsSuccess)
+        {
+            BusinessProfiles = businessProfilesResponse.Data.OrderBy(x => x.DateCreated).ToList();
+            if (BusinessProfiles.Count > 0)
+            {
+                SelectedBusinessProfileId = BusinessProfiles.FirstOrDefault(x => x.IsActive)?.Id
+                                   ?? BusinessProfiles.FirstOrDefault().Id;
+                BusinessProfile = BusinessProfilesService.MapResponseDTOToRequestDTO(BusinessProfiles.FirstOrDefault(x => x.Id == SelectedBusinessProfileId));
+            }
+        }
+        StateHasChanged();
+    }
+
+    public async Task SetActiveProfile()
+    {
+        var response = await WalliCardsApiService.PutAsync<Guid>($"businessprofile/set-active/{SelectedBusinessProfileId}", SelectedBusinessProfileId);
+        var timeOfRequest = DateTime.UtcNow;
+        await _localStorage.SetItemAsync<DateTime>("lastRequest-SetActiveProfile", timeOfRequest);
+        TimeOfLastSetActiveRequest = timeOfRequest;
+        await FetchBusinessProfiles();
     }
 }

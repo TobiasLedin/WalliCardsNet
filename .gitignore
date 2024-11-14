@@ -369,3 +369,6 @@ FodyWeavers.xsd
 /WalliCardsNet.Client/appsettings.json
 /WalliCardsNet.Client/.env
 /WalliCardsNet.Client/AppConfig.cs
+/WalliCardsNet.API/GoogleCredentials.json
+/WalliCardsNet.API/GoogleServiceAccount.json
+/WalliCardsNet.API/googlepassserviceaccounttest.json

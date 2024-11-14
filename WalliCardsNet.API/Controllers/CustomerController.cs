@@ -6,6 +6,9 @@ using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Constants;
 using WalliCardsNet.ClassLibrary.Customer;
+using WalliCardsNet.API.Services;
+using Google.Apis.Walletobjects.v1.Data;
+using SendGrid.Helpers.Mail;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -15,10 +18,22 @@ namespace WalliCardsNet.API.Controllers
     {
         private readonly ICustomer _customerRepo;
         private readonly IBusiness _businessRepo;
-        public CustomerController(ICustomer customerRepo, IBusiness businessRepo)
+        private readonly IBusinessProfile _profileRepo;
+        private readonly IGoogleService _googleService;
+        private readonly IGooglePass _googlePassRepository;
+
+        public CustomerController(
+            ICustomer customerRepo, 
+            IBusiness businessRepo, 
+            IBusinessProfile profileRepo, 
+            IGoogleService googleService, 
+            IGooglePass googlePassRepository)
         {
             _customerRepo = customerRepo;
             _businessRepo = businessRepo;
+            _profileRepo = profileRepo;
+            _googleService = googleService;
+            _googlePassRepository = googlePassRepository;
         }
 
         
@@ -75,7 +90,7 @@ namespace WalliCardsNet.API.Controllers
                 var customer = new Customer
                 {
                     BusinessId = customerData.BusinessId,
-                    CustomerDetails = customerData.CustomerDetails
+                    CustomerDetails = customerData.CustomerDetails ?? new Dictionary<string, string>()
                 };
                 await _customerRepo.AddAsync(customer);
                 return Created($"api/Customer/{customer.Id}", new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
@@ -93,17 +108,61 @@ namespace WalliCardsNet.API.Controllers
             try
             {
                 var business = await _businessRepo.GetByTokenAsync(joinFormModel.BusinessToken);
-                var customer = new Customer
+
+                var customerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(joinFormModel.FormDataJson);
+
+                if (customerDetails != null && customerDetails.TryGetValue("Email", out var email))
                 {
-                    BusinessId = business.Id,
-                    CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(joinFormModel.FormDataJson)
-                };
-                await _customerRepo.AddAsync(customer);
-                return Created($"api/Customer/{customer.Id}", new CustomerDTO(customer.Id, customer.BusinessId, customer.RegistrationDate, customer.CustomerDetails));
+                    var customer = new Customer
+                    {
+                        BusinessId = business.Id,
+                        CustomerDetails = customerDetails
+                    };
+                    await _customerRepo.AddAsync(customer);
+
+                    // GooglePass generation
+
+                    var profile = await _profileRepo.GetActiveByBusinessIdAsync(business.Id);
+                    if (profile == null)
+                    {
+                        return Problem();
+                    }
+
+                    var objectCreateResult = await _googleService.CreateGenericObjectAsync(profile, customer); // return JSON instead of GenericObject
+                    if (!objectCreateResult.Success || objectCreateResult.Data == null)
+                    {
+                        return Problem();
+                    }
+
+                    var objectJson = JsonSerializer.Serialize(objectCreateResult.Data, _googleService.SerializerOptions());
+
+                    var googlePass = new GooglePass
+                    {
+                        ObjectId = objectCreateResult.Data.Id,
+                        ObjectJson = objectJson,
+                        ClassId = profile.GoogleTemplate!.GenericClassId!,
+                        ClassJson = profile.GoogleTemplate!.GenericClassJson!,
+                        Customer = customer,
+                    };
+
+                    var creationResult = await _googleService.CreateSignedJWTAsync(googlePass);
+                    if (creationResult.Success)
+                    {
+                        await _googlePassRepository.AddAsync(googlePass);
+
+                        return Ok(creationResult.Data);
+                    }
+                    else
+                    {
+                        return Problem(creationResult.Message);
+                    }
+                }
+
+                return BadRequest();
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Problem(ex.Message);
             }
         }
 
@@ -136,6 +195,7 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = Roles.ManagerOrEmployee)]
         public async Task<IActionResult> RemoveAsync(Guid id)
         {
             try

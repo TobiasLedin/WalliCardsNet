@@ -3,8 +3,8 @@
 @using WalliCardsNet.ClassLibrary
 
 <div>
-    <button @onclick='() => SetDataType("Business")'>Businesses</button>
-    <button disabled>Customers</button>
+    <button class="uppercase font-montserrat font-bold text-white cursor-pointer bg-green-400 py-2 px-4 border-2 border-black rounded hover:bg-green-300" @onclick='() => SetDataType("Business")'>Businesses</button>
+    <button class="font-sans bg-blue-200 text-2xl" disabled>Customers</button>
     <button disabled>Devices</button>
     <button disabled>CardTemplates</button>
 </div>
@@ -14,6 +14,8 @@
     <button @onclick='() => SetApiEndpoint("GetById")'>Get by ID</button>
     <button @onclick='() => SetApiEndpoint("Add")'>Add</button>
 </div>
+
+<div><button></button></div>
 
 @if (GetComponentType() is Type componentType)
 {

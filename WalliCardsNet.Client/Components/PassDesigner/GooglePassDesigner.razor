@@ -1,0 +1,361 @@
+﻿@using System.Text.Json
+@using WalliCardsNet.ClassLibrary.BusinessProfile
+@using BlazorBootstrap
+
+<style>
+    .pass-preview {
+        width: 320px;
+        border-radius: 8px;
+        overflow: hidden;
+/*         background-color: var(--background-color, #ffffff); */
+        color: #ffffff;
+        font-family: "Roboto", Arial, sans-serif;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .pass-header {
+        padding: 16px;
+/*         background-color: var(--header-background, #4285f4); */
+        color: #ffffff;
+        font-size: 16px;
+        font-family: Roboto, Arial, sans-serif;
+        font-weight: 500;
+    }
+
+    .pass-content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        color: #ffffff;
+    }
+
+    .pass-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        color: #ffffff;
+        font-size: 11px;
+    }
+
+    .pass-row:last-child {
+        border-bottom: none;
+    }
+</style>
+
+@if(BusinessProfile != null)
+{
+    <div style="display:flex; flex-direction:row; gap: 1rem; margin-top: 1rem;">
+        <div>
+            <h1 class="mb-4 text-lg font-bold">Edit</h1>
+            @if (LogoType == "small")
+            {
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-extrabold">Card Title</label>
+                    <InputText class="font-montserrat mb-2 mr-4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.CardTitle"></InputText>
+                </div>
+            }
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-extrabold">Header</label>
+                <InputText class="font-montserrat mb-2 mr-4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.Header"></InputText>
+            </div>
+            <div>
+                <div>
+@*                     <button @onclick='() => SetLogoType("small")' class="btn btn-primary">Small logo</button>
+                    <button @onclick='() => SetLogoType("wide")' class="btn btn-primary">Wide logo</button> *@
+                    <div>
+                        <label class="text-sm font-extrabold">Use Wide Logo</label>
+                        <Switch @bind-Value="BusinessProfile.GooglePassTemplate.UseWideLogo" @bind-Value:after="() => SetLogoType(BusinessProfile.GooglePassTemplate.UseWideLogo)"></Switch>
+                    </div>
+                </div>
+                <div>
+                    @if (!BusinessProfile.GooglePassTemplate.UseWideLogo)
+                    {
+                        <div class="flex flex-col">
+                            <label class="text-sm font-extrabold">Logo Url:</label>
+                            <div>
+                                <label class="text-sm font-extrabold">Preview</label>
+                                <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                            </div>
+                            <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.LogoUrl"></InputText>
+                        </div>
+                    }
+                    @if (BusinessProfile.GooglePassTemplate.UseWideLogo)
+                    {
+                        <label class="text-sm font-extrabold">Wide Logo Url:</label>
+                        <InputText @bind-Value="BusinessProfile.GooglePassTemplate.WideLogoUrl"></InputText>
+                        <label class="text-sm font-extrabold">Preview</label>
+                        <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>    
+                    }
+                </div>
+            </div>
+            <div>
+                <label class="text-sm font-extrabold">Hero Image Url:</label>
+                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.HeroImage"></InputText>
+                <label>Preview</label>
+                <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
+            </div>
+            <div>
+                <label>Background Color</label>
+                <input type="color" @bind="BusinessProfile.GooglePassTemplate.HexBackgroundColor" />
+            </div>
+            <div>
+                @if (fields.Rows.Count < 3)
+                {
+                    <button class="btn btn-primary" @onclick="AddRow">Add row</button>
+                }
+                @{
+                    int i = 1;
+                }
+                @foreach (var row in fields.Rows)
+                {
+                    <div>
+                        <label>Row @i</label><br />
+                        @{i++;}
+                        @if (row.Fields.Count < 3)
+                        {
+                            <button class="btn btn-primary" @onclick="() => AddField(row)">Add field</button>
+                        }
+                        <button class="btn btn-danger" @onclick="() => DeleteRow(row)">Delete row</button>
+                        <div class="flex flex-row">
+                            @foreach (var field in row.Fields)
+                            {
+                                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="field.Header" @onblur="ConvertToListOfLists" placeholder="Header value" />
+                                <button class="btn btn-danger" @onclick="() => DeleteField(row, field)">Delete field</button>
+                            }
+                        </div>
+                    </div>
+                }
+                @if (!AreFieldsEqual())
+                {
+                    <p>Fields contain unsaved changes.</p>
+                    <button @onclick="ConvertToListOfLists">Save</button>
+                }
+
+            </div>
+        </div>
+       
+        <div>
+            <h1 class="mb-4 text-lg font-bold">Preview</h1>
+            <div class="pass-preview" style="background-color: @BusinessProfile.GooglePassTemplate.HexBackgroundColor">
+                <div class="pass-header" style="background-color: @BusinessProfile.GooglePassTemplate.HexBackgroundColor">
+                    @if (!BusinessProfile.GooglePassTemplate.UseWideLogo)
+                    {
+                        @if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.LogoUrl))
+                        {
+                            <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="@BusinessProfile.GooglePassTemplate.LogoUrl" />
+                        }
+                        @if (PreviewLogo && string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.LogoUrl))
+                        {
+                            <img style="max-height: 24px; max-width: 24px; margin-right: 1rem;" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" />
+                        }
+                        @BusinessProfile.GooglePassTemplate.CardTitle
+                    }
+                    @if (BusinessProfile.GooglePassTemplate.UseWideLogo)
+                    {
+                        @if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.WideLogoUrl))
+                        {
+                            <img style="max-height:80px; width:100%; object-fit:cover" src="@BusinessProfile.GooglePassTemplate.WideLogoUrl" />
+                        }
+                        @if (PreviewLogo && string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.WideLogoUrl))
+                        {
+                            <img style="max-height:80px; width:100%; object-fit:cover" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png" />
+                        }
+                    }
+
+                </div>
+                <div class="pass-content">
+                    <div class="pass-row">
+                        <h4>@BusinessProfile.GooglePassTemplate.Header</h4>
+                    </div>
+                    @foreach (var row in fields.Rows)
+                    {
+                        <div class="pass-row">
+                            @foreach (var field in row.Fields)
+                            {
+                                <div style="display: flex; flex-direction: column;">
+                                <p style="font-weight:600;">@field.Header</p>
+                                <p>Value</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                    <div class="hero-image">
+                        @if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.HeroImage))
+                        {
+                            <img style="max-height:120px; width:100%; object-fit:cover" src="@BusinessProfile.GooglePassTemplate.HeroImage" />
+                        }
+                        @if (PreviewHeroImage && string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.HeroImage))
+                        {
+                            <img style="max-height:120px; width:100%;" src="https://images.unsplash.com/photo-1698191373970-228c25ee6fd0?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fDNkJTIwYWJzdHJhY3R8ZW58MHx8MHx8fDA%3D" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public BusinessProfileRequestDTO BusinessProfile { get; set; }
+
+    [Parameter]
+    public string BusinessName { get; set; } = "";
+
+    public bool PreviewLogo { get; set; } = false;
+    public bool PreviewHeroImage { get; set; } = false;
+
+    private Fields fields { get; set; } = new Fields();
+    public List<List<string>> Rows { get; set; } = new List<List<string>>();
+
+    public string LastCardTitle = "";
+    public string LogoType { get; set; } = "small";
+    public string Message { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // ConvertToLocalStructure();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ConvertToLocalStructure();
+        if (string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.CardTitle))
+        {
+            BusinessProfile.GooglePassTemplate.CardTitle = BusinessName;
+        }
+        StateHasChanged();
+    }
+
+    private void AddRow()
+    {
+        if (fields.Rows.Count < 3)
+        {
+            fields.Rows.Add(new Row());
+        }
+    }
+
+    private void DeleteRow(Row row)
+    {
+        if (fields.Rows != null && fields.Rows.Count > 0)
+        {
+            fields.Rows.Remove(row);
+        }
+    }
+
+    private void AddField(Row row)
+    {
+        if (row.Fields.Count < 3)
+        {
+            row.Fields.Add(new Field());
+        }
+    }
+
+    private void DeleteField(Row row, Field field)
+    {
+        if (row.Fields != null && row.Fields.Count > 0)
+        {
+            row.Fields.Remove(field);
+        }
+    }
+
+    private class Fields
+    {
+        public List<Row> Rows { get; set; } = new List<Row>();
+    }
+
+    private class Row
+    {
+        public List<Field> Fields { get; set; } = new List<Field>();
+    }
+
+    private class Field
+    {
+        public string Header { get; set; } = string.Empty;
+    }
+
+    private void ConvertToListOfLists()
+    {
+        BusinessProfile.GooglePassTemplate.FieldsJson = JsonSerializer.Serialize(fields.Rows
+            .Select(row => row.Fields.Select(field => field.Header).ToList())
+            .ToList());
+    }
+
+    private void ConvertToLocalStructure()
+    {
+        if (!string.IsNullOrEmpty(BusinessProfile.GooglePassTemplate.FieldsJson))
+        {
+            var fieldRows = JsonSerializer.Deserialize<List<List<string>>>(BusinessProfile.GooglePassTemplate.FieldsJson);
+            fields = new Fields();
+            foreach (var rowList in fieldRows)
+            {
+                var row = new Row();
+                foreach (var header in rowList)
+                {
+                    var field = new Field { Header = header };
+                    row.Fields.Add(field);
+                }
+                fields.Rows.Add(row);
+            }
+        }
+        else
+        {
+            fields = new Fields();
+        }
+    }
+
+    private bool AreFieldsEqual()
+    {
+        var serializedFields = JsonSerializer.Serialize(
+            fields.Rows.Select(row => row.Fields.Select(field => field.Header).ToList()).ToList()
+        );
+        return serializedFields == BusinessProfile.GooglePassTemplate.FieldsJson;
+    }
+
+    // private void SetLogoType(string logoType)
+    // {
+    //     LogoType = logoType;
+    //     switch (logoType)
+    //     {
+    //         case "small":
+    //             if (!string.IsNullOrEmpty(LastCardTitle))
+    //             {
+    //                 BusinessProfile.GooglePassTemplate.CardTitle = LastCardTitle;
+    //                 LastCardTitle = "";
+    //             }
+    //             break;
+
+    //         case "wide":
+    //             LastCardTitle = BusinessProfile.GooglePassTemplate.CardTitle;
+    //             BusinessProfile.GooglePassTemplate.CardTitle = ""; 
+    //             break;
+
+    //         default:
+    //             break;
+    //     }
+    //     StateHasChanged();
+    // }
+
+    private void SetLogoType(bool UseWideLogo)
+    {
+        switch (UseWideLogo)
+        {
+            case false:
+                if (!string.IsNullOrEmpty(LastCardTitle))
+                {
+                    BusinessProfile.GooglePassTemplate.CardTitle = LastCardTitle;
+                    LastCardTitle = "";
+                }
+                break;
+
+            case true:
+                LastCardTitle = BusinessProfile.GooglePassTemplate.CardTitle;
+                BusinessProfile.GooglePassTemplate.CardTitle = "";
+                break;
+
+            default:
+                break;
+        }
+        StateHasChanged();
+    }
+}

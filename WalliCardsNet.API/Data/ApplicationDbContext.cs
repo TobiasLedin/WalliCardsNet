@@ -1,26 +1,29 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data
 {
-    // EF setup to use int Id's for ApplicationUser and IdentityRole
+    
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-            
+
         }
 
         // DB sets
         public DbSet<Business> Businesses { get; set; }
+        public DbSet<BusinessProfile> Profiles { get; set; }
         public DbSet<Customer> Customers { get; set; }
-        public DbSet<CardTemplate> CardTemplates { get; set; }
-        public DbSet<Device> Devices { get; set; }
+        public DbSet<CardTemplate> CardTemplates { get; set; } //TODO: Obsolete
         public DbSet<ActivationToken> ActivationTokens { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<JoinForm> JoinForms { get; set; }
+        public DbSet<GooglePassTemplate> GooglePassTemplates { get; set; }
+        public DbSet<GooglePass> GooglePasses { get; set; }
+
 
         // DB context configuration
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -54,28 +57,40 @@ namespace WalliCardsNet.API.Data
                     NormalizedName = Constants.Roles.Employee.ToUpper()
                 });
 
-            // String conversion of SubscriptionStatus enum.
+            // String conversion of enums.
             builder.Entity<Business>()
                 .Property(p => p.SubscriptionStatus)
                 .HasConversion<string>();
 
-            builder.Entity<Customer>()
-                .HasOne<Business>()
-                .WithMany(b => b.Customers)
-                .HasForeignKey(b => b.BusinessId)
+            builder.Entity<GooglePass>()
+                .Property(p => p.PassStatus)
+                .HasConversion<string>();
+
+            // Model relationsships
+            builder.Entity<Business>()
+                .HasMany(b => b.Customers)
+                .WithOne()
+                .HasForeignKey(c => c.BusinessId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<ApplicationUser>()
-                .HasOne<Business>()
-                .WithMany(b => b.ApplicationUsers)
-                .HasForeignKey(au => au.BusinessId)
+            builder.Entity<Business>()
+                .HasMany(b => b.Profiles)
+                .WithOne()
+                .HasForeignKey(bp => bp.BusinessId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<Device>()
-                .HasOne<Customer>()
-                .WithMany(b => b.Devices)
-                .HasForeignKey(au => au.CustomerId)
+            builder.Entity<BusinessProfile>()
+                .HasOne(bp => bp.GoogleTemplate)
+                .WithOne()
+                .HasForeignKey<GooglePassTemplate>(gpt => gpt.BusinessProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<BusinessProfile>()
+                .HasOne(bp => bp.JoinForm)
+                .WithOne()
+                .HasForeignKey<JoinForm>(jf => jf.BusinessProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
 }

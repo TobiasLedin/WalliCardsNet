@@ -18,6 +18,7 @@ using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Constants;
 using Stripe;
 using System.Threading.Channels;
+using WalliCardsNet.ClassLibrary.Services;
 
 namespace WalliCardsNet.API
 {
@@ -53,10 +54,15 @@ namespace WalliCardsNet.API
             builder.Services.AddTransient<IBusiness, BusinessRepository>();
             builder.Services.AddTransient<ICardTemplate, CardTemplateRepository>();
             builder.Services.AddTransient<ICustomer, CustomerRepository>();
-            builder.Services.AddTransient<IDevice, DeviceRepository>();
+            builder.Services.AddTransient<IGooglePass, GooglePassRepository>();
             builder.Services.AddTransient<IRefreshToken, RefreshTokenRepository>();
             builder.Services.AddTransient<IActivationToken, ActivationTokenRepository>();
             builder.Services.AddTransient<IApplicationUser, ApplicationUserRepository>();
+            builder.Services.AddTransient<IBusinessProfile, BusinessProfileRepository>();
+
+            //BusinessProfile service
+            builder.Services.AddTransient<IAPIBusinessProfilesService, APIBusinessProfilesService>();
+            builder.Services.AddTransient<IClassLibraryBusinessProfilesService, ClassLibraryBusinessProfilesService>();
 
             // Token service
             builder.Services.AddTransient<ITokenService, Services.TokenService>();
@@ -74,8 +80,6 @@ namespace WalliCardsNet.API
             // Channel to act as queue for PaymentEvents.
             var paymentEventChannel = Channel.CreateUnbounded<PaymentEvent>();
             builder.Services.AddSingleton(paymentEventChannel);
-
-
 
             // Identity
             // Service registration
@@ -136,7 +140,7 @@ namespace WalliCardsNet.API
             {
                 options.AddDefaultPolicy(builder =>
                 {
-                    builder.WithOrigins("https://localhost:7102")
+                    builder.WithOrigins("https://localhost:7102", "https://1nfpss3f-7102.euw.devtunnels.ms") // Added DEV tunnel for testing purposes
                            .AllowAnyHeader()
                            .AllowAnyMethod()
                            .AllowCredentials();
