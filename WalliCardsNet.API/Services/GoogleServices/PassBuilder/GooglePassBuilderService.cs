@@ -1,18 +1,17 @@
 ﻿using Google.Apis.Walletobjects.v1.Data;
 using System.Text.Json;
 using WalliCardsNet.API.Models;
-using System.Reflection.Metadata.Ecma335;
 
-namespace WalliCardsNet.API.Builders
+namespace WalliCardsNet.API.Services.GoogleServices.PassBuilder
 {
-    public class GooglePassBuilder
+    public class GooglePassBuilderService : IGooglePassBuilder
     {
         private readonly GenericClass _genericClass;
         private readonly GenericObject _genericObject;
         private readonly string _issuerId;
         private readonly string _devTunnel;
 
-        public GooglePassBuilder()
+        public GooglePassBuilderService()
         {
             _genericClass = new GenericClass();
             _genericObject = new GenericObject();
@@ -23,42 +22,27 @@ namespace WalliCardsNet.API.Builders
 
         #region Generic Class related methods
 
-        public GooglePassBuilder ClassWithBasicInfo(Guid businessProfileId)
+        private GooglePassBuilderService ClassWithBasicInfo(Guid businessId)
         {
-            _genericClass.Id = $"{_issuerId}.{businessProfileId}";
+            _genericClass.Id = $"{_issuerId}.{businessId}";
             _genericClass.MultipleDevicesAndHoldersAllowedStatus = "ONE_USER_ALL_DEVICES";
             _genericClass.CallbackOptions = new CallbackOptions
             {
                 Url = _devTunnel
             };
-            
 
             return this;
         }
 
-        public GooglePassBuilder WithLayoutDetails(string fieldJson)
+        private GooglePassBuilderService WithLayoutDetails(string fieldJson)
         {
             try
             {
-                var rows = JsonSerializer.Deserialize<List<List<string>>>(fieldJson);
+                var rows = JsonSerializer.Deserialize<List<List<string>>>(fieldJson) ?? throw new ArgumentNullException("Invalid field configuration");
 
-                if (rows == null || !rows.Any())
-                {
-                    throw new ArgumentException("Invalid or empty field configuration");
-                }
-
-                var cardRowTemplateInfos = new List<CardRowTemplateInfo>();
-
-                var firstRowFields = rows[0];
-                var firstRowTemplateInfo = CreateCardRowTemplateInfo(firstRowFields);
-                cardRowTemplateInfos.Add(firstRowTemplateInfo);
-
-                if (rows.Count > 1)
-                {
-                    var secondRowFields = rows[1];
-                    var secondRowTemplateInfo = CreateCardRowTemplateInfo(secondRowFields);
-                    cardRowTemplateInfos.Add(secondRowTemplateInfo);
-                }
+                var cardRowTemplateInfos = rows.Take(3) // Max 3 rows
+                                               .Select(CreateCardRowTemplateInfo)
+                                               .ToList();
 
                 _genericClass.ClassTemplateInfo = new ClassTemplateInfo
                 {
@@ -70,25 +54,25 @@ namespace WalliCardsNet.API.Builders
 
                 return this;
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
-                throw new ArgumentException("Failed to parse JSON", ex);
+                throw new ArgumentException("Failed to parse fieldsJson", ex);
             }
         }
 
-        public GenericClass BuildClass()
+        private GenericClass BuildClass()
         {
             return _genericClass;
         }
 
         public GenericClass BuildClassFromTemplate(BusinessProfile profile)
         {
-            var builder = new GooglePassBuilder();
+            //var builder = new GooglePassBuilderService();
 
-            return builder
-                .ClassWithBasicInfo(profile.Id)
-                .WithLayoutDetails(profile.GoogleTemplate.FieldsJson)
-                //.WithMessages(template.Messages)
+            return
+                ClassWithBasicInfo(profile.BusinessId)
+                .WithLayoutDetails(profile.GoogleTemplate!.FieldsJson!)
+                //.WithMessages(template.Messages) //TODO: Message function deactivated.
                 .BuildClass();
         }
 
@@ -96,7 +80,7 @@ namespace WalliCardsNet.API.Builders
 
         #region Generic Object related methods
 
-        public GooglePassBuilder ObjectWithBasicInfo(Guid businessProfileId, Guid customerId, string? hexBackgroundColor, string cardTitle, string header)
+        private GooglePassBuilderService ObjectWithBasicInfo(Guid businessProfileId, Guid customerId, string? hexBackgroundColor, string cardTitle, string header)
         {
             _genericObject.GenericType = "GENERIC_OTHER";
             _genericObject.Id = $"{_issuerId}.{customerId}";
@@ -113,9 +97,8 @@ namespace WalliCardsNet.API.Builders
             return this;
         }
 
-        public GooglePassBuilder WithImageInfo(string? logoUri, string? wideLogoUri, string? heroUri)
+        private GooglePassBuilderService WithImageInfo(string? logoUri, string? wideLogoUri, string? heroUri)
         {
-            //if (logoUri != null && wideLogoUri == null)
             if (!string.IsNullOrEmpty(logoUri) && string.IsNullOrEmpty(wideLogoUri))
             {
                 _genericObject.Logo = new Image
@@ -128,7 +111,6 @@ namespace WalliCardsNet.API.Builders
                 };
             }
 
-            //if (wideLogoUri != null)
             if (!string.IsNullOrEmpty(wideLogoUri))
             {
                 _genericObject.WideLogo = new Image
@@ -141,7 +123,7 @@ namespace WalliCardsNet.API.Builders
                 };
             }
 
-            if(!string.IsNullOrEmpty(heroUri))
+            if (!string.IsNullOrEmpty(heroUri))
             {
                 _genericObject.HeroImage = new Image
                 {
@@ -155,16 +137,16 @@ namespace WalliCardsNet.API.Builders
             return this;
         }
 
-        public GooglePassBuilder WithTextModulesData(string? fieldsJson, Dictionary<string, string>? customerDetails)
+        private GooglePassBuilderService WithTextModulesData(string? fieldsJson, Dictionary<string, string>? customerDetails)
         {
-            if(!string.IsNullOrEmpty(fieldsJson) && customerDetails != null) //TODO: CustomerDetails kontroll måste ändras till att se om det finns något innehåll, ej null.
+            if (!string.IsNullOrEmpty(fieldsJson) && customerDetails != null) //TODO: CustomerDetails kontroll måste ändras till att se om det finns något innehåll, ej null.
             {
                 var fields = new List<string>();
                 var rows = JsonSerializer.Deserialize<List<List<string>>>(fieldsJson);
 
-                foreach(var row in rows!)
+                foreach (var row in rows!)
                 {
-                    foreach(var field in row)
+                    foreach (var field in row)
                     {
                         fields.Add(field);
                     }
@@ -180,6 +162,7 @@ namespace WalliCardsNet.API.Builders
             return this;
         }
 
+        //TODO: Link Modules deactivated.
         //public GooglePassBuilder WithLinksModuleData(List<LinksModule> links)
         //{
         //    if(links.Count > 0)
@@ -219,21 +202,21 @@ namespace WalliCardsNet.API.Builders
         //    return this;
         //}
 
-        public GenericObject BuildObject()
+        private GenericObject BuildObject()
         {
             return _genericObject;
         }
         public GenericObject BuildObjectFromTemplate(BusinessProfile profile, Customer customer) //TODO: customerDetails: count = 0 här!
         {
-            var builder = new GooglePassBuilder();
+            //var builder = new GooglePassBuilderService();
 
-            return builder
-                .ObjectWithBasicInfo(profile.Id, customer.Id, profile.GoogleTemplate!.HexBackgroundColor, profile.GoogleTemplate!.CardTitle, profile.GoogleTemplate!.Header)
+            return
+                ObjectWithBasicInfo(profile.Id, customer.Id, profile.GoogleTemplate!.HexBackgroundColor, profile.GoogleTemplate!.CardTitle, profile.GoogleTemplate!.Header)
                 .WithImageInfo(profile.GoogleTemplate.LogoUri, profile.GoogleTemplate.WideLogoUri, profile.GoogleTemplate.HeroImageUri)
                 .WithTextModulesData(profile.GoogleTemplate.FieldsJson, customer.CustomerDetails)
-                //.WithLinksModuleData(template.LinksModuleData)
-                //.WithImageModulesData(template.ImageNodulesData)
-                //.WithMessages(template.Messages)
+                //.WithLinksModuleData(template.LinksModuleData) //TODO: Link Modules deactivated.
+                //.WithImageModulesData(template.ImageNodulesData) //TODO: Image Modules deactivated.
+                //.WithMessages(template.Messages) //TODO: Messages deactivated.
                 .BuildObject();
         }
 
@@ -241,7 +224,8 @@ namespace WalliCardsNet.API.Builders
 
         #region Support methods and classes
 
-        //public GooglePassBuilder WithMessages(List<PassMessage> messages)
+        //TODO: Messages deactivated.
+        //private GooglePassBuilder WithMessages(List<PassMessage> messages)
         //{
         //    _genericObject.Messages = messages.Select(msg => new Message
         //    {
@@ -329,7 +313,7 @@ namespace WalliCardsNet.API.Builders
                         {
                             SecondValue = new FieldSelector
                             {
-                                Fields = new List<FieldReference> 
+                                Fields = new List<FieldReference>
                                 {
                                     new FieldReference
                                     {
@@ -349,7 +333,7 @@ namespace WalliCardsNet.API.Builders
                             FirstValue = new FieldSelector
                             {
                                 Fields = new List<FieldReference>
-                                { 
+                                {
                                     new FieldReference
                                     {
                                         FieldPath = $"object.textModulesData[\'{fields[0].ToLower()}\']"
@@ -374,7 +358,7 @@ namespace WalliCardsNet.API.Builders
                         {
                             FirstValue = new FieldSelector
                             {
-                                Fields = new List<FieldReference> 
+                                Fields = new List<FieldReference>
                                 {
                                     new FieldReference
                                     {
