@@ -6,7 +6,7 @@ using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
-    public class CustomerRepository : ICustomer
+    public class CustomerRepository : ICustomerRepo
     {
         private readonly ApplicationDbContext _applicationDbContext;
 

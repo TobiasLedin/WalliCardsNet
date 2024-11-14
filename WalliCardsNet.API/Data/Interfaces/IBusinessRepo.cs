@@ -2,7 +2,7 @@
 
 namespace WalliCardsNet.API.Data.Interfaces
 {
-    public interface IBusiness
+    public interface IBusinessRepo
     {
         public Task<Business> GetByIdAsync(Guid id);
         public Task<Business> GetByIdAsync(string pspId);

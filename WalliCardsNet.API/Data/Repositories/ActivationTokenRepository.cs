@@ -4,7 +4,7 @@ using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
-    public class ActivationTokenRepository : IActivationToken
+    public class ActivationTokenRepository : IActivationTokenRepo
     {
         private readonly ApplicationDbContext _applicationDbContext;
 

@@ -3,7 +3,7 @@ using WalliCardsNet.ClassLibrary.BusinessProfile;
 
 namespace WalliCardsNet.API.Data.Interfaces
 {
-    public interface IBusinessProfile
+    public interface IBusinessProfileRepo
     {
         public Task AddAsync(BusinessProfile businessProfile);
 

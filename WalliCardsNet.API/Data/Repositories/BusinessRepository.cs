@@ -9,7 +9,7 @@ using WalliCardsNet.ClassLibrary.Card;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
-    public class BusinessRepository : IBusiness
+    public class BusinessRepository : IBusinessRepo
     {
         private readonly ApplicationDbContext _applicationDbContext;
 
@@ -78,11 +78,11 @@ namespace WalliCardsNet.API.Data.Repositories
         {
             var business = await GetByIdAsync(businessId);
             var columnPreset = JsonSerializer.Deserialize<ColumnPreset>(business.ColumnPresetJson) ?? new ColumnPreset();
-            var design = JsonSerializer.Deserialize<List<CardField>>(designJson);
+            var design = JsonSerializer.Deserialize<CardDesign>(designJson);
 
             if (design != null)
             {
-                foreach (var field in design)
+                foreach (var field in design.CardFields)
                 {
                     if (!columnPreset.VisibleColumns.Contains(field.FieldName) && !columnPreset.HiddenColumns.Contains(field.FieldName))
                     {

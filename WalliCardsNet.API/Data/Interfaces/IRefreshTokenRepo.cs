@@ -2,7 +2,7 @@
 
 namespace WalliCardsNet.API.Data.Interfaces
 {
-    public interface IRefreshToken
+    public interface IRefreshTokenRepo
     {
         Task AddAsync(RefreshToken token);
         Task RemoveAsync(string token);

@@ -6,7 +6,7 @@ using WalliCardsNet.ClassLibrary.ApplicationUser;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
-    public class ApplicationUserRepository : IApplicationUser
+    public class ApplicationUserRepository : IApplicationUserRepo
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly UserManager<ApplicationUser> _userManager;

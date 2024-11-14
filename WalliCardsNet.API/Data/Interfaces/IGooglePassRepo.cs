@@ -2,7 +2,7 @@
 
 namespace WalliCardsNet.API.Data.Interfaces
 {
-    public interface IGooglePass
+    public interface IGooglePassRepo
     {
         public Task<GooglePass?> GetByIdAsync(string objectId);
         public Task<List<GooglePass>> GetAllByClassIdAsync(string classId);

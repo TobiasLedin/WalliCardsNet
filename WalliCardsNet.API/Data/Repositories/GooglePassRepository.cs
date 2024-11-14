@@ -4,7 +4,7 @@ using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
-    public class GooglePassRepository : IGooglePass
+    public class GooglePassRepository : IGooglePassRepo
     {
         private readonly ApplicationDbContext _applicationDbContext;
 

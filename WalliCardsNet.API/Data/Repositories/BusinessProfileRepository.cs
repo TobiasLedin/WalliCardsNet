@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
-using WalliCardsNet.API.Services;
+using WalliCardsNet.API.Services.Mappers;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
 using WalliCardsNet.ClassLibrary.Services;
 
 namespace WalliCardsNet.API.Data.Repositories
 {
-    public class BusinessProfileRepository : IBusinessProfile
+    public class BusinessProfileRepository : IBusinessProfileRepo
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IAPIBusinessProfilesService _businessProfilesService;
