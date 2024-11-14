@@ -41,7 +41,7 @@
                 {
                     @if (TimeOfLastSetActiveRequest > DateTime.UtcNow.AddMinutes(-10))
                     {
-                        <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" disabled>Set as active profile</button>
+                        <button class="rounded-md bg-gray-500 px-4 py-3 font-bold text-gray-50 shadow-md" disabled>Set as active profile</button>
                         <p>Can't set a new profile as active until @TimeOfLastSetActiveRequest.AddMinutes(10).ToLocalTime().ToString("HH:mm").</p>
                     }
                     else
@@ -65,11 +65,11 @@
                             BusinessName="@Business.Name"></GooglePassDesigner>
         @if (SelectedBusinessProfileId == Guid.Empty)
         {
-            <button @onclick="Create">Create</button>
+            <button class="mt-4 rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick="Create">Create</button>
         }
         else
         {
-            <button @onclick="Update">Update</button>
+            <button class="mt-4 rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick="Update">Update</button>
         }
     }
 
@@ -80,11 +80,11 @@
                           BusinessName="@Business.Name"></JoinFormDesigner>
         @if (SelectedBusinessProfileId == Guid.Empty)
         {
-            <button @onclick="Create">Create</button>
+            <button class="mt-4 rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick="Create">Create</button>
         }
         else
         {
-            <button @onclick="Update">Update</button>
+            <button class="mt-4 rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick="Update">Update</button>
         }
     }
 

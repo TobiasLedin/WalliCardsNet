@@ -6,29 +6,29 @@
 @inject ClientAuthService authService;
 
 <EditForm Model="Credentials" OnValidSubmit="LoginAsync" FormName="LoginForm">
-    <div class="mx-auto flex max-w-lg flex-col gap-2 py-2 px-8">
+    <div class="mx-auto flex max-w-lg flex-col gap-2 px-8 py-2">
         <h1 class="text-lg font-bold">Log in</h1>
         <DataAnnotationsValidator />
         <div class="w-full text-center">
             <Icon Name="IconName.Envelope" Size="IconSize.x3"></Icon>
-            <InputText class="w-full rounded-lg border px-3 py-2 shadow-lg ring-cyan-100 focus:ring tracking-wide" @bind-Value="Credentials.Email" placeholder="Email" />
+            <InputText class="w-full rounded-lg border px-3 py-2 tracking-wide shadow-lg ring-cyan-100 focus:ring" @bind-Value="Credentials.Email" placeholder="Email" />
             <ValidationMessage For="@(() => Credentials.Email)" />
         </div>
         <div class="w-full text-center">
             <label><Icon Name="IconName.Lock" Size="IconSize.x3"></Icon></label>
-            <InputText class="w-full rounded-lg border px-3 py-2 shadow-lg ring-cyan-100 focus:ring tracking-wide" @bind-Value="Credentials.Password" placeholder="Password" type="password" />
+            <InputText class="w-full rounded-lg border px-3 py-2 tracking-wide shadow-lg ring-cyan-100 focus:ring" @bind-Value="Credentials.Password" placeholder="Password" type="password" />
             <ValidationMessage For="@(() => Credentials.Password)" />
         </div>
         <div class="mx-auto flex w-full flex-col gap-2 text-center">
                 <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" type="submit">Login</button>
                 <LoginGoogle/>
-                <NavLink class="underline-offset-2 tracking-wider text-blue-500 underline text-sm" href="/forgot-password">Forgot your password?</NavLink>
+                <NavLink class="underline-offset-2 text-sm tracking-wider text-blue-500 underline" href="/forgot-password">Forgot your password?</NavLink>
         </div>
     </div>
 </EditForm>
 
 <br />
-<div class="mx-auto max-w-md px-8 rounded-lg border border-black bg-white py-3 text-center font-semibold shadow-md">
+<div class="mx-auto max-w-md rounded-lg border border-black bg-white px-8 py-3 text-center font-semibold shadow-md">
     <p>Test user credentials:</p>
     <p>Email: kalle.kula@mail.com</p>
     <p>Password: Asdf1234!</p>

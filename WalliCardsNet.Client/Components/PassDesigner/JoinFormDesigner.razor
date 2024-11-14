@@ -11,81 +11,79 @@
 
 @if (BusinessProfile != null)
 {
-    <button class="btn btn-primary" @onclick="CopyDesign">Copy design from Google Pass</button>
+    <button class="mt-4 rounded-md bg-blue-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-blue-400 active:bg-blue-200" @onclick="CopyDesign">Copy design from Google Pass</button>
     <div style="display:flex; flex-direction:row; gap: 1rem; margin-top: 1rem;">
         <div>
-            <h3>Edit</h3>
+            <h3 class="mb-4 text-lg font-bold">Edit</h3>
             <EditForm Model="Card">
-                <div>
-                    <label>Title:</label>
-                    <InputText @bind-Value="BusinessProfile.JoinFormTemplate.Title"></InputText>
+                <div class="flex flex-col">
+                    <label class="text-sm font-extrabold">Title:</label>
+                    <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.JoinFormTemplate.Title"></InputText>
                 </div>
-                <div>
+                <div class="flex flex-row items-center gap-2 py-4">
+                    <label class="text-sm font-extrabold">Use Wide Logo</label>
                     <Switch @bind-Value="BusinessProfile.JoinFormTemplate.UseWideLogo" @bind-Value:after="() => SetLogoType(BusinessProfile.JoinFormTemplate.UseWideLogo)"></Switch>
-                    @if (BusinessProfile.JoinFormTemplate.UseWideLogo)
-                    {
-                        <p>Wide Logo</p>
-                    }
-                    else
-                    {
-                        <p>Small Logo</p>
-                    }
                 </div>
                 <div>
                     @if (!BusinessProfile.JoinFormTemplate.UseWideLogo)
                     {
-                        <label>Logo Url:</label>
-                        <InputText @bind-Value="BusinessProfile.JoinFormTemplate.LogoUrl"></InputText>
-                        @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.LogoUrl))
-                        {
-                            <label>Preview</label>
-                            <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
-                        }
+                        <div class="flex flex-col">
+                            <label class="text-sm font-extrabold">Logo Url:</label>
+                            <div>
+                                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.JoinFormTemplate.LogoUrl"></InputText>
+                                <label class="text-sm font-extrabold">Preview</label>
+                                <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                            </div>
+                        </div>
                     }
                     @if (BusinessProfile.JoinFormTemplate.UseWideLogo)
                     {
-                        <label>Wide Logo Url:</label>
-                        <InputText @bind-Value="BusinessProfile.JoinFormTemplate.WideLogoUrl"></InputText>
-                        @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.WideLogoUrl))
+                        <div class="flex flex-col">
+                            <label class="text-sm font-extrabold">Wide Logo Url:</label>
+                            <div>
+                                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.JoinFormTemplate.WideLogoUrl"></InputText>
+                                <label class="text-sm font-extrabold">Preview</label>
+                                <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-extrabold">Hero Image:</label>
+                    <div>
+                        <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.JoinFormTemplate.HeroImageUrl"></InputText>
+                        @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.HeroImageUrl))
                         {
-                            <label>Preview</label>
-                            <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                            <label class="text-sm font-extrabold">Preview</label>
+                            <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
                         }
-                    }
+                    </div>
+
                 </div>
-                <div>
-                    <label>Hero Image:</label>
-                    <InputText @bind-Value="BusinessProfile.JoinFormTemplate.HeroImageUrl"></InputText>
-                    @if (string.IsNullOrEmpty(BusinessProfile.JoinFormTemplate.HeroImageUrl))
-                    {
-                        <label>Preview</label>
-                        <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
-                    }
+                <div class="flex flex-col">
+                    <label class="text-sm font-extrabold">Background Color</label>
+                    <input class="mb-4 hover:cursor-pointer" type="color" @bind="BackgroundColor" @bind:after="UpdateCssOptionsJson" />
                 </div>
-                <div>
-                    <label>Background Color</label>
-                    <input type="color" @bind="BackgroundColor" @bind:after="UpdateCssOptionsJson"/>
+                <div class="flex flex-col">
+                    <label class="text-sm font-extrabold">Text Color</label>
+                    <input class="mb-4 hover:cursor-pointer" type="color" @bind="TextColor" @bind:after="UpdateCssOptionsJson" />
                 </div>
-                <div>
-                    <label>Text Color</label>
-                    <input type="color" @bind="TextColor" @bind:after="UpdateCssOptionsJson" />
-                </div>
-                <div>
-                    <button @onclick="CreateField">Create Field</button>
+                <div class="flex flex-col gap-2">
+                    <button class="mb-4 rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick="CreateField">Create Field</button>
                     @foreach (var field in Fields)
                     {
-                        <div>
-                            <InputText @bind-Value="field.FieldName" @bind-Value:after="UpdateFieldsJson" placeholder="Field name" />
-                            <InputSelect @bind-Value="field.FieldType" @bind-Value:after="UpdateFieldsJson">
+                        <div class="flex flex-row">
+                            <InputText class="font-montserrat mb-2 mr-4 w-1/2 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="field.FieldName" @bind-Value:after="UpdateFieldsJson" placeholder="Field name" />
+                            <InputSelect class="font-montserrat mb-2 mr-4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="field.FieldType" @bind-Value:after="UpdateFieldsJson">
                                 <option value="text">Text</option>
                                 <option value="email">Email</option>
                                 <option value="number">Number</option>
                                 <option value="date">Date</option>
                                 <option value="checkbox">Checkbox</option>
                             </InputSelect>
-                            <label>Required field</label>
+                            <label class="text-sm font-extrabold">Required field</label>
                             <InputCheckbox @bind-Value="field.IsRequired" @bind-Value:after="UpdateFieldsJson"/>
-                            <button type="button" @onclick="() => DeleteField(field)">Delete Field</button>
+                            <button class="ml-4 rounded-md bg-red-200 px-4 py-3 font-bold text-white shadow-md hover:bg-red-300" type="button" @onclick="() => DeleteField(field)">Delete Field</button>
                         </div>
                     }
                 </div>
