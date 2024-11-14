@@ -17,7 +17,6 @@ namespace WalliCardsNet.API.Data
         public DbSet<Business> Businesses { get; set; }
         public DbSet<BusinessProfile> Profiles { get; set; }
         public DbSet<Customer> Customers { get; set; }
-        public DbSet<CardTemplate> CardTemplates { get; set; } //TODO: Obsolete
         public DbSet<ActivationToken> ActivationTokens { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<JoinForm> JoinForms { get; set; }
