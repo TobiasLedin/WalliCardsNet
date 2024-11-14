@@ -1,12 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.CodeDom;
 using System.Text.Json;
 using WalliCardsNet.API.Constants;
 using WalliCardsNet.API.Data.Interfaces;
-using WalliCardsNet.API.Models;
-using WalliCardsNet.API.Services;
-using WalliCardsNet.ClassLibrary.Business;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
 using WalliCardsNet.API.Services.Mappers;
 using WalliCardsNet.API.Services.GoogleServices.GoogleWallet;
@@ -32,19 +28,6 @@ namespace WalliCardsNet.API.Controllers
             _googlePassRepo = googlePassRepo;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
-        {
-            var result = await _cardTemplateRepo.GetAllAsync();
-            if (result != null && result.Any())
-            {
-                return Ok(result);
-            }
-            else
-            {
-                return Ok(new List<CardTemplate>());
-            }
-        }
 
         [HttpGet("all")]
         [Authorize(Policy = Roles.ManagerOrEmployee)]
@@ -65,20 +48,6 @@ namespace WalliCardsNet.API.Controllers
             return NotFound();
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetByIdAsync(int id)
-        {
-            var result = await _cardTemplateRepo.GetByIdAsync(id);
-            if (result != null)
-            {
-                return Ok(result);
-            }
-            else
-            {
-                return NotFound();
-            }
-        }
-
         [HttpGet("{token}")]
         public async Task<IActionResult> GetByTokenAsync(string token)
         {
@@ -92,53 +61,6 @@ namespace WalliCardsNet.API.Controllers
             else
             {
                 return NotFound();
-            }
-        }
-
-        [HttpPost]
-        [Authorize(Policy = Roles.ManagerOrEmployee)]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAsync(CardRequestDTO cardRequestDTO)
-        {
-            //try
-            //{
-            //    var business = await _businessRepo.GetByTokenAsync(cardRequestDTO.BusinessToken);
-            //    var cardTemplate = new CardTemplate
-            //    {
-            //        Business = business,
-            //        DesignJson = cardRequestDTO.DesignJson
-            //    };
-            //    await _cardTemplateRepo.AddAsync(cardTemplate);
-            //    await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(cardTemplate.DesignJson, business.Id);
-            //    return Created($"api/CardTemplate/{cardTemplate.Id}", cardTemplate);
-            //}
-
-            //
-            // Test av Google Service calls
-            //
-            var businessIdClaim = User.FindFirst("business-id");
-            if (businessIdClaim == null)
-            {
-                return Unauthorized();
-            };
-
-            var businessId = businessIdClaim.Value;
-
-            try
-            {
-                var business = await _businessRepo.GetByTokenAsync(cardRequestDTO.BusinessToken);
-                var cardTemplate = new CardTemplate
-                {
-                    Business = business,
-                    DesignJson = cardRequestDTO.DesignJson
-                };
-                await _cardTemplateRepo.AddAsync(cardTemplate);
-                await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(cardTemplate.DesignJson, business.Id);
-                return Created($"api/businessprofile/{cardTemplate.Id}", cardTemplate);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
             }
         }
 
@@ -166,6 +88,7 @@ namespace WalliCardsNet.API.Controllers
 
         //TODO: Fix update/refresh of issued Passes
         [HttpPut]
+        [Authorize(Policy = Roles.ManagerOrEmployee)]
         public async Task<IActionResult> UpdateAsync(BusinessProfileRequestDTO businessProfileRequest)
         {
             var businessIdClaim = User.FindFirst("business-id");
@@ -240,12 +163,20 @@ namespace WalliCardsNet.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveAsync(int id)
+        [Authorize(Policy = Roles.ManagerOrEmployee)]
+        public async Task<IActionResult> RemoveAsync(Guid id)
         {
             try
             {
-                await _cardTemplateRepo.RemoveAsync(id);
-                return NoContent();
+                var profile = await _profileRepo.GetByIdAsync(id);
+
+                if (profile != null && !profile.IsActive)
+                {
+                    await _profileRepo.RemoveAsync(id);
+                    return NoContent();
+                }
+
+                return BadRequest();
             }
             catch (Exception ex)
             {
