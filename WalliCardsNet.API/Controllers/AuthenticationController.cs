@@ -86,7 +86,7 @@ namespace WalliCardsNet.API.Controllers
                     return BadRequest("Invalid token");
                 }
 
-                try // test
+                try
                 {
                     var userIdClaim = principal.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").ToString();
 
@@ -103,12 +103,7 @@ namespace WalliCardsNet.API.Controllers
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error: {0}", ex);
-                }
-                
-
-                
-
-                
+                }  
             }
 
             return Unauthorized(new LoginResponse(null, "Failed to renewed tokens"));

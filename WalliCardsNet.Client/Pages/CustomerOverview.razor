@@ -220,7 +220,7 @@ else
         _editableCustomerDetails = new Dictionary<string, string>(customer.CustomerDetails);
 
         // Ensure all TableColumns are present in _editableCustomerDetails
-        foreach (var column in ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns))
+        foreach (var column in ColumnPreset.VisibleColumns)
         {
             if (!_editableCustomerDetails.ContainsKey(column))
             {
@@ -228,7 +228,7 @@ else
             }
         }
 
-        _hasAdditionalData = customer.CustomerDetails.Keys.Any(key => !ColumnPreset.VisibleColumns.Concat(ColumnPreset.HiddenColumns).Contains(key));
+        _hasAdditionalData = customer.CustomerDetails.Keys.Any(key => !ColumnPreset.VisibleColumns.Contains(key));
 
         await _modal.ShowAsync();
     }
@@ -290,6 +290,13 @@ else
         await GetCustomersAsync();
 
         StateHasChanged();
+    }
+
+    private void DeleteCustomerDetail(string key)
+    {
+        _editableCustomerDetails.Remove(key);
+
+        _hasAdditionalData = _editableCustomerDetails.Keys.ToList().Except(ColumnPreset.VisibleColumns).Any();
     }
 
     private async Task UpdateColumns(ColumnPreset updatedColumnPreset)
