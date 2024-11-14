@@ -1,6 +1,6 @@
 ﻿@inject NavigationManager NavigationManager
 
-<button @onclick="RedirectToGoogleSignIn">Log in with your Google account</button>
+<button class="flex items-center justify-center gap-4 rounded-md shadow-md font-bold text-gray-900 bg-gray-50 py-3 px-4 hover:bg-gray-100 active:bg-gray-200 transition " @onclick="RedirectToGoogleSignIn"><img class="bg-grey-50 w-6 h-6" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/640px-Google_%22G%22_logo.svg.png"/>Log in with Google</button>
 
 @code {
     private string clientId = "";

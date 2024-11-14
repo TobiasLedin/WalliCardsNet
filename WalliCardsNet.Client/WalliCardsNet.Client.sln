@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalliCardsNet.Client", "WalliCardsNet.Client.csproj", "{97D7B3AF-5175-444B-88C8-FB1D97E145D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalliCardsNet.Client", "WalliCardsNet.Client.csproj", "{F4C573B4-B92A-4F00-A4EC-049BD533B530}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{97D7B3AF-5175-444B-88C8-FB1D97E145D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97D7B3AF-5175-444B-88C8-FB1D97E145D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97D7B3AF-5175-444B-88C8-FB1D97E145D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97D7B3AF-5175-444B-88C8-FB1D97E145D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4C573B4-B92A-4F00-A4EC-049BD533B530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4C573B4-B92A-4F00-A4EC-049BD533B530}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4C573B4-B92A-4F00-A4EC-049BD533B530}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4C573B4-B92A-4F00-A4EC-049BD533B530}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {D7008A98-5824-474C-9CA5-9311BCC3D5E6}
+		SolutionGuid = {82DD1D74-995F-4693-BC64-1DFF206E6A3F}
 	EndGlobalSection
 EndGlobal

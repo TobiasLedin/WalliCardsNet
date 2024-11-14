@@ -3,28 +3,28 @@
 @attribute [Authorize]
 @inject WalliCardsApiService WalliCardsApiService
 
-<EditForm Model="Emails" OnValidSubmit="SubmitForm">
-    @foreach (var email in Emails.ToList())
-    {
-        var index = Emails.IndexOf(email);
-        <div class="form-group d-flex">
-            <div class="flex-grow-1">
-                <label>Email address</label>
-                <InputText @bind-Value="Emails[index]" class="form-control" />
+<div class="bg-white mx-auto text-center gap-2 py-12 px-8 rounded-md max-w-md shadow-sm">
+    <EditForm class="flex flex-col gap-4" Model="Emails" OnValidSubmit="SubmitForm">
+        <h1 class="text-lg font-bold mb-4">Invite employees</h1>
+        @foreach (var email in Emails.ToList())
+        {
+            var index = Emails.IndexOf(email);
+            <div class="flex gap-4">
+                    <InputText class="px-3 py-2 rounded-lg shadow-lg w-full focus:ring ring-cyan-100 border" placeholder="Email address" @bind-Value="Emails[index]"/>
+                    <button type="button" class="bg-red-200 py-2 px-3 rounded-md shadow-md font-bold text-white hover:bg-red-300" @onclick="(() => RemoveEmailField(index))">Remove</button>
             </div>
-            <div>
-                <button type="button" class="btn btn-danger" @onclick="(() => RemoveEmailField(index))">Remove</button>
-            </div>
+        }
+        <div class="flex flex-col gap-2">
+            <button type="button" class="font-bold rounded-md shadow-md text-gray-50 bg-teal-300 py-3 px-4 hover:bg-teal-400 active:bg-teal-200 transition" @onclick="AddEmailField">Add Another Email</button>
+            <button type="submit" class="font-bold rounded-md shadow-md text-gray-50 bg-teal-300 py-3 px-4 hover:bg-teal-400 active:bg-teal-200 transition">Invite Employees</button>
         </div>
-    }
-    <button type="button" class="btn btn-secondary" @onclick="AddEmailField">Add Another Email</button>
-    <button type="submit" class="btn btn-primary">Invite Employees</button>
-</EditForm>
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <p>@Message</p>
+        }
 
-@if (!string.IsNullOrEmpty(Message))
-{
-    <p>@Message</p>
-}
+    </EditForm>
+</div>
 
 @code {
     public List<string> Emails { get; set; } = new List<string> { "" };

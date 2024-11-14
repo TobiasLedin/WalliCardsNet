@@ -17,18 +17,19 @@
 
 @if(Business != null)
 {
+    <div class="w-7xl mx-auto gap-2 rounded-md bg-white px-8 py-12 shadow-sm">
     @if (BusinessProfiles != null && BusinessProfiles.Count > 0)
     {
         <div style="border-bottom: 1px solid black; margin-bottom: 1rem; padding-bottom: 0.4rem;">
             <div>
-                <p>Select existing profile to edit</p>
-                <InputSelect @bind-Value="SelectedBusinessProfileId" @bind-Value:after="OnBusinessProfileChange">
+                <h1 class="text-lg font-bold">Select existing profile to edit</h1>
+                <InputSelect class="font-montserrat mb-2 mr-4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="SelectedBusinessProfileId" @bind-Value:after="OnBusinessProfileChange">
                     @{
                         int i = 1;
                     }
                     @foreach (var profile in BusinessProfiles)
                     {
-                        <option value="@profile.Id">Profile @i @(profile.IsActive ? "(Active)" : "")</option> 
+                        <option class="font-monserrat bg-white hover:bg-teal-300" value="@profile.Id">Profile @i @(profile.IsActive ? "(Active)" : "")</option> 
                         i++;
                     }
                     @if (SelectedBusinessProfileId == Guid.Empty)
@@ -40,23 +41,23 @@
                 {
                     @if (TimeOfLastSetActiveRequest > DateTime.UtcNow.AddMinutes(-10))
                     {
-                        <button class="btn btn-secondary" disabled>Set as active profile</button>
+                        <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" disabled>Set as active profile</button>
                         <p>Can't set a new profile as active until @TimeOfLastSetActiveRequest.AddMinutes(10).ToLocalTime().ToString("HH:mm").</p>
                     }
                     else
                     {
-                        <button @onclick="SetActiveProfile" class="btn btn-primary">Set as active profile</button>
+                        <button @onclick="SetActiveProfile" class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200">Set as active profile</button>
                     }
                 }
             </div>
-            <button @onclick="NewProfile" class="btn btn-primary">New profile</button>
+            <button @onclick="NewProfile" class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200">New profile</button>
         </div>
 
 
     }
     <div class="col">
-        <button class="btn btn-primary" @onclick='() => SetCurrentView("google")'>Google Pass Designer</button>
-        <button class="btn btn-primary" @onclick='() => SetCurrentView("join")'>Join Form Designer</button>
+        <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick='() => SetCurrentView("google")'>Google Pass Designer</button>
+        <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick='() => SetCurrentView("join")'>Join Form Designer</button>
     </div>
     @if (CurrentView == "google" && Message != "Successfully added business profile.")
     {
@@ -96,6 +97,7 @@
     {
         <p>@Message</p>
     }
+    </div>
 }
 
 @code {

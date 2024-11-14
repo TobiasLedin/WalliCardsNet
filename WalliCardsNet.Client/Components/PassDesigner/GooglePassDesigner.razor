@@ -46,55 +46,51 @@
 {
     <div style="display:flex; flex-direction:row; gap: 1rem; margin-top: 1rem;">
         <div>
-            <h4>Edit</h4>
-            <div>
-                @if (LogoType == "small")
-                {
-                    <label>Card Title</label>
-                    <InputText @bind-Value="BusinessProfile.GooglePassTemplate.CardTitle"></InputText>
-                }
-            </div>
-            <div>
-                <label>Header</label>
-                <InputText @bind-Value="BusinessProfile.GooglePassTemplate.Header"></InputText>
+            <h1 class="mb-4 text-lg font-bold">Edit</h1>
+            @if (LogoType == "small")
+            {
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-extrabold">Card Title</label>
+                    <InputText class="font-montserrat mb-2 mr-4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.CardTitle"></InputText>
+                </div>
+            }
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-extrabold">Header</label>
+                <InputText class="font-montserrat mb-2 mr-4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.Header"></InputText>
             </div>
             <div>
                 <div>
 @*                     <button @onclick='() => SetLogoType("small")' class="btn btn-primary">Small logo</button>
                     <button @onclick='() => SetLogoType("wide")' class="btn btn-primary">Wide logo</button> *@
                     <div>
+                        <label class="text-sm font-extrabold">Use Wide Logo</label>
                         <Switch @bind-Value="BusinessProfile.GooglePassTemplate.UseWideLogo" @bind-Value:after="() => SetLogoType(BusinessProfile.GooglePassTemplate.UseWideLogo)"></Switch>
-                        @if (BusinessProfile.GooglePassTemplate.UseWideLogo)
-                        {
-                            <p>Wide Logo</p>
-                        }
-                        else
-                        {
-                            <p>Small Logo</p>
-                        }
                     </div>
                 </div>
                 <div>
                     @if (!BusinessProfile.GooglePassTemplate.UseWideLogo)
                     {
-                        <label>Logo Url:</label>
-                        <InputText @bind-Value="BusinessProfile.GooglePassTemplate.LogoUrl"></InputText>
-                        <label>Preview</label>
-                        <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-extrabold">Logo Url:</label>
+                            <div>
+                                <label class="text-sm font-extrabold">Preview</label>
+                                <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                            </div>
+                            <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.LogoUrl"></InputText>
+                        </div>
                     }
                     @if (BusinessProfile.GooglePassTemplate.UseWideLogo)
                     {
-                        <label>Wide Logo Url:</label>
+                        <label class="text-sm font-extrabold">Wide Logo Url:</label>
                         <InputText @bind-Value="BusinessProfile.GooglePassTemplate.WideLogoUrl"></InputText>
-                        <label>Preview</label>
+                        <label class="text-sm font-extrabold">Preview</label>
                         <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>    
                     }
                 </div>
-
             </div>
             <div>
-                <label>Hero Image Url:</label>
-                <InputText @bind-Value="BusinessProfile.GooglePassTemplate.HeroImage"></InputText>
+                <label class="text-sm font-extrabold">Hero Image Url:</label>
+                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.HeroImage"></InputText>
                 <label>Preview</label>
                 <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
             </div>
@@ -120,10 +116,10 @@
                             <button class="btn btn-primary" @onclick="() => AddField(row)">Add field</button>
                         }
                         <button class="btn btn-danger" @onclick="() => DeleteRow(row)">Delete row</button>
-                        <div>
+                        <div class="flex flex-row">
                             @foreach (var field in row.Fields)
                             {
-                                <InputText @bind-Value="field.Header" @onblur="ConvertToListOfLists" placeholder="Header value" />
+                                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="field.Header" @onblur="ConvertToListOfLists" placeholder="Header value" />
                                 <button class="btn btn-danger" @onclick="() => DeleteField(row, field)">Delete field</button>
                             }
                         </div>
@@ -139,7 +135,7 @@
         </div>
        
         <div>
-            <h4>Preview</h4>
+            <h1 class="mb-4 text-lg font-bold">Preview</h1>
             <div class="pass-preview" style="background-color: @BusinessProfile.GooglePassTemplate.HexBackgroundColor">
                 <div class="pass-header" style="background-color: @BusinessProfile.GooglePassTemplate.HexBackgroundColor">
                     @if (!BusinessProfile.GooglePassTemplate.UseWideLogo)
