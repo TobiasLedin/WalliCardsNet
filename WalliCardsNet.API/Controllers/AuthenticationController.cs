@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WalliCardsNet.API.Models;
-using WalliCardsNet.API.Services;
+using WalliCardsNet.API.Services.Authentication;
+using WalliCardsNet.API.Services.GoogleServices.GoogleAuth;
+using WalliCardsNet.API.Services.Token;
 using WalliCardsNet.ClassLibrary.Login;
 
 namespace WalliCardsNet.API.Controllers
@@ -14,15 +16,15 @@ namespace WalliCardsNet.API.Controllers
         private readonly IAuthService _authService;
         private readonly ITokenService _tokenService;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IGoogleService _googleService;
+        private readonly IGoogleAuth _googleAuthService;
 
-        public AuthenticationController(IConfiguration config, IAuthService authService, ITokenService tokenService, UserManager<ApplicationUser> userManager, IGoogleService googleService)
+        public AuthenticationController(IConfiguration config, IAuthService authService, ITokenService tokenService, UserManager<ApplicationUser> userManager, IGoogleAuth googleAuthService)
         {
             _config = config;
             _authService = authService;
             _tokenService = tokenService;
             _userManager = userManager;
-            _googleService = googleService;
+            _googleAuthService = googleAuthService;
         }
 
         [HttpPost]
@@ -114,9 +116,9 @@ namespace WalliCardsNet.API.Controllers
         {
             try
             {
-                var tokenData = await _googleService.ExchangeCodeForTokensAsync(code, "https://localhost:7102/auth/google/link/");
+                var tokenData = await _googleAuthService.ExchangeCodeForTokensAsync(code, "https://localhost:7102/auth/google/link/");
                 var idToken = tokenData["id_token"].ToString();
-                var (googleUserId, googleEmail) = _googleService.DecodeIdToken(idToken);
+                var (googleUserId, googleEmail) = _googleAuthService.DecodeIdToken(idToken);
 
                 var user = await _userManager.FindByEmailAsync(googleEmail);
                 if (user == null)
@@ -124,7 +126,7 @@ namespace WalliCardsNet.API.Controllers
                     return Unauthorized("Account does not exist.");
                 }
 
-                var success = await _googleService.LinkGoogleAccountAsync(user, googleUserId);
+                var success = await _googleAuthService.LinkGoogleAccountAsync(user, googleUserId);
                 if (success)
                 {
                     return Ok("Google account linked successfully.");

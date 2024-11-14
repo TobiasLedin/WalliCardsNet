@@ -11,12 +11,12 @@ namespace WalliCardsNet.API.Controllers
     public class GoogleCallbackController : ControllerBase
     {
         private readonly ILogger<GoogleCallbackController> _logger;
-        private readonly IGooglePass _googlePassRepository;
+        private readonly IGooglePassRepo _googlePassRepo;
 
-        public GoogleCallbackController(ILogger<GoogleCallbackController> logger, IGooglePass googlePassRepository)
+        public GoogleCallbackController(ILogger<GoogleCallbackController> logger, IGooglePassRepo googlePassRepo)
         {
             _logger = logger;
-            _googlePassRepository = googlePassRepository;
+            _googlePassRepo = googlePassRepo;
         }
 
 
@@ -39,12 +39,12 @@ namespace WalliCardsNet.API.Controllers
             {
                 _logger.LogInformation("Processing save event for object {ObjectId}", callback.ObjectId);
 
-                var googlePass = await _googlePassRepository.GetByIdAsync(callback.ObjectId);
+                var googlePass = await _googlePassRepo.GetByIdAsync(callback.ObjectId);
                 if (googlePass != null)
                 {
                     googlePass.PassStatus = Enums.PassStatus.Saved;
 
-                    await _googlePassRepository.UpdateAsync(googlePass);
+                    await _googlePassRepo.UpdateAsync(googlePass);
 
                     _logger.LogInformation($"Google Pass {googlePass.ObjectId} saved to wallet");
                 }
@@ -53,12 +53,12 @@ namespace WalliCardsNet.API.Controllers
             {
                 _logger.LogInformation("Processing delete event for object {ObjectId}", callback.ObjectId);
 
-                var googlePass = await _googlePassRepository.GetByIdAsync(callback.ObjectId);
+                var googlePass = await _googlePassRepo.GetByIdAsync(callback.ObjectId);
                 if (googlePass != null)
                 {
                     googlePass.PassStatus = Enums.PassStatus.Deleted;
 
-                    await _googlePassRepository.UpdateAsync(googlePass);
+                    await _googlePassRepo.UpdateAsync(googlePass);
 
                     _logger.LogInformation($"Google Pass {googlePass.ObjectId} deleted from wallet");
                 }

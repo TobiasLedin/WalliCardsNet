@@ -13,10 +13,10 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class BusinessController : ControllerBase
     {
-        private readonly IBusiness _businessRepo;
+        private readonly IBusinessRepo _businessRepo;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public BusinessController(IBusiness businessRepo, UserManager<ApplicationUser> userManager)
+        public BusinessController(IBusinessRepo businessRepo, UserManager<ApplicationUser> userManager)
         {
             _businessRepo = businessRepo;
             _userManager = userManager;

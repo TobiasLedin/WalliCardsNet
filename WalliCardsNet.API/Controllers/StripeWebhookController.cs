@@ -4,7 +4,7 @@ using Stripe;
 using System.Threading.Channels;
 using WalliCardsNet.API.Constants;
 using WalliCardsNet.API.Models;
-using WalliCardsNet.API.Services;
+using WalliCardsNet.API.Services.Payment;
 
 namespace WalliCardsNet.API.Controllers
 {

@@ -8,8 +8,8 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class GooglePassController : ControllerBase
     {
-        private readonly IGooglePass _googlePassRepository;
-        public GooglePassController(IGooglePass googlePassRepository)
+        private readonly IGooglePassRepo _googlePassRepository;
+        public GooglePassController(IGooglePassRepo googlePassRepository)
         {
             _googlePassRepository = googlePassRepository;
         }

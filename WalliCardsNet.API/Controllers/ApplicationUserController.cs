@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SendGrid.Helpers.Mail;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Models;
-using WalliCardsNet.API.Services;
+using WalliCardsNet.API.Services.Mail;
 using WalliCardsNet.ClassLibrary.ApplicationUser;
 
 namespace WalliCardsNet.API.Controllers
@@ -13,10 +13,10 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class ApplicationUserController : ControllerBase
     {
-        private readonly IApplicationUser _userRepo;
+        private readonly IApplicationUserRepo _userRepo;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMailService _mailService;
-        public ApplicationUserController(IApplicationUser userRepo, UserManager<ApplicationUser> userManager, IMailService mailService)
+        public ApplicationUserController(IApplicationUserRepo userRepo, UserManager<ApplicationUser> userManager, IMailService mailService)
         {
             _userRepo = userRepo;
             _userManager = userManager;

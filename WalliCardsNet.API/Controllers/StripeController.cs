@@ -9,8 +9,8 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class StripeController : ControllerBase
     {
-        private readonly IBusiness _businessRepo;
-        public StripeController(IBusiness businessRepo)
+        private readonly IBusinessRepo _businessRepo;
+        public StripeController(IBusinessRepo businessRepo)
         {
             _businessRepo = businessRepo;
         }

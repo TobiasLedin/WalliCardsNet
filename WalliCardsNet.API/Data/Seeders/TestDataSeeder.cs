@@ -11,7 +11,7 @@ namespace WalliCardsNet.API.Data.Seeders
     public class TestDataSeeder
     {
 
-        public static async Task SeedAsync(ApplicationDbContext appDbContext, UserManager<ApplicationUser> userManager, ICustomer customerRepo)
+        public static async Task SeedAsync(ApplicationDbContext appDbContext, UserManager<ApplicationUser> userManager, ICustomerRepo customerRepo)
         {
 
             if (await appDbContext.Businesses.FirstOrDefaultAsync(x => x.PspId == "51c667dd-a97c-41ed-a2ca-3dcc4ca3ee9c") is null)
