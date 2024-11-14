@@ -60,9 +60,9 @@
             </div>
             <div>
                 <div>
-@*                     <button @onclick='() => SetLogoType("small")' class="btn btn-primary">Small logo</button>
+                @*  <button @onclick='() => SetLogoType("small")' class="btn btn-primary">Small logo</button>
                     <button @onclick='() => SetLogoType("wide")' class="btn btn-primary">Wide logo</button> *@
-                    <div>
+                    <div class="flex flex-row items-center gap-2 py-4">
                         <label class="text-sm font-extrabold">Use Wide Logo</label>
                         <Switch @bind-Value="BusinessProfile.GooglePassTemplate.UseWideLogo" @bind-Value:after="() => SetLogoType(BusinessProfile.GooglePassTemplate.UseWideLogo)"></Switch>
                     </div>
@@ -73,62 +73,78 @@
                         <div class="flex flex-col">
                             <label class="text-sm font-extrabold">Logo Url:</label>
                             <div>
+                                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.LogoUrl"></InputText>
                                 <label class="text-sm font-extrabold">Preview</label>
                                 <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
                             </div>
-                            <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.LogoUrl"></InputText>
+                            
                         </div>
                     }
                     @if (BusinessProfile.GooglePassTemplate.UseWideLogo)
                     {
-                        <label class="text-sm font-extrabold">Wide Logo Url:</label>
-                        <InputText @bind-Value="BusinessProfile.GooglePassTemplate.WideLogoUrl"></InputText>
-                        <label class="text-sm font-extrabold">Preview</label>
-                        <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>    
+                        <div class="flex flex-col">
+                            <label class="text-sm font-extrabold">Wide Logo Url:</label>
+                            <div>
+                                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.WideLogoUrl"></InputText>
+                                <label class="text-sm font-extrabold">Preview</label>
+                                <InputCheckbox @bind-Value="PreviewLogo"></InputCheckbox>
+                            </div>
+                        </div>
                     }
                 </div>
             </div>
-            <div>
+            <div class="flex flex-col">
                 <label class="text-sm font-extrabold">Hero Image Url:</label>
-                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.HeroImage"></InputText>
-                <label>Preview</label>
-                <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
+                <div>
+                    <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="BusinessProfile.GooglePassTemplate.HeroImage"></InputText>
+                    <label class="text-sm font-extrabold">Preview</label>
+                    <InputCheckbox @bind-Value="PreviewHeroImage"></InputCheckbox>
+                </div>
+            </div>
+            <div class="flex flex-col">
+                <label class="text-sm font-extrabold">Background Color</label>
+                <input class="mb-4 hover:cursor-pointer" type="color" @bind="BusinessProfile.GooglePassTemplate.HexBackgroundColor" />
             </div>
             <div>
-                <label>Background Color</label>
-                <input type="color" @bind="BusinessProfile.GooglePassTemplate.HexBackgroundColor" />
-            </div>
-            <div>
-                @if (fields.Rows.Count < 3)
-                {
-                    <button class="btn btn-primary" @onclick="AddRow">Add row</button>
-                }
+                <div>
+                    @if (fields.Rows.Count < 3)
+                    {
+                        <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick="AddRow">Add row</button>
+                    }
+                </div>
+
                 @{
                     int i = 1;
                 }
                 @foreach (var row in fields.Rows)
                 {
                     <div>
-                        <label>Row @i</label><br />
+                        <label class="text-sm font-extrabold">Row @i</label><br />
                         @{i++;}
+                        <div class="mb-2 flex flex-row gap-2">
                         @if (row.Fields.Count < 3)
                         {
-                            <button class="btn btn-primary" @onclick="() => AddField(row)">Add field</button>
+                            <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick="() => AddField(row)">Add field</button>
                         }
-                        <button class="btn btn-danger" @onclick="() => DeleteRow(row)">Delete row</button>
-                        <div class="flex flex-row">
+                        <button class="rounded-md bg-red-200 px-4 py-3 font-bold text-white shadow-md hover:bg-red-300" @onclick="() => DeleteRow(row)">Delete row</button>
+                        </div>
+                        <div class="flex flex-row gap-4">
                             @foreach (var field in row.Fields)
                             {
-                                <InputText class="font-montserrat mb-2 mr-4 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="field.Header" @onblur="ConvertToListOfLists" placeholder="Header value" />
-                                <button class="btn btn-danger" @onclick="() => DeleteField(row, field)">Delete field</button>
+                                <div class="flex flex-row gap-2">
+                                    <InputText class="font-montserrat my-2 mr-2 w-3/4 rounded-lg border bg-white px-3 py-2 shadow-lg ring-cyan-100 focus:ring" @bind-Value="field.Header" @onblur="ConvertToListOfLists" placeholder="Header value" />
+                                    <button class="rounded-md bg-red-200 px-3 py-1 text-sm font-bold text-white shadow-md hover:bg-red-300" @onclick="() => DeleteField(row, field)">Delete field</button>
+                                </div>
                             }
                         </div>
                     </div>
                 }
                 @if (!AreFieldsEqual())
                 {
-                    <p>Fields contain unsaved changes.</p>
-                    <button @onclick="ConvertToListOfLists">Save</button>
+                    <div class="flex flex-col items-start py-4">
+                    <p class="text-sm text-gray-400 text-opacity-50">Fields contain unsaved changes.</p>
+                        <button class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick="ConvertToListOfLists">Save</button>
+                    </div>
                 }
 
             </div>
