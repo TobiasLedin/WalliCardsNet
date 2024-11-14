@@ -14,7 +14,7 @@ namespace WalliCardsNet.API.Services
         Task<ActionResult<GenericObject>> CreateGenericObjectAsync(BusinessProfile profile, Customer customer);
         Task<ActionResult<GenericObject>> UpdateGenericObjectAsync(BusinessProfile profile, Customer customer);
         Task<ActionResult<GenericClass>> UpdateGenericClassAsync(BusinessProfile profile);
-        ActionResult<string> CreateSignedJWT(string genericClassJson, string genericObjectJson, string customerEmail);
+        Task<ActionResult<string>> CreateSignedJWTAsync(GooglePass pass);
         JsonSerializerOptions SerializerOptions();
     }
 }

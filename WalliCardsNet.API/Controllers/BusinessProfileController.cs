@@ -174,6 +174,7 @@ namespace WalliCardsNet.API.Controllers
             return BadRequest();
         }
 
+        //TODO: Fix update/refresh of issued Passes
         [HttpPut]
         public async Task<IActionResult> UpdateAsync(BusinessProfileRequestDTO businessProfileRequest)
         {
@@ -216,7 +217,7 @@ namespace WalliCardsNet.API.Controllers
                 businessProfile.GoogleTemplate!.GenericClassId = createResult.Data.Id;
 
                 // Trigger update of related GenericObjects
-                var passList = await _googlePassRepository.GetAllByClassIdAsync(createResult.Data.Id);
+                var passList = await _googlePassRepository.GetAllByClassIdAsync(createResult.Data.Id); //TODO: ClassId tied to Profile. Swapping profile will not update passes issues tied to another profile!
 
                 if (passList.Count > 0)
                 {

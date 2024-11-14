@@ -28,51 +28,43 @@ namespace WalliCardsNet.API.Controllers
         [HttpPost]
         public async Task<IActionResult> GoogleWalletCallback([FromBody] GoogleWalletCallback callback)
         {
-            try
+
+            if (callback.IsExpired())
             {
-                if (callback.IsExpired())
-                {
-                    _logger.LogWarning("Received expired callback for object {ObjectId}", callback.ObjectId);
-                    return BadRequest("Callback expired");
-                }
-
-                if (callback.IsSaveEvent())
-                {
-                    _logger.LogInformation("Processing save event for object {ObjectId}", callback.ObjectId);
-
-                    var googlePass = await _googlePassRepository.GetByIdAsync(callback.ObjectId);
-                    if (googlePass != null)
-                    {
-                        googlePass.PassStatus = Enums.PassStatus.Saved;
-
-                        await _googlePassRepository.UpdateAsync(googlePass);
-                    }
-                }
-                else if (callback.IsDeleteEvent())
-                {
-                    _logger.LogInformation("Processing delete event for object {ObjectId}", callback.ObjectId);
-
-                    var googlePass = await _googlePassRepository.GetByIdAsync(callback.ObjectId);
-                    if (googlePass != null)
-                    {
-                        googlePass.PassStatus = Enums.PassStatus.Deleted;
-
-                        await _googlePassRepository.UpdateAsync(googlePass);
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("Unknown event type {EventType}", callback.EventType);
-                    return BadRequest("Unknown event type");
-                }
-
-                return Ok();
+                _logger.LogWarning("Received expired callback for object {ObjectId}", callback.ObjectId);
+                return BadRequest("Callback expired");
             }
-            catch (Exception ex)
+
+            if (callback.IsSaveEvent())
             {
-                _logger.LogError(ex, "Error processing Google Wallet callback");
-                return StatusCode(500, "Internal server error");
+                _logger.LogInformation("Processing save event for object {ObjectId}", callback.ObjectId);
+
+                var googlePass = await _googlePassRepository.GetByIdAsync(callback.ObjectId);
+                if (googlePass != null)
+                {
+                    googlePass.PassStatus = Enums.PassStatus.Saved;
+
+                    await _googlePassRepository.UpdateAsync(googlePass);
+
+                    _logger.LogInformation($"Google Pass {googlePass.ObjectId} saved to wallet");
+                }
             }
+            else if (callback.IsDeleteEvent())
+            {
+                _logger.LogInformation("Processing delete event for object {ObjectId}", callback.ObjectId);
+
+                var googlePass = await _googlePassRepository.GetByIdAsync(callback.ObjectId);
+                if (googlePass != null)
+                {
+                    googlePass.PassStatus = Enums.PassStatus.Deleted;
+
+                    await _googlePassRepository.UpdateAsync(googlePass);
+
+                    _logger.LogInformation($"Google Pass {googlePass.ObjectId} deleted from wallet");
+                }
+            }
+
+            return Ok();
         }
     }
 }

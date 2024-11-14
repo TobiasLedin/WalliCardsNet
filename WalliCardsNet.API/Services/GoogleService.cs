@@ -18,15 +18,13 @@ namespace WalliCardsNet.API.Services
     public class GoogleService : IGoogleService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<GoogleService> _logger;
         private WalletobjectsService? _walletService;
         private string? _issuerId;
 
-        public GoogleService(UserManager<ApplicationUser> userManager, IConfiguration configuration, ILogger<GoogleService> logger)
+        public GoogleService(UserManager<ApplicationUser> userManager, ILogger<GoogleService> logger)
         {
             _userManager = userManager;
-            _configuration = configuration;
             _logger = logger;
         }
 
@@ -114,7 +112,7 @@ namespace WalliCardsNet.API.Services
             string classId = $"{_issuerId}.{profile.Id}";
             GenericClass? genericClass;
 
-            if (await ClassExists(classId))
+            if (await ClassExistsAsync(classId))
             {
                 var result = await UpdateGenericClassAsync(profile);
 
@@ -192,7 +190,7 @@ namespace WalliCardsNet.API.Services
             string classId = $"{_issuerId}.{profile.Id}";
             GenericClass? genericClass;
 
-            if (!await ClassExists(classId))
+            if (!await ClassExistsAsync(classId))
             {
                 return ActionResult<GenericClass>.FailureResult($"No Generic class with id: {classId} exists");
             }
@@ -257,9 +255,23 @@ namespace WalliCardsNet.API.Services
             string objectId = $"{_issuerId}.{customer.Id}";
             GenericObject? genericObject;
 
-            if (await ObjectExists(objectId))
+            if (await ObjectExistsAsync(objectId))
             {
-                return ActionResult<GenericObject>.FailureResult($"A Generic object with id: {objectId} already exists");
+                var result = await UpdateGenericObjectAsync(profile, customer);
+
+                if (result.Success)
+                {
+                    genericObject = result.Data;
+
+                    if (genericObject != null)
+                    {
+                        return ActionResult<GenericObject>.SuccessResult(genericObject, $"Generic class with id: {objectId} already exists. Update of existing class performed");
+                    }
+                    else
+                    {
+                        return ActionResult<GenericObject>.FailureResult($"Failed to update existing class: {result.Message}");
+                    }
+                }
             }
 
             try
@@ -320,7 +332,7 @@ namespace WalliCardsNet.API.Services
             string objectId = $"{_issuerId}.{customer.Id}";
             GenericObject genericObject;
 
-            if (!await ObjectExists(objectId))
+            if (!await ObjectExistsAsync(objectId))
             {
                 return ActionResult<GenericObject>.FailureResult($"No Generic object with id: {objectId} exists");
             }
@@ -376,7 +388,7 @@ namespace WalliCardsNet.API.Services
         /// <returns>String link to embedd in "Add to Google Wallet" button.</returns>
         /// <exception cref="NullReferenceException"></exception>
         /// <exception cref="InvalidOperationException"></exception>
-        public ActionResult<string> CreateSignedJWT(string genericClassJson, string genericObjectJson, string customerEmail)
+        public async Task<ActionResult<string>> CreateSignedJWTAsync(GooglePass pass)
         {
             var serviceAccountEmail = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_SERVICE_ACCOUNT_EMAIL") ?? throw new NullReferenceException("Not able to load Google Cloud service account email");
             var keyFilePath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS") ?? throw new NullReferenceException("Not able to load Google application credentials");
@@ -384,10 +396,10 @@ namespace WalliCardsNet.API.Services
 
             try
             {
-                using var classJson = JsonDocument.Parse(genericClassJson);
-                using var objectJson = JsonDocument.Parse(genericObjectJson);
+                //using var classJson = JsonDocument.Parse(genericClassJson);
+                //using var objectJson = JsonDocument.Parse(genericObjectJson);
 
-                var payload = new
+                var payload = JsonDocument.Parse(JsonSerializer.Serialize(new
                 {
                     iss = serviceAccountEmail,
                     aud = "google",
@@ -397,19 +409,17 @@ namespace WalliCardsNet.API.Services
                     {
                         devTunnel
                     },
-                    email = customerEmail,
                     payload = JsonDocument.Parse(JsonSerializer.Serialize(new
                     {
-                        loyaltyClasses = new List<JsonDocument>
-                    {
-                        classJson
-                    },
-                        loyaltyObjects = new List<JsonDocument>
-                    {
-                        objectJson
-                    }
+                        genericObjects = new[]
+                        {
+                            new
+                            {
+                                id = pass.ObjectId,
+                            }
+                        }
                     }))
-                };
+                }));
 
                 string payloadJson = JsonSerializer.Serialize(payload);
                 JwtPayload claims = JwtPayload.Deserialize(payloadJson);
@@ -426,12 +436,48 @@ namespace WalliCardsNet.API.Services
 
                 JwtSecurityToken jwt = new JwtSecurityToken(new JwtHeader(signingCredentials), claims);
 
-                string token = new JwtSecurityTokenHandler().WriteToken(jwt);
+                string signedToken = new JwtSecurityTokenHandler().WriteToken(jwt);
 
-                _logger.LogInformation("Add to Google Wallet link generated");
-                _logger.LogInformation($"https://pay.google.com/gp/v/save/{token}");
 
-                return ActionResult<string>.SuccessResult($"https://pay.google.com/gp/v/save/{token}");
+                // Validate JWT against Google Wallet API
+
+                var jwtResource = new Google.Apis.Walletobjects.v1.Data.JwtResource()
+                {
+                    Jwt = signedToken
+                };
+
+                using (Stream responseStream = await _walletService!.Jwt
+                    .Insert(jwtResource)
+                    .ExecuteAsStreamAsync())
+
+                using (StreamReader responseReader = new StreamReader(responseStream))
+                {
+                    string responseJson = await responseReader.ReadToEndAsync();
+                    using (JsonDocument jsonResponse = JsonDocument.Parse(responseJson))
+                    {
+                        if (jsonResponse.RootElement.TryGetProperty("error", out JsonElement errorElement))
+                        {
+                            int errorCode = errorElement.GetProperty("code").GetInt32();
+                            string? errorMessage = errorElement.GetProperty("message").GetString();
+
+                            return ActionResult<string>.FailureResult(
+                                $"Google Wallet API returned following error(s) during JWT INSERT - Code: {errorCode}, Message: {errorMessage}");
+                        }
+                        else if (jsonResponse.RootElement.TryGetProperty("saveUri", out JsonElement saveElement))
+                        {
+                            string? saveUri = saveElement.GetString();
+
+                            _logger.LogInformation("Add to Google Wallet link generated");
+                            _logger.LogInformation(saveUri);
+
+                            return ActionResult<string>.SuccessResult(saveUri);
+                        }
+                        else
+                        {
+                            return ActionResult<string>.FailureResult("Something failed when generating JWT!");
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -450,7 +496,7 @@ namespace WalliCardsNet.API.Services
         /// <remarks>Author: Tobias</remarks>
         /// <param name="classId"></param>
         /// <returns>true if classId exists, false if not.</returns>
-        private async Task<bool> ClassExists(string classId)
+        private async Task<bool> ClassExistsAsync(string classId)
         {
             using (Stream responseStream = await _walletService!.Genericclass
                 .Get(classId)
@@ -482,7 +528,7 @@ namespace WalliCardsNet.API.Services
         /// <remarks>Author: Tobias</remarks>
         /// <param name="objectId"></param>
         /// <returns>true if objectId exists, false if not.</returns>
-        private async Task<bool> ObjectExists(string objectId)
+        private async Task<bool> ObjectExistsAsync(string objectId)
         {
             using (Stream responseStream = await _walletService!.Genericobject
                 .Get(objectId)

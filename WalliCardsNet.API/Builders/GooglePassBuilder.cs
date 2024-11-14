@@ -10,12 +10,14 @@ namespace WalliCardsNet.API.Builders
         private readonly GenericClass _genericClass;
         private readonly GenericObject _genericObject;
         private readonly string _issuerId;
+        private readonly string _devTunnel;
 
         public GooglePassBuilder()
         {
             _genericClass = new GenericClass();
             _genericObject = new GenericObject();
             _issuerId = Environment.GetEnvironmentVariable("GOOGLE-WALLET-ISSUER-ID") ?? throw new NullReferenceException("Not able to load IssuerId");
+            _devTunnel = Environment.GetEnvironmentVariable("DEV_TUNNEL_ADDRESS") ?? throw new NullReferenceException("Not able to load Dev tunnel uri");
 
         }
 
@@ -27,7 +29,7 @@ namespace WalliCardsNet.API.Builders
             _genericClass.MultipleDevicesAndHoldersAllowedStatus = "ONE_USER_ALL_DEVICES";
             _genericClass.CallbackOptions = new CallbackOptions
             {
-                Url = "https://1nfpss3f-7204.euw.devtunnels.ms/api/google-callback" // TODO: Dev-tunnel adress reference
+                Url = _devTunnel
             };
             
 
@@ -155,7 +157,7 @@ namespace WalliCardsNet.API.Builders
 
         public GooglePassBuilder WithTextModulesData(string? fieldsJson, Dictionary<string, string>? customerDetails)
         {
-            if(!string.IsNullOrEmpty(fieldsJson) && customerDetails != null)
+            if(!string.IsNullOrEmpty(fieldsJson) && customerDetails != null) //TODO: CustomerDetails kontroll måste ändras till att se om det finns något innehåll, ej null.
             {
                 var fields = new List<string>();
                 var rows = JsonSerializer.Deserialize<List<List<string>>>(fieldsJson);
@@ -221,7 +223,7 @@ namespace WalliCardsNet.API.Builders
         {
             return _genericObject;
         }
-        public GenericObject BuildObjectFromTemplate(BusinessProfile profile, Customer customer)
+        public GenericObject BuildObjectFromTemplate(BusinessProfile profile, Customer customer) //TODO: customerDetails: count = 0 här!
         {
             var builder = new GooglePassBuilder();
 
@@ -299,7 +301,7 @@ namespace WalliCardsNet.API.Builders
                                 {
                                     new FieldReference
                                     {
-                                        FieldPath = $"object.textModulesData['{fields[0].ToLower()}']"
+                                        FieldPath = $"object.textModulesData[\'{fields[0].ToLower()}\']"
                                     }
                                 }
                             },
@@ -318,7 +320,7 @@ namespace WalliCardsNet.API.Builders
                                 {
                                     new FieldReference
                                     {
-                                        FieldPath = $"object.textModulesData['{fields[0].ToLower()}']"
+                                        FieldPath = $"object.textModulesData[\'{fields[0].ToLower()}\']"
                                     }
                                 }
                             }
@@ -331,7 +333,7 @@ namespace WalliCardsNet.API.Builders
                                 {
                                     new FieldReference
                                     {
-                                        FieldPath = $"object.textModulesData['{fields[1].ToLower()}']"
+                                        FieldPath = $"object.textModulesData[\'{fields[1].ToLower()}\']"
                                     }
                                 }
                             }
@@ -350,7 +352,7 @@ namespace WalliCardsNet.API.Builders
                                 { 
                                     new FieldReference
                                     {
-                                        FieldPath = $"object.textModulesData['{fields[0].ToLower()}']"
+                                        FieldPath = $"object.textModulesData[\'{fields[0].ToLower()}\']"
                                     }
                                 }
                             }
@@ -363,7 +365,7 @@ namespace WalliCardsNet.API.Builders
                                 {
                                     new FieldReference
                                     {
-                                        FieldPath = $"object.textModulesData['{fields[1].ToLower()}']"
+                                        FieldPath = $"object.textModulesData[\'{fields[1].ToLower()}\']"
                                     }
                                 }
                             }
@@ -376,7 +378,7 @@ namespace WalliCardsNet.API.Builders
                                 {
                                     new FieldReference
                                     {
-                                        FieldPath = $"object.textModulesData['{fields[2].ToLower()}']"
+                                        FieldPath = $"object.textModulesData[\'{fields[2].ToLower()}\']"
                                     }
                                 }
                             }

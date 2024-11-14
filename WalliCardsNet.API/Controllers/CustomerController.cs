@@ -128,7 +128,7 @@ namespace WalliCardsNet.API.Controllers
                         return Problem();
                     }
 
-                    var objectCreateResult = await _googleService.CreateGenericObjectAsync(profile, customer);
+                    var objectCreateResult = await _googleService.CreateGenericObjectAsync(profile, customer); // return JSON instead of GenericObject
                     if (!objectCreateResult.Success || objectCreateResult.Data == null)
                     {
                         return Problem();
@@ -145,7 +145,7 @@ namespace WalliCardsNet.API.Controllers
                         Customer = customer,
                     };
 
-                    var creationResult = _googleService.CreateSignedJWT(googlePass.ClassJson, googlePass.ObjectJson, email);
+                    var creationResult = await _googleService.CreateSignedJWTAsync(googlePass);
                     if (creationResult.Success)
                     {
                         await _googlePassRepository.AddAsync(googlePass);
