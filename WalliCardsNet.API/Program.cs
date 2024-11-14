@@ -1,4 +1,3 @@
-
 using DotNetEnv;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +5,6 @@ using WalliCardsNet.API.Data;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Repositories;
 using Microsoft.AspNetCore.Authentication;
-using WalliCardsNet.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -19,6 +17,14 @@ using WalliCardsNet.API.Constants;
 using Stripe;
 using System.Threading.Channels;
 using WalliCardsNet.ClassLibrary.Services;
+using WalliCardsNet.API.Services.GoogleServices.PassBuilder;
+using WalliCardsNet.API.Services.GoogleServices.GoogleWallet;
+using WalliCardsNet.API.Services.GoogleServices.GoogleAuth;
+using WalliCardsNet.API.Services.Authentication;
+using WalliCardsNet.API.Services.Token;
+using WalliCardsNet.API.Services.Mail;
+using WalliCardsNet.API.Services.Mappers;
+using WalliCardsNet.API.Services.Payment;
 
 namespace WalliCardsNet.API
 {
@@ -51,24 +57,29 @@ namespace WalliCardsNet.API
                 options.UseSqlServer(connectionString));
 
             // Repositories
-            builder.Services.AddTransient<IBusiness, BusinessRepository>();
-            builder.Services.AddTransient<ICardTemplate, CardTemplateRepository>();
-            builder.Services.AddTransient<ICustomer, CustomerRepository>();
-            builder.Services.AddTransient<IGooglePass, GooglePassRepository>();
-            builder.Services.AddTransient<IRefreshToken, RefreshTokenRepository>();
-            builder.Services.AddTransient<IActivationToken, ActivationTokenRepository>();
-            builder.Services.AddTransient<IApplicationUser, ApplicationUserRepository>();
-            builder.Services.AddTransient<IBusinessProfile, BusinessProfileRepository>();
+            builder.Services.AddTransient<IBusinessRepo, BusinessRepository>();
+            builder.Services.AddTransient<ICustomerRepo, CustomerRepository>();
+            builder.Services.AddTransient<IGooglePassRepo, GooglePassRepository>();
+            builder.Services.AddTransient<IRefreshTokenRepo, RefreshTokenRepository>();
+            builder.Services.AddTransient<IActivationTokenRepo, ActivationTokenRepository>();
+            builder.Services.AddTransient<IApplicationUserRepo, ApplicationUserRepository>();
+            builder.Services.AddTransient<IBusinessProfileRepo, BusinessProfileRepository>();
 
             //BusinessProfile service
             builder.Services.AddTransient<IAPIBusinessProfilesService, APIBusinessProfilesService>();
             builder.Services.AddTransient<IClassLibraryBusinessProfilesService, ClassLibraryBusinessProfilesService>();
 
             // Token service
-            builder.Services.AddTransient<ITokenService, Services.TokenService>();
+            builder.Services.AddTransient<ITokenService, Services.Token.TokenService>();
 
-            //Custom Google Service
-            builder.Services.AddTransient<IGoogleService, GoogleService>();
+            //Google Authentication service
+            builder.Services.AddTransient<IGoogleAuth, GoogleAuthService>();
+
+            //Google Wallet service
+            builder.Services.AddScoped<IGoogleWallet, GoogleWalletService>();
+
+            //Google PassBuilder service
+            builder.Services.AddTransient<IGooglePassBuilder, GooglePassBuilderService>();
 
             // Mail service
             builder.Services.AddTransient<IMailService, MailService>();
@@ -161,7 +172,7 @@ namespace WalliCardsNet.API
                     var services = scope.ServiceProvider;
                     var appDbContext = services.GetRequiredService<ApplicationDbContext>();
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-                    var customerRepo = services.GetRequiredService<ICustomer>();
+                    var customerRepo = services.GetRequiredService<ICustomerRepo>();
 
                     await TestDataSeeder.SeedAsync(appDbContext, userManager, customerRepo);
                 }
