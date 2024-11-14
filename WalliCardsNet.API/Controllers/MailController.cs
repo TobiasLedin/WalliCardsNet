@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WalliCardsNet.API.Services;
-using SendGrid;
+using WalliCardsNet.API.Services.Mail;
+using WalliCardsNet.API.Services.Authentication;
 using SendGrid.Helpers.Mail;
 using WalliCardsNet.API.Constants;
 
