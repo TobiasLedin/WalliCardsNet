@@ -8,10 +8,8 @@ using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary.Business;
 using WalliCardsNet.ClassLibrary.BusinessProfile;
-using WalliCardsNet.ClassLibrary.Services;
-using WalliCardsNet.ClassLibrary.Card;
-using WalliCardsNet.ClassLibrary.Customer;
-using Google.Apis.Walletobjects.v1.Data;
+using WalliCardsNet.API.Services.Mappers;
+using WalliCardsNet.API.Services.GoogleServices.GoogleWallet;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -19,27 +17,19 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class BusinessProfileController : ControllerBase
     {
-        private readonly IBusinessProfile _businessProfileRepo;
-        private readonly ICardTemplate _cardTemplateRepo;
-        private readonly IBusiness _businessRepo;
-        private readonly IGoogleService _googleService;
-        private readonly IGooglePass _googlePassRepository;
+        private readonly IGoogleWallet _googleWalletService;
         private readonly IAPIBusinessProfilesService _businessProfilesService;
+        private readonly IBusinessProfileRepo _profileRepo;
+        private readonly IBusinessRepo _businessRepo;
+        private readonly IGooglePassRepo _googlePassRepo;
 
-        public BusinessProfileController(
-            ICardTemplate cardTemplateRepo, 
-            IBusiness businessRepo, 
-            IGoogleService googleService,
-            IGooglePass googlePassRepository,
-            IBusinessProfile businessProfileRepo, 
-            IAPIBusinessProfilesService businessProfilesService)
+        public BusinessProfileController(IGoogleWallet googleWalletService, IAPIBusinessProfilesService businessProfilesService, IBusinessProfileRepo profileRepo, IBusinessRepo businessRepo, IGooglePassRepo googlePassRepo)
         {
-            _cardTemplateRepo = cardTemplateRepo;
-            _businessRepo = businessRepo;
-            _googleService = googleService;
-            _googlePassRepository = googlePassRepository;
-            _businessProfileRepo = businessProfileRepo;
+            _googleWalletService = googleWalletService;
             _businessProfilesService = businessProfilesService;
+            _profileRepo = profileRepo;
+            _businessRepo = businessRepo;
+            _googlePassRepo = googlePassRepo;
         }
 
         [HttpGet]
@@ -66,7 +56,7 @@ namespace WalliCardsNet.API.Controllers
                 return Unauthorized();
             };
             var businessId = businessIdClaim.Value;
-            var businessProfiles = await _businessProfileRepo.GetAllAsync(new Guid(businessId));
+            var businessProfiles = await _profileRepo.GetAllAsync(new Guid(businessId));
             if (businessProfiles != null)
             {
                 var businessProfileDTOs = _businessProfilesService.MapBusinessProfileListToResponseDTO(businessProfiles);
@@ -93,7 +83,7 @@ namespace WalliCardsNet.API.Controllers
         public async Task<IActionResult> GetByTokenAsync(string token)
         {
             var business = await _businessRepo.GetByTokenAsync(token);
-            var result = await _businessProfileRepo.GetActiveByBusinessIdAsync(business.Id);
+            var result = await _profileRepo.GetActiveByBusinessIdAsync(business.Id);
             if (result != null)
             {
                 var businessProfileRequestDTO = _businessProfilesService.MapBusinessProfileToResponseDTO(result);
@@ -167,7 +157,7 @@ namespace WalliCardsNet.API.Controllers
             if (businessProfileRequest != null)
             {
                 var businessProfile = _businessProfilesService.MapRequestDTOtoBusinessProfile(businessProfileRequest, businessId);
-                await _businessProfileRepo.AddAsync(businessProfile);
+                await _profileRepo.AddAsync(businessProfile);
                 await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(businessProfile.JoinForm.FieldsJson, businessId);
                 return Created($"api/businessprofile/{businessProfile.Id}", businessProfile);
             }
@@ -187,7 +177,7 @@ namespace WalliCardsNet.API.Controllers
             var businessId = new Guid(businessIdClaim.Value);
             if (businessProfileRequest != null)
             {
-                await _businessProfileRepo.UpdateAsync(businessProfileRequest, businessId);
+                await _profileRepo.UpdateAsync(businessProfileRequest, businessId);
                 await _businessRepo.AddCardDesignFieldsToColumnPresetAsync(businessProfileRequest.JoinFormTemplate.FieldsJson, businessId);
                 return Ok(businessProfileRequest);
             }
@@ -199,25 +189,25 @@ namespace WalliCardsNet.API.Controllers
         [Authorize(Roles = Roles.Manager)]
         public async Task<IActionResult> SetActiveBusinessProfile(Guid id)
         {
-            var businessProfile = await _businessProfileRepo.GetByIdAsync(id);
+            var businessProfile = await _profileRepo.GetByIdAsync(id);
             if (businessProfile == null)
             {
                 return NotFound();
             }
 
             // Trigger GenericClass creation/update (GoogleWallet API). If ClassId exists, update will be performed.
-            var createResult = await _googleService.CreateGenericClassAsync(businessProfile);
+            var createResult = await _googleWalletService.CreateGenericClassAsync(businessProfile);
 
             if (createResult.Success && createResult.Data != null)
             {
-                var genericClassJson = JsonSerializer.Serialize(createResult.Data, _googleService.SerializerOptions());
+                var genericClassJson = JsonSerializer.Serialize(createResult.Data);
 
                 // Set GoogleTemplate props
                 businessProfile.GoogleTemplate!.GenericClassJson = genericClassJson;
                 businessProfile.GoogleTemplate!.GenericClassId = createResult.Data.Id;
 
                 // Trigger update of related GenericObjects
-                var passList = await _googlePassRepository.GetAllByClassIdAsync(createResult.Data.Id); //TODO: ClassId tied to Profile. Swapping profile will not update passes issues tied to another profile!
+                var passList = await _googlePassRepo.GetAllByClassIdAsync(createResult.Data.Id); //TODO: ClassId tied to Profile. Swapping profile will not update passes issues tied to another profile!
 
                 if (passList.Count > 0)
                 {
@@ -225,7 +215,7 @@ namespace WalliCardsNet.API.Controllers
 
                     foreach (var pass in passList)
                     {
-                        var updateResult = await _googleService.UpdateGenericObjectAsync(businessProfile, pass.Customer);
+                        var updateResult = await _googleWalletService.UpdateGenericObjectAsync(businessProfile, pass.Customer);
 
                         if (!createResult.Success)
                         {
@@ -244,7 +234,7 @@ namespace WalliCardsNet.API.Controllers
                 return Problem("Failed to create/update GenericClass");
             }
 
-            await _businessProfileRepo.SetActiveAsync(id);
+            await _profileRepo.SetActiveAsync(id);
 
             return Ok($"ClassId: {createResult.Data.Id} active");
         }
