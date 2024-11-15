@@ -80,11 +80,11 @@ namespace WalliCardsNet.API.Services.GoogleServices.PassBuilder
 
         #region Generic Object related methods
 
-        private GooglePassBuilderService ObjectWithBasicInfo(Guid businessProfileId, Guid customerId, string? hexBackgroundColor, string cardTitle, string header)
+        private GooglePassBuilderService ObjectWithBasicInfo(Guid businessId, Guid customerId, string? hexBackgroundColor, string cardTitle, string header)
         {
             _genericObject.GenericType = "GENERIC_OTHER";
             _genericObject.Id = $"{_issuerId}.{customerId}";
-            _genericObject.ClassId = $"{_issuerId}.{businessProfileId}";
+            _genericObject.ClassId = $"{_issuerId}.{businessId}";
 
             _genericObject.CardTitle = CreateLocalizedString(cardTitle);
             _genericObject.Header = CreateLocalizedString(header);
@@ -211,7 +211,7 @@ namespace WalliCardsNet.API.Services.GoogleServices.PassBuilder
             //var builder = new GooglePassBuilderService();
 
             return
-                ObjectWithBasicInfo(profile.Id, customer.Id, profile.GoogleTemplate!.HexBackgroundColor, profile.GoogleTemplate!.CardTitle, profile.GoogleTemplate!.Header)
+                ObjectWithBasicInfo(profile.BusinessId, customer.Id, profile.GoogleTemplate!.HexBackgroundColor, profile.GoogleTemplate!.CardTitle, profile.GoogleTemplate!.Header)
                 .WithImageInfo(profile.GoogleTemplate.LogoUri, profile.GoogleTemplate.WideLogoUri, profile.GoogleTemplate.HeroImageUri)
                 .WithTextModulesData(profile.GoogleTemplate.FieldsJson, customer.CustomerDetails)
                 //.WithLinksModuleData(template.LinksModuleData) //TODO: Link Modules deactivated.
