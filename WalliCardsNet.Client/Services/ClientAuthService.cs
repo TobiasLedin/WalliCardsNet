@@ -14,6 +14,7 @@ namespace WalliCardsNet.Client.Services
         private readonly HttpClient _httpClient;
         private readonly ILocalStorageService _localStorage;
         private readonly AuthStateProvider _authState;
+        
 
         public ClientAuthService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage, AuthStateProvider authState)
         {
@@ -108,9 +109,11 @@ namespace WalliCardsNet.Client.Services
         public async Task LogoutAsync()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, "logout");
-
-            await _httpClient.SendAsync(request);
-            await _authState.LogoutAsync();
+            var response = await _httpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                await _authState.LogoutAsync();
+            }
         }
     }
 }
