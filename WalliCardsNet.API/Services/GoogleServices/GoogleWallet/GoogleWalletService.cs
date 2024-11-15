@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Services.GoogleServices.PassBuilder;
+using Microsoft.AspNetCore.Connections.Features;
 
 namespace WalliCardsNet.API.Services.GoogleServices.GoogleWallet
 {
@@ -39,26 +40,50 @@ namespace WalliCardsNet.API.Services.GoogleServices.GoogleWallet
         /// <param name="template"></param>
         /// <param name="classSuffix"></param>
         /// <returns></returns>
-        public async Task<ActionResult<GenericClass>> CreateGenericClassAsync(BusinessProfile profile)
+        public async Task<ActionResult<GenericClass>> CreateOrUpdateGenericClassAsync(BusinessProfile profile)
         {
             string classId = $"{_issuerId}.{profile.BusinessId}";
 
             if (await ClassExistsAsync(classId))
             {
-                var result = await UpdateGenericClassAsync(profile);
-
-                if (result.Success)
+                try
                 {
-                    _genericClass = result.Data;
+                    _genericClass = _googlePassBuilder.BuildClassFromTemplate(profile);
 
-                    if (_genericClass != null)
+                    using (Stream responseStream = await _walletService.Genericclass
+                                                            .Update(_genericClass, classId)
+                                                            .ExecuteAsStreamAsync())
+
+                    using (StreamReader responseReader = new StreamReader(responseStream))
                     {
-                        return ActionResult<GenericClass>.SuccessResult(_genericClass, $"Generic class with id: {classId} already exists. Update of existing class performed");
+                        string responseJson = await responseReader.ReadToEndAsync();
+                        using (JsonDocument jsonResponse = JsonDocument.Parse(responseJson))
+                        {
+                            if (jsonResponse.RootElement.TryGetProperty("error", out JsonElement errorElement))
+                            {
+                                int errorCode = errorElement.GetProperty("code").GetInt32();
+                                string? errorMessage = errorElement.GetProperty("message").GetString();
+
+                                return ActionResult<GenericClass>.FailureResult(
+                                    $"Google Wallet API returned following error(s) during Generic class UPDATE call - Code: {errorCode}, Message: {errorMessage}");
+                            }
+
+                            _genericClass = JsonSerializer.Deserialize<GenericClass>(responseJson, SerializerOptions());
+
+                            if (_genericClass?.Id == null)
+                            {
+                                return ActionResult<GenericClass>.FailureResult("Failed to deserialize response");
+                            }
+
+                            _logger.LogInformation($"Object {classId} successfully updated");
+
+                            return ActionResult<GenericClass>.SuccessResult(_genericClass);
+                        }
                     }
-                    else
-                    {
-                        return ActionResult<GenericClass>.FailureResult($"Failed to update existing class: {result.Message}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    return ActionResult<GenericClass>.FailureResult($"Failed to update classId: {classId}", new List<string> { ex.Message });
                 }
             }
 
@@ -70,6 +95,48 @@ namespace WalliCardsNet.API.Services.GoogleServices.GoogleWallet
                                                         .Insert(_genericClass)
                                                         .ExecuteAsStreamAsync())
 
+                    var result = await ReadResponseStream(responseStream);
+
+                
+
+                //using (StreamReader responseReader = new StreamReader(responseStream))
+                //{
+                //    string responseJson = await responseReader.ReadToEndAsync();
+                //    using (JsonDocument jsonResponse = JsonDocument.Parse(responseJson))
+                //    {
+                //        if (jsonResponse.RootElement.TryGetProperty("error", out JsonElement errorElement))
+                //        {
+                //            int errorCode = errorElement.GetProperty("code").GetInt32();
+                //            string? errorMessage = errorElement.GetProperty("message").GetString();
+
+                //            return ActionResult<GenericClass>.FailureResult(
+                //                $"Google Wallet API returned following error(s) during Generic class INSERT call - Code: {errorCode}, Message: {errorMessage}");
+                //        }
+
+                //        _genericClass = JsonSerializer.Deserialize<GenericClass>(responseJson, SerializerOptions());
+
+                //        if (_genericClass?.Id == null)
+                //        {
+                //            return ActionResult<GenericClass>.FailureResult("Failed to deserialize response");
+                //        }
+
+                //        _logger.LogInformation($"Class {classId} successfully created");
+
+                //        return ActionResult<GenericClass>.SuccessResult(_genericClass);
+                //    }
+                //}
+            }
+            catch (Exception ex)
+            {
+                return ActionResult<GenericClass>.FailureResult("Failed to create GenericClass", new List<string> { ex.Message });
+            }
+        }
+
+        // TEST
+        private async Task<(int?, string?)> ReadResponseStream(Stream responseStream)
+        {
+            try
+            {
                 using (StreamReader responseReader = new StreamReader(responseStream))
                 {
                     string responseJson = await responseReader.ReadToEndAsync();
@@ -80,29 +147,20 @@ namespace WalliCardsNet.API.Services.GoogleServices.GoogleWallet
                             int errorCode = errorElement.GetProperty("code").GetInt32();
                             string? errorMessage = errorElement.GetProperty("message").GetString();
 
-                            return ActionResult<GenericClass>.FailureResult(
-                                $"Google Wallet API returned following error(s) during Generic class INSERT call - Code: {errorCode}, Message: {errorMessage}");
+                            return (errorCode, errorMessage);
                         }
-
-                        _genericClass = JsonSerializer.Deserialize<GenericClass>(responseJson, SerializerOptions());
-
-                        if (_genericClass?.Id == null)
-                        {
-                            return ActionResult<GenericClass>.FailureResult("Failed to deserialize response");
-                        }
-
-                        _logger.LogInformation($"Class {classId} successfully created");
-
-                        return ActionResult<GenericClass>.SuccessResult(_genericClass);
                     }
+
+                    var classJson = JsonSerializer.Deserialize<string>(responseJson, SerializerOptions());
+
+                    return (null, classJson);
                 }
             }
             catch (Exception ex)
             {
-                return ActionResult<GenericClass>.FailureResult("Failed to create GenericClass", new List<string> { ex.Message });
+                return (1, ex.Message);
             }
         }
-
 
         /// <summary>
         /// Method corresponding to GenericClass GoogleWallet API UPDATE call.

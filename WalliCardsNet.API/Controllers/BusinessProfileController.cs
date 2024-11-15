@@ -119,7 +119,7 @@ namespace WalliCardsNet.API.Controllers
             }
 
             // Trigger GenericClass creation/update (GoogleWallet API). If ClassId exists, update will be performed.
-            var createResult = await _googleWalletService.CreateGenericClassAsync(businessProfile);
+            var createResult = await _googleWalletService.CreateOrUpdateGenericClassAsync(businessProfile);
 
             if (createResult.Success && createResult.Data != null)
             {

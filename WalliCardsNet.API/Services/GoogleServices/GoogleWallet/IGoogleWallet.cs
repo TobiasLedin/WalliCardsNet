@@ -5,7 +5,7 @@ namespace WalliCardsNet.API.Services.GoogleServices.GoogleWallet
 {
     public interface IGoogleWallet
     {
-        Task<ActionResult<GenericClass>> CreateGenericClassAsync(BusinessProfile profile);
+        Task<ActionResult<GenericClass>> CreateOrUpdateGenericClassAsync(BusinessProfile profile);
         Task<ActionResult<GenericClass>> UpdateGenericClassAsync(BusinessProfile profile);
         Task<ActionResult<GenericObject>> CreateGenericObjectAsync(BusinessProfile profile, Customer customer);
         Task<ActionResult<GenericObject>> UpdateGenericObjectAsync(BusinessProfile profile, Customer customer);
