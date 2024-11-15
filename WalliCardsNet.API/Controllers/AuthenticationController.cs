@@ -1,5 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using WalliCardsNet.API.Constants;
+using WalliCardsNet.API.Helpers;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.API.Services;
 using WalliCardsNet.ClassLibrary.Login;
@@ -67,7 +71,32 @@ namespace WalliCardsNet.API.Controllers
             {
                 await _tokenService.DeleteRefreshTokenAsync(refreshToken);
             }
+            return Ok();
+        }
 
+        [HttpPost("google/signout")]
+        [Authorize]
+        public async Task<IActionResult> GoogleSignOutAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var encryptedGoogleToken = await _userManager.GetAuthenticationTokenAsync(user, "google", "encryptedGoogleAccessToken");
+                if (encryptedGoogleToken != null)
+                {
+                    var decryptedGoogleToken = await EncryptionHelper.DecryptAsync(encryptedGoogleToken);
+                    var client = new HttpClient();
+                    var content = new FormUrlEncodedContent(new[]
+                    {
+                        new KeyValuePair<string, string>("token", decryptedGoogleToken)
+                    });
+                    var response = await client.PostAsync("https://oauth2.googleapis.com/revoke", content);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        await _userManager.RemoveAuthenticationTokenAsync(user, "google", "encryptedGoogleAccessToken");
+                    }
+                }
+            }
             return Ok();
         }
 

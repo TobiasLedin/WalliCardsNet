@@ -33,11 +33,6 @@
 </EditForm>
 
 <br />
-<div class="mx-auto max-w-md rounded-lg border border-black bg-white px-8 py-3 text-center font-semibold shadow-md">
-    <p>Test user credentials:</p>
-    <p>Email: kalle.kula@mail.com</p>
-    <p>Password: Asdf1234!</p>
-</div>
 
 @code {
     public LoginCredentials Credentials { get; set; } = new();
@@ -53,7 +48,7 @@
         }
         if (response.Success == false)
         {
-            Message = "Login failed";
+            Message = "Incorrent email or password.";
         }
         StateHasChanged();
     }

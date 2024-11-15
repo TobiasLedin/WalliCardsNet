@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
 using WalliCardsNet.API.Data.Repositories;
+using WalliCardsNet.API.Helpers;
 using WalliCardsNet.API.Models;
 using WalliCardsNet.ClassLibrary.Login;
 using WalliCardsNet.ClassLibrary.Register;
@@ -123,6 +124,9 @@ namespace WalliCardsNet.API.Services
         {
             var tokenData = await _googleService.ExchangeCodeForTokensAsync(code, "https://localhost:7102/auth/google/login/");
             var idToken = tokenData["id_token"]?.ToString();
+            var googleAccessToken = tokenData["access_token"]?.ToString();
+            var encryptedGoogleAccessToken = await EncryptionHelper.EncryptAsync(googleAccessToken);
+
             if (idToken == null)
             {
                 return new AuthResult { Success = false, Details = "Failed to retrieve ID token from Google." };
@@ -141,6 +145,7 @@ namespace WalliCardsNet.API.Services
             var accessToken = _tokenService.GenerateAccessToken(claims);
             var refreshToken = await _tokenService.GenerateRefreshTokenAsync(Guid.Parse(user.Id));
 
+            await _userManager.SetAuthenticationTokenAsync(user, "google", "encryptedGoogleAccessToken", encryptedGoogleAccessToken);
             return new AuthResult { Success = true, AccessToken = accessToken, RefreshToken = refreshToken, Details = "Login successful!" };
         }
 

@@ -162,6 +162,7 @@
                 Message = string.IsNullOrEmpty(response.Message) ? "Successfully added business profile." : response.Message;
             }
         }
+        await FetchBusinessProfiles();
     }
 
     public async Task Update()
@@ -171,6 +172,7 @@
         {
             Message = string.IsNullOrEmpty(response.Message) ? "Successfully added business profile." : response.Message;
         }
+        await FetchBusinessProfiles();
     }
 
     private void OnBusinessProfileChange()
