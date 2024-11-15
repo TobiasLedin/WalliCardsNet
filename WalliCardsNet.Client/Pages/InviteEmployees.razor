@@ -3,20 +3,20 @@
 @attribute [Authorize]
 @inject WalliCardsApiService WalliCardsApiService
 
-<div class="bg-white mx-auto text-center gap-2 py-12 px-8 rounded-md max-w-md shadow-sm">
+<div class="mx-auto max-w-md gap-2 rounded-md bg-white px-8 py-12 text-center shadow-sm">
     <EditForm class="flex flex-col gap-4" Model="Emails" OnValidSubmit="SubmitForm">
-        <h1 class="text-lg font-bold mb-4">Invite employees</h1>
+        <h1 class="mb-4 text-lg font-bold">Invite employees</h1>
         @foreach (var email in Emails.ToList())
         {
             var index = Emails.IndexOf(email);
             <div class="flex gap-4">
-                    <InputText class="px-3 py-2 rounded-lg shadow-lg w-full focus:ring ring-cyan-100 border" placeholder="Email address" @bind-Value="Emails[index]"/>
-                    <button type="button" class="bg-red-200 py-2 px-3 rounded-md shadow-md font-bold text-white hover:bg-red-300" @onclick="(() => RemoveEmailField(index))">Remove</button>
+                <InputText type="email" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-lg outline-none valid:outline-none valid:border-none invalid:border-none invalid:ring-2 invalid:ring-red-200 invalid:outline-none focus:ring-2 focus:ring-teal-200 focus:outline-none" placeholder="Email address" @bind-Value="Emails[index]" />
+                <button type="button" class="rounded-md bg-red-200 px-3 py-2 font-bold text-white shadow-md hover:bg-red-300" @onclick="(() => RemoveEmailField(index))">Remove</button>
             </div>
         }
         <div class="flex flex-col gap-2">
-            <button type="button" class="font-bold rounded-md shadow-md text-gray-50 bg-teal-300 py-3 px-4 hover:bg-teal-400 active:bg-teal-200 transition" @onclick="AddEmailField">Add Another Email</button>
-            <button type="submit" class="font-bold rounded-md shadow-md text-gray-50 bg-teal-300 py-3 px-4 hover:bg-teal-400 active:bg-teal-200 transition">Invite Employees</button>
+            <button type="button" class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200" @onclick="AddEmailField">Add Another Email</button>
+            <button type="submit" class="rounded-md bg-teal-300 px-4 py-3 font-bold text-gray-50 shadow-md transition hover:bg-teal-400 active:bg-teal-200">Invite Employees</button>
         </div>
         @if (!string.IsNullOrEmpty(Message))
         {
