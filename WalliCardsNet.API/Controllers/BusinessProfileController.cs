@@ -17,14 +17,16 @@ namespace WalliCardsNet.API.Controllers
         private readonly IAPIBusinessProfilesService _businessProfilesService;
         private readonly IBusinessProfileRepo _profileRepo;
         private readonly IBusinessRepo _businessRepo;
+        private readonly ICustomerRepo _customerRepo;
         private readonly IGooglePassRepo _googlePassRepo;
 
-        public BusinessProfileController(IGoogleWallet googleWalletService, IAPIBusinessProfilesService businessProfilesService, IBusinessProfileRepo profileRepo, IBusinessRepo businessRepo, IGooglePassRepo googlePassRepo)
+        public BusinessProfileController(IGoogleWallet googleWalletService, IAPIBusinessProfilesService businessProfilesService, IBusinessProfileRepo profileRepo, IBusinessRepo businessRepo, ICustomerRepo customerRepo, IGooglePassRepo googlePassRepo)
         {
             _googleWalletService = googleWalletService;
             _businessProfilesService = businessProfilesService;
             _profileRepo = profileRepo;
             _businessRepo = businessRepo;
+            _customerRepo = customerRepo;
             _googlePassRepo = googlePassRepo;
         }
 
@@ -130,26 +132,15 @@ namespace WalliCardsNet.API.Controllers
                 businessProfile.GoogleTemplate!.GenericClassId = createResult.Data.Id;
 
                 // Trigger update of related GenericObjects
-                var passList = await _googlePassRepo.GetAllByClassIdAsync(createResult.Data.Id); //TODO: ClassId tied to Profile. Swapping profile will not update passes issues tied to another profile!
+                var passList = await _googlePassRepo.GetAllByClassIdAsync(createResult.Data.Id);
 
-                if (passList.Count > 0)
+                var customers = passList.Select(c => c.Customer).ToList(); // Addera kontroll om listan är tom => hoppa över nedan
+
+                var failedUpdates = await _googleWalletService.BatchUpdateGenericObjectsAsync(businessProfile, customers);
+
+                foreach(var failedId in failedUpdates)
                 {
-                    var failedUpdates = new List<string>();
-
-                    foreach (var pass in passList)
-                    {
-                        var updateResult = await _googleWalletService.UpdateGenericObjectAsync(businessProfile, pass.Customer);
-
-                        if (!createResult.Success)
-                        {
-                            failedUpdates.Add(updateResult.Message);
-                        }
-                    }
-
-                    if (failedUpdates.Count > 0)
-                    {
-                        return Problem($"{failedUpdates} out of {passList.Count} passes realated to classId: {createResult.Data.Id} failed to be updated");
-                    }
+                    Console.WriteLine($"Failed to update {failedId}");
                 }
             }
             else

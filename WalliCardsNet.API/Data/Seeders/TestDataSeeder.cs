@@ -50,44 +50,44 @@ namespace WalliCardsNet.API.Data.Seeders
 
 
 
-                var customers = new List<Customer>
-                {
-                    new Customer()
-                    {
-                        BusinessId = business.Id,
-                        CustomerDetails = new Dictionary<string, string>
-                        {
-                            { "Email", "john@mail.com" },
-                            { "Name", "John Johnsson" },
-                            { "Phone", "070-555 555" }
-                        }
-                    },
-                    new Customer()
-                    {
-                        BusinessId = business.Id,
-                        CustomerDetails = new Dictionary<string, string>
-                        {
-                            { "Email", "sven@mail.com" },
-                            { "Name", "Sven Svensson" },
-                            { "Phone", "070-666 666" }
-                        }
-                    },
-                    new Customer()
-                    {
-                        BusinessId = business.Id,
-                        CustomerDetails = new Dictionary<string, string>
-                        {
-                            { "Email", "lars@mail.com" },
-                            { "Name", "Lars Larsson" },
-                            { "Phone", "070-777 777" }
-                        }
-                    }
-                };
+                //var customers = new List<Customer>
+                //{
+                //    new Customer()
+                //    {
+                //        BusinessId = business.Id,
+                //        CustomerDetails = new Dictionary<string, string>
+                //        {
+                //            { "Email", "john@mail.com" },
+                //            { "Name", "John Johnsson" },
+                //            { "Phone", "070-555 555" }
+                //        }
+                //    },
+                //    new Customer()
+                //    {
+                //        BusinessId = business.Id,
+                //        CustomerDetails = new Dictionary<string, string>
+                //        {
+                //            { "Email", "sven@mail.com" },
+                //            { "Name", "Sven Svensson" },
+                //            { "Phone", "070-666 666" }
+                //        }
+                //    },
+                //    new Customer()
+                //    {
+                //        BusinessId = business.Id,
+                //        CustomerDetails = new Dictionary<string, string>
+                //        {
+                //            { "Email", "lars@mail.com" },
+                //            { "Name", "Lars Larsson" },
+                //            { "Phone", "070-777 777" }
+                //        }
+                //    }
+                //};
 
-                foreach (var customer in customers)
-                {
-                    await customerRepo.AddAsync(customer);
-                }
+                //foreach (var customer in customers)
+                //{
+                //    await customerRepo.AddAsync(customer);
+                //}
                 
 
             }

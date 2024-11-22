@@ -1,5 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Stripe;
+using System.Text.Json;
 using WalliCardsNet.API.Data.Interfaces;
+using WalliCardsNet.API.Helpers;
 using WalliCardsNet.API.Models;
 
 namespace WalliCardsNet.API.Data.Repositories
@@ -21,10 +24,18 @@ namespace WalliCardsNet.API.Data.Repositories
 
         public async Task<List<GooglePass>> GetAllByClassIdAsync(string classId)
         {
-            return await _applicationDbContext.GooglePasses
+            var passes = await _applicationDbContext.GooglePasses
                 .Where(gp => gp.ClassId == classId)
                 .Include(gp => gp.Customer)
                 .ToListAsync();
+
+            foreach (var pass in passes)
+            {
+                var decryptedJson = await EncryptionHelper.DecryptAsync(pass.Customer.CustomerDetailsJson);
+                pass.Customer.CustomerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(decryptedJson) ?? new Dictionary<string, string>();
+            }
+
+            return passes;
         }
 
         public async Task<GooglePass?> GetByIdAsync(string objectId)

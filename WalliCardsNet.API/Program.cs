@@ -151,7 +151,7 @@ namespace WalliCardsNet.API
             {
                 options.AddDefaultPolicy(builder =>
                 {
-                    builder.WithOrigins("https://localhost:7102", "https://1nfpss3f-7102.euw.devtunnels.ms") // Added DEV tunnel for testing purposes
+                    builder.WithOrigins("https://localhost:7102", "https://localhost:7204", "https://1nfpss3f-7102.euw.devtunnels.ms") // Added DEV tunnel for testing purposes
                            .AllowAnyHeader()
                            .AllowAnyMethod()
                            .AllowCredentials();

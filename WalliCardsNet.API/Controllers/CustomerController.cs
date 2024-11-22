@@ -9,6 +9,7 @@ using WalliCardsNet.ClassLibrary.Customer;
 using WalliCardsNet.API.Services;
 using Google.Apis.Walletobjects.v1.Data;
 using SendGrid.Helpers.Mail;
+using WalliCardsNet.API.Services.GoogleServices.GoogleWallet;
 
 namespace WalliCardsNet.API.Controllers
 {
@@ -16,23 +17,23 @@ namespace WalliCardsNet.API.Controllers
     [ApiController]
     public class CustomerController : ControllerBase
     {
-        private readonly ICustomer _customerRepo;
-        private readonly IBusiness _businessRepo;
-        private readonly IBusinessProfile _profileRepo;
-        private readonly IGoogleService _googleService;
-        private readonly IGooglePass _googlePassRepository;
+        private readonly ICustomerRepo _customerRepo;
+        private readonly IBusinessRepo _businessRepo;
+        private readonly IBusinessProfileRepo _profileRepo;
+        private readonly IGoogleWallet _googleWalletService;
+        private readonly IGooglePassRepo _googlePassRepository;
 
         public CustomerController(
-            ICustomer customerRepo, 
-            IBusiness businessRepo, 
-            IBusinessProfile profileRepo, 
-            IGoogleService googleService, 
-            IGooglePass googlePassRepository)
+            ICustomerRepo customerRepo, 
+            IBusinessRepo businessRepo, 
+            IBusinessProfileRepo profileRepo, 
+            IGoogleWallet googleWalletService, 
+            IGooglePassRepo googlePassRepository)
         {
             _customerRepo = customerRepo;
             _businessRepo = businessRepo;
             _profileRepo = profileRepo;
-            _googleService = googleService;
+            _googleWalletService = googleWalletService;
             _googlePassRepository = googlePassRepository;
         }
 
@@ -111,7 +112,7 @@ namespace WalliCardsNet.API.Controllers
 
                 var customerDetails = JsonSerializer.Deserialize<Dictionary<string, string>>(joinFormModel.FormDataJson);
 
-                if (customerDetails != null && customerDetails.TryGetValue("Email", out var email))
+                if (customerDetails != null && customerDetails.TryGetValue("Email", out var email)) //TODO: out email necessary?
                 {
                     var customer = new Customer
                     {
@@ -128,13 +129,13 @@ namespace WalliCardsNet.API.Controllers
                         return Problem();
                     }
 
-                    var objectCreateResult = await _googleService.CreateGenericObjectAsync(profile, customer); // return JSON instead of GenericObject
+                    var objectCreateResult = await _googleWalletService.CreateGenericObjectAsync(profile, customer); //TODO: return JSON instead of GenericObject ?
                     if (!objectCreateResult.Success || objectCreateResult.Data == null)
                     {
                         return Problem();
                     }
 
-                    var objectJson = JsonSerializer.Serialize(objectCreateResult.Data, _googleService.SerializerOptions());
+                    var objectJson = JsonSerializer.Serialize(objectCreateResult.Data);
 
                     var googlePass = new GooglePass
                     {
@@ -145,7 +146,7 @@ namespace WalliCardsNet.API.Controllers
                         Customer = customer,
                     };
 
-                    var creationResult = await _googleService.CreateSignedJWTAsync(googlePass);
+                    var creationResult = await _googleWalletService.CreateSignedJWTAsync(googlePass);
                     if (creationResult.Success)
                     {
                         await _googlePassRepository.AddAsync(googlePass);
