@@ -28,7 +28,7 @@ namespace WalliCardsNet.API.Services.GoogleServices.PassBuilder
             _genericClass.MultipleDevicesAndHoldersAllowedStatus = "ONE_USER_ALL_DEVICES";
             _genericClass.CallbackOptions = new CallbackOptions
             {
-                Url = $"{_devTunnel}/api/google-callback" //TODO: FIXA TILL!
+                Url = $"{_devTunnel}//api//google-callback",  //TODO: FIXA TILL!
             };
 
             return this;
