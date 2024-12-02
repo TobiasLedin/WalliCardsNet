@@ -1,13 +1,15 @@
 ﻿@inject AuthStateProvider authState
 @inject ClientAuthService authService
 @inject NavigationManager navManager
+@inject WalliCardsApiService WalliCardsApiService;
 
-<button class="font-bold text-2xl text-gray-50 hover:text-cyan-950 transition" @onclick="async () => await LogoutAsync()">Logout</button>
+<button class="text-2xl font-bold text-gray-50 transition hover:text-cyan-950" @onclick="async () => await LogoutAsync()">Logout</button>
 
 @code {
 
     public async Task LogoutAsync()
     {
+        await WalliCardsApiService.PostAsync<string>("auth/google/signout", "google signout");
         await authService.LogoutAsync();
         await authState.LogoutAsync();
         navManager.NavigateTo("/");

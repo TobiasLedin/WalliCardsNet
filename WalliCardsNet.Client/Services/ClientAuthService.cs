@@ -14,6 +14,7 @@ namespace WalliCardsNet.Client.Services
         private readonly HttpClient _httpClient;
         private readonly ILocalStorageService _localStorage;
         private readonly AuthStateProvider _authState;
+        
 
         public ClientAuthService(IHttpClientFactory httpClientFactory, ILocalStorageService localStorage, AuthStateProvider authState)
         {
@@ -22,10 +23,10 @@ namespace WalliCardsNet.Client.Services
             _authState = authState;
         }
 
-        public async Task LoginAsync(string email, string password)
+        public async Task<LoginSuccessCheck> LoginAsync(string email, string password)
         {
             var response = await _httpClient.PostAsJsonAsync("login", new LoginRequest(email, password));
-
+            var loginSuccessCheck = new LoginSuccessCheck();
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<LoginResponse>() ?? throw new NullReferenceException("Unable to read Http response");
@@ -34,21 +35,27 @@ namespace WalliCardsNet.Client.Services
                 {
                     await _localStorage.SetItemAsync("accessToken", result.AccessToken);
                     await _authState.GetAuthenticationStateAsync();
+                    loginSuccessCheck.Success = true;
+                    return loginSuccessCheck;
                 }
             }
+            loginSuccessCheck.Success = false;
+            return loginSuccessCheck;
         }
 
-        public async Task LinkGoogleAccountAsync(string code)
+        public async Task<bool> LinkGoogleAccountAsync(string code)
         {
             var response = await _httpClient.PostAsJsonAsync("link/google", code);
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception("Something went wrong");
+                return false;
             }
+            return true;
         }
 
-        public async Task LoginGoogleAsync(string code)
+        public async Task<LoginSuccessCheck> LoginGoogleAsync(string code)
         {
+            var loginSuccessCheck = new LoginSuccessCheck();
             var response = await _httpClient.PostAsJsonAsync("google", code);
             if (response.IsSuccessStatusCode)
             {
@@ -57,12 +64,14 @@ namespace WalliCardsNet.Client.Services
                 {
                     await _localStorage.SetItemAsync("accessToken", result.AccessToken);
                     await _authState.GetAuthenticationStateAsync();
+                    loginSuccessCheck.Success = true;
+                    loginSuccessCheck.Details = "";
+                    return loginSuccessCheck;
                 }
             }
-            else
-            {
-                throw new Exception("Login failed");
-            }
+            loginSuccessCheck.Success = false;
+            loginSuccessCheck.Details = "Something went wrong";
+            return loginSuccessCheck;
         }
 
         public async Task<RefreshResult> RefreshAccessTokenAsync()
@@ -100,9 +109,11 @@ namespace WalliCardsNet.Client.Services
         public async Task LogoutAsync()
         {
             var request = new HttpRequestMessage(HttpMethod.Post, "logout");
-
-            await _httpClient.SendAsync(request);
-            await _authState.LogoutAsync();
+            var response = await _httpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                await _authState.LogoutAsync();
+            }
         }
     }
 }

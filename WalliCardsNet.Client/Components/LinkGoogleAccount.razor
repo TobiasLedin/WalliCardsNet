@@ -1,7 +1,7 @@
 ﻿@inject NavigationManager NavigationManager
 @if (string.IsNullOrEmpty(GoogleId))
 {
-    <button @onclick="RedirectToGoogleSignIn">Link your Google account</button>
+    <button class="flex w-full items-center justify-center gap-4 rounded-md bg-gray-50 px-4 py-3 font-bold text-gray-900 shadow-md transition hover:bg-gray-100 active:bg-gray-200" @onclick="RedirectToGoogleSignIn"><img class="bg-grey-50 h-6 w-6" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/640px-Google_%22G%22_logo.svg.png" />Link your Google Account</button>
 }
 
 @code {

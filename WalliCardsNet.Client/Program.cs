@@ -27,8 +27,9 @@ namespace WalliCardsNet.Client
             builder.Services.AddHttpClient("AuthClient", client =>
             {
                 client.BaseAddress = new Uri("https://localhost:7204/api/auth/");
-            }).AddHttpMessageHandler(() => new IncludeCredentialsHandler());
-            
+            })
+            .AddHttpMessageHandler(() => new IncludeCredentialsHandler());
+
             builder.Services.AddTransient<IClassLibraryBusinessProfilesService, ClassLibraryBusinessProfilesService>();
 
             builder.Services.AddBlazoredLocalStorage();
