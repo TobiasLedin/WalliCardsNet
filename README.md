@@ -1,5 +1,5 @@
 
-Created in collaboration with [GitHub Profile](https://github.com/qreedence).
+Created in collaboration with [qreedence](https://github.com/qreedence).
 
 Wallicards.NET
 Application that enables companies to create, manage and issue Google Wallet Passes to their customers.
